@@ -37,6 +37,8 @@ export class PdfReadError extends Error {
 }
 
 export const MAX_PDF_BYTES = 15 * 1024 * 1024;
+/** Tempo máximo procurando QR Code por página — a leitura do texto nunca fica travada. */
+const QR_TIMEOUT_MS = 12_000;
 
 export interface PdfReadResult {
   items: TextItem[];
@@ -90,7 +92,8 @@ async function renderPage(page: PdfJs, scale: number): Promise<ImageData | null>
   if (!ctx) return null;
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+  // intent "print": renderiza sem requestAnimationFrame, então funciona mesmo com a aba em segundo plano.
+  await page.render({ canvasContext: ctx, canvas, viewport, intent: "print" }).promise;
   return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
@@ -168,7 +171,7 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
     }
     if (decode && qrCodes.length === 0 && p <= 2) {
       try {
-        const qr = await scanPageForQr(page, decode);
+        const qr = await Promise.race([scanPageForQr(page, decode), new Promise<null>((r) => setTimeout(() => r(null), QR_TIMEOUT_MS))]);
         if (qr) qrCodes.push(qr);
       } catch {
         /* falha ao renderizar a página: ignora o QR */
