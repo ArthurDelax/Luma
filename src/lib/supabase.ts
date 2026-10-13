@@ -97,6 +97,7 @@ const ERROR_PT: Record<string, string> = {
   "Email not confirmed": "Confirme seu e-mail pelo link que enviamos antes de entrar.",
   "User already registered": "Este e-mail já tem uma conta. Use a opção de entrar.",
   "Invalid TOTP code entered": "Código inválido. Confira o código no aplicativo autenticador.",
+  "Unexpected failure, please check server logs for more information": "Falha temporária no servidor de login. Clique em Sair, entre de novo e tente outra vez.",
 };
 
 async function request<T>(path: string, init: RequestInit & { token?: string } = {}): Promise<T> {
@@ -246,7 +247,7 @@ export async function enrollTotp(s: Session): Promise<TotpEnrollment> {
   const r = await request<{ id: string; totp: { qr_code: string; secret: string; uri: string } }>("/auth/v1/factors", {
     method: "POST",
     token: s.access_token,
-    body: JSON.stringify({ factor_type: "totp", friendly_name: `Luma ${new Date().toISOString().slice(0, 16)}`, issuer: "Luma" }),
+    body: JSON.stringify({ factor_type: "totp", friendly_name: `Luma ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, issuer: "Luma" }),
   });
   return { id: r.id, ...r.totp, qr_code: qrDataUrl(r.totp.qr_code) };
 }

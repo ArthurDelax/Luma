@@ -270,7 +270,10 @@ function MfaEnroll({ session, onDone, onCancel }: { session: Session; onDone: (s
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const started = useRef(false);
   useEffect(() => {
+    if (started.current) return; // gera um único QR por tela
+    started.current = true;
     enrollTotp(session)
       .then(setEnroll)
       .catch((e) => setError(e instanceof Error ? e.message : "Não foi possível iniciar a verificação em duas etapas."));
