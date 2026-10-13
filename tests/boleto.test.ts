@@ -367,3 +367,11 @@ test("OCR: vencimento com ano improvável é trocado pelo de outra leitura", () 
   const only = extractBoleto([], "2026-10-13", { ocrItems: mk("25/11/2020") });
   assert.ok(only.warnings.some((w) => /ano do vencimento/.test(w)));
 });
+
+test("OCR: vencimento improvável vindo só da leitura extra também gera aviso", () => {
+  const base = [{ str: "GFD - Guia do FGTS Digital", x: 300, y: 780, w: 200, page: 1 }, { str: "Valor a recolher", x: 470, y: 700, w: 80, page: 1 }, { str: "842,15", x: 500, y: 685, w: 50, page: 1 }] as TextItem[];
+  const alt = [...base, { str: "Pagar este documento até", x: 450, y: 740, w: 120, page: 1 }, { str: "25/11/2020", x: 460, y: 725, w: 90, page: 1 }] as TextItem[];
+  const r = extractBoleto([], "2026-10-13", { ocrItems: base, ocrItemsAlt: [alt] });
+  assert.equal(r.dueDate, "2026-11-25");
+  assert.ok(r.warnings.some((w) => /ano do vencimento/.test(w)));
+});

@@ -378,13 +378,21 @@ export function extractBoleto(
       const days = (new Date(iso).getTime() - ref) / 86_400_000;
       return days > -400 && days < 400;
     };
-    if (r.dueDate && !plausible(r.dueDate) && r.found.dueDate !== "código de barras (Receita Federal)") {
-      const better = alts.find((a) => plausible(a.dueDate));
+    if (!plausible(r.dueDate) && r.found.dueDate !== "código de barras (Receita Federal)") {
+      const better = alts.find((a) => plausible(a.dueDate)) ?? (r.dueDate ? undefined : alts.find((a) => a.dueDate));
       if (better) {
         r.dueDate = better.dueDate;
         r.found.dueDate = better.found.dueDate;
-      } else {
-        r.warnings.push("O ano do vencimento lido parece incorreto — confira a data.");
+      }
+      if (r.dueDate && !plausible(r.dueDate)) {
+        // erro típico de OCR no último dígito do ano: usa o ano de referência (ou o seguinte)
+        const refISO = referenceISO ?? new Date().toISOString().slice(0, 10);
+        const refYear = Number(refISO.slice(0, 4));
+        let fixed = `${refYear}${r.dueDate.slice(4)}`;
+        if ((new Date(fixed).getTime() - new Date(refISO).getTime()) / 86_400_000 < -200) fixed = `${refYear + 1}${r.dueDate.slice(4)}`;
+        const original = r.dueDate.split("-").reverse().join("/");
+        r.dueDate = fixed;
+        r.warnings.push(`O ano do vencimento lido (${original}) parecia errado e foi ajustado para ${fixed.split("-").reverse().join("/")} — confira a data.`);
       }
     }
     for (const alt of alts) {
