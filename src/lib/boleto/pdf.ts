@@ -38,8 +38,8 @@ export class PdfReadError extends Error {
 }
 
 export const MAX_PDF_BYTES = 15 * 1024 * 1024;
-/** Tempo máximo procurando QR Code por página — a leitura do texto nunca fica travada. */
-const QR_TIMEOUT_MS = 12_000;
+/** Tempo máximo lendo a imagem da página (código de barras e QR Code) — a leitura nunca fica travada. */
+const QR_TIMEOUT_MS = 7_000;
 
 export interface PdfReadResult {
   items: TextItem[];
@@ -101,13 +101,16 @@ async function renderPage(page: PdfJs, scale: number): Promise<ImageData | null>
 }
 
 /** Procura QR Codes na imagem da página: primeiro inteira, depois em faixas (QR pequenos). */
-async function scanImageForQr(img: ImageData, decode: QrDecoder): Promise<string | null> {
+async function scanImageForQr(img: ImageData, decode: QrDecoder, wholeFirst = true, deadline = Infinity): Promise<string | null> {
   {
-    const whole = await decode(img);
-    if (whole) return whole;
+    if (wholeFirst) {
+      const whole = await decode(img);
+      if (whole) return whole;
+    }
     // faixas sobrepostas de 40% da altura: ajuda quando o QR é pequeno em relação à página
     const band = Math.floor(img.height * 0.4);
     for (let y = 0; y + band <= img.height; y += Math.floor(band / 2)) {
+      if (Date.now() > deadline) return null; // tempo esgotado: não segura o navegador
       const c = document.createElement("canvas");
       c.width = img.width;
       c.height = band;
@@ -164,6 +167,7 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
       decode = null; // sem leitor de QR: segue só com o texto
     }
   }
+  let imageDeadline = 0;
   for (let p = 1; p <= pages; p++) {
     const page = await doc.getPage(p);
     const content = await page.getTextContent();
@@ -184,8 +188,9 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
     const needBarcode = barcodes.length === 0 && !findDigitableLine(text)?.valid;
     const wantQr = !!decode && qrCodes.length === 0 && (!hasText || /pix|qr\s*code/i.test(text));
     if (!needBarcode && !wantQr) continue;
+    if (!imageDeadline) imageDeadline = Date.now() + QR_TIMEOUT_MS; // um único prazo para o documento todo
     try {
-      const deadline = Date.now() + QR_TIMEOUT_MS;
+      const deadline = imageDeadline;
       const timeout = () => new Promise<null>((r) => setTimeout(() => r(null), Math.max(0, deadline - Date.now())));
       for (const scale of [2.5, 4.2]) {
         const needBc = needBarcode && barcodes.length === 0;
@@ -198,7 +203,8 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
           if (bc) barcodes.push(bc);
         }
         if (needQr && decode) {
-          const qr = await Promise.race([scanImageForQr(img, decode), timeout()]);
+          // na resolução maior, só as faixas (a página inteira já foi tentada na menor)
+          const qr = await Promise.race([scanImageForQr(img, decode, scale < 3, deadline), timeout()]);
           if (qr) qrCodes.push(qr);
         }
       }
