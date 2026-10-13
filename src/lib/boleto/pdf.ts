@@ -58,7 +58,6 @@ export async function readPdfTextItems(data: ArrayBuffer, maxPages = 3): Promise
       cMapPacked: true,
       standardFontDataUrl: `${base}standard_fonts/`,
       wasmUrl: `${base}wasm/`,
-      isEvalSupported: false,
       enableXfa: false,
     });
     doc = await task.promise;

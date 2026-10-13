@@ -108,7 +108,6 @@ async function pdfItems(path: string): Promise<TextItem[]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const task = pdfjs.getDocument({
     data: new Uint8Array(readFileSync(path)),
-    isEvalSupported: false,
     standardFontDataUrl: fx("../../node_modules/pdfjs-dist/standard_fonts/"),
   });
   const doc = await task.promise;
