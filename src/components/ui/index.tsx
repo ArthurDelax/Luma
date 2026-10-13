@@ -25,21 +25,23 @@ export function cx(...parts: (string | false | null | undefined)[]): string {
 /* Logo                                                                 */
 /* ------------------------------------------------------------------ */
 
+/** Símbolo da Luma: balão de conversa com lua e brilho. */
 export function LogoMark({ className = "size-8", tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
+  const c = tone === "dark" ? "#111111" : "#f2f2ee";
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <rect width="64" height="64" rx="15" fill={tone === "dark" ? "#0b1a36" : "#ffffff"} />
-      <path d="M22 16v26a6 6 0 0 0 6 6h16" fill="none" stroke={tone === "dark" ? "#fff" : "#0b1a36"} strokeWidth="7" strokeLinecap="round" />
-      <circle cx="45" cy="21" r="6" fill="#6aa8ea" />
+    <svg viewBox="8 8 336 356" className={className} aria-hidden="true" fill="none">
+      <path d="M114.6 310.7L34 342L71.8 281.8A148.5 148.5 0 1 1 114.6 310.7Z" stroke={c} strokeWidth="34" strokeLinejoin="round" />
+      <path d="M159.2 105.8A77 77 0 1 0 246.2 192.8A62.5 62.5 0 0 1 159.2 105.8Z" fill={c} />
+      <path d="M231 81.5Q238 113 269.5 120Q238 127 231 158.5Q224 127 192.5 120Q224 113 231 81.5Z" fill={c} />
     </svg>
   );
 }
 
-export function Logo({ tone = "dark", className }: { tone?: "dark" | "light"; className?: string }) {
+export function Logo({ tone = "dark", className, size = "md" }: { tone?: "dark" | "light"; className?: string; size?: "md" | "lg" }) {
   return (
-    <span className={cx("inline-flex items-center gap-2.5", className)}>
-      <LogoMark tone={tone === "dark" ? "dark" : "light"} />
-      <span className={cx("font-display text-[1.35rem] font-semibold tracking-tight", tone === "dark" ? "text-ink" : "text-white")}>Luma</span>
+    <span className={cx("inline-flex items-center", size === "lg" ? "gap-3" : "gap-2.5", className)}>
+      <LogoMark tone={tone} className={size === "lg" ? "size-10" : "size-[30px]"} />
+      <span className={cx("font-display font-bold leading-none tracking-[-0.03em]", size === "lg" ? "text-[2rem]" : "text-[1.55rem]", tone === "dark" ? "text-ink" : "text-paper")}>Luma</span>
     </span>
   );
 }
@@ -51,11 +53,11 @@ export function Logo({ tone = "dark", className }: { tone?: "dark" | "light"; cl
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "soft";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-white hover:bg-navy-700 shadow-sm",
-  secondary: "bg-white text-ink border border-line hover:border-sky-300 hover:bg-sky-50",
-  ghost: "text-ink hover:bg-sky-100/70",
-  danger: "bg-overdue text-white hover:bg-[#a72f2f]",
-  soft: "bg-sky-100 text-navy-700 hover:bg-sky-200",
+  primary: "bg-ink text-paper hover:bg-navy-700 shadow-[0_1px_0_rgb(255_255_255/0.08)_inset,0_6px_16px_-8px_rgb(17_17_17/0.6)]",
+  secondary: "bg-white text-ink border border-line hover:border-ink/30",
+  ghost: "text-ink hover:bg-sky-100",
+  danger: "bg-overdue text-white hover:bg-[#b23431]",
+  soft: "bg-sky-100 text-ink hover:bg-sky-200",
 };
 
 export function Button({
@@ -71,8 +73,8 @@ export function Button({
       type="button"
       {...rest}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold transition-colors disabled:opacity-50",
-        size === "sm" ? "h-8 px-3 text-[13px]" : "h-10 px-4 text-sm",
+        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all active:scale-[0.98] disabled:opacity-50",
+        size === "sm" ? "h-8 px-3.5 text-[13px]" : "h-10 px-5 text-sm",
         variants[variant],
         className,
       )}
@@ -90,7 +92,7 @@ export function IconButton({ label, className, children, ...rest }: ButtonHTMLAt
       aria-label={label}
       title={label}
       {...rest}
-      className={cx("inline-grid size-9 place-items-center rounded-[10px] text-muted transition-colors hover:bg-sky-100 hover:text-ink disabled:opacity-40", className)}
+      className={cx("inline-grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-sky-100 hover:text-ink disabled:opacity-40", className)}
     >
       {children}
     </button>
@@ -108,7 +110,7 @@ const tones: Record<Tone, string> = {
   soon: "bg-soon-soft text-soon",
   paid: "bg-paid-soft text-paid",
   neutral: "bg-slate-100 text-slate-600",
-  info: "bg-sky-100 text-navy-700",
+  info: "bg-sky-100 text-ink",
   contract: "bg-contract-soft text-contract",
   doc: "bg-doc-soft text-doc",
 };
@@ -245,13 +247,13 @@ export function Modal({
   const widths = { sm: "sm:max-w-md", md: "sm:max-w-2xl", lg: "sm:max-w-4xl" };
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
-      <div className="absolute inset-0 animate-fade-in bg-navy-950/45 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="absolute inset-0 animate-fade-in bg-navy-950/40 backdrop-blur-[3px]" onClick={onClose} />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={cx("relative flex max-h-[92dvh] w-full animate-pop-in flex-col rounded-t-2xl bg-white shadow-[var(--shadow-pop)] sm:rounded-2xl", widths[size])}
+        className={cx("relative flex max-h-[92dvh] w-full animate-pop-in flex-col rounded-t-[24px] bg-white shadow-[var(--shadow-pop)] sm:rounded-[24px]", widths[size])}
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
           <div>
@@ -265,7 +267,7 @@ export function Modal({
           </IconButton>
         </div>
         <div className="overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
-        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-paper/60 px-5 py-3.5 sm:rounded-b-2xl sm:px-6">{footer}</div>}
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-paper/60 px-5 py-3.5 sm:rounded-b-[24px] sm:px-6">{footer}</div>}
       </div>
     </div>,
     document.body,
@@ -342,21 +344,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), action ? 7000 : 4200);
   }, []);
   const icons = {
-    success: <LuCircleCheck className="size-5 shrink-0 text-[#5fd39b]" />,
+    success: <LuCircleCheck className="size-5 shrink-0 text-[#6fd3a0]" />,
     error: <LuCircleAlert className="size-5 shrink-0 text-[#ff8a8a]" />,
-    info: <LuInfo className="size-5 shrink-0 text-sky-300" />,
+    info: <LuInfo className="size-5 shrink-0 text-paper/70" />,
   };
   return (
     <ToastContext.Provider value={push}>
       {children}
       <div className="no-print pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:items-end lg:px-6" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} role="status" className="pointer-events-auto flex w-full max-w-sm animate-toast-in items-center gap-3 rounded-xl bg-navy-900 px-4 py-3 text-sm text-white shadow-[var(--shadow-pop)]">
+          <div key={t.id} role="status" className="pointer-events-auto flex w-full max-w-sm animate-toast-in items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm text-paper shadow-[var(--shadow-pop)]">
             {icons[t.kind]}
             <span className="flex-1">{t.message}</span>
             {t.action && (
               <button
-                className="rounded-md px-2 py-1 font-semibold text-sky-300 hover:bg-white/10"
+                className="rounded-full px-2.5 py-1 font-semibold text-paper underline-offset-2 hover:bg-white/10"
                 onClick={() => {
                   t.action?.onClick();
                   setToasts((x) => x.filter((y) => y.id !== t.id));
@@ -381,9 +383,8 @@ export const useToast = () => useContext(ToastContext);
 export function EmptyState({ icon, title, children, action }: { icon: ReactNode; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center">
-      <div className="relative mb-4 grid size-14 place-items-center rounded-2xl bg-sky-100 text-navy-600">
+      <div className="dot-grid mb-4 grid size-16 place-items-center rounded-full border border-line bg-paper text-ink">
         {icon}
-        <span className="absolute -right-1 -top-1 size-3 rounded-full bg-sky-400 ring-4 ring-white" />
       </div>
       <h3 className="font-display text-base font-semibold">{title}</h3>
       {children && <p className="mt-1 max-w-sm text-sm text-muted">{children}</p>}
@@ -396,17 +397,17 @@ export function PageHeader({ title, description, actions }: { title: string; des
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2rem]">{title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-sm text-muted">{description}</p>}
       </div>
-      {actions && <div className="no-print flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="no-print flex shrink-0 flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string; count?: number }[]; label: string }) {
   return (
-    <div role="tablist" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-xl bg-sky-100/70 p-1">
+    <div role="tablist" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-full bg-sky-100 p-1">
       {options.map((o) => (
         <button
           key={o.value}
@@ -414,12 +415,12 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
           className={cx(
-            "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors",
-            value === o.value ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink",
+            "flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
+            value === o.value ? "bg-ink text-paper shadow-sm" : "text-muted hover:text-ink",
           )}
         >
           {o.label}
-          {o.count !== undefined && <span className={cx("rounded-full px-1.5 text-[11px] tabular", value === o.value ? "bg-sky-100 text-navy-700" : "bg-white/70")}>{o.count}</span>}
+          {o.count !== undefined && <span className={cx("rounded-full px-1.5 text-[11px] tabular", value === o.value ? "bg-white/15 text-paper" : "bg-white/80 text-muted")}>{o.count}</span>}
         </button>
       ))}
     </div>

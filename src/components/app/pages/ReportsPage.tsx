@@ -175,9 +175,9 @@ export function ReportsPage() {
             <StackedBars
               data={months.map((m) => ({ label: m.label, title: m.title, highlight: m.key === monthKey(today), segments: [{ key: "pago", value: m.pago }, { key: "vencido", value: m.vencido }, { key: "aberto", value: m.pendente }] }))}
               series={[
-                { key: "pago", label: "Pago", color: "#12264a" },
-                { key: "vencido", label: "Vencido", color: "#c23b3b" },
-                { key: "aberto", label: "A vencer", color: "#9ec6f2" },
+                { key: "pago", label: "Pago", color: "#111111" },
+                { key: "vencido", label: "Vencido", color: "#cf3f3c" },
+                { key: "aberto", label: "A vencer", color: "#c7c5bb" },
               ]}
             />
           ) : (

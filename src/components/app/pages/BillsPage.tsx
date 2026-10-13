@@ -124,11 +124,8 @@ export function BillsPage({ route }: { route: Route }) {
             <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={exportCsv} disabled={!filtered.length}>
               Exportar CSV
             </Button>
-            <Button variant="secondary" icon={<LuFileUp className="size-4" />} onClick={actions.importBoleto}>
+            <Button className="sm:hidden" icon={<LuFileUp className="size-4" />} variant="secondary" onClick={actions.importBoleto}>
               Importar boleto
-            </Button>
-            <Button icon={<LuPlus className="size-4" />} onClick={() => actions.newBill()}>
-              Nova conta
             </Button>
           </>
         }

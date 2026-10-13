@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { LuArrowUpRight, LuBell, LuCircleCheck, LuClock, LuFileText, LuReceipt, LuTriangleAlert } from "react-icons/lu";
+import { LuArrowUpRight, LuCircleCheck, LuClock, LuFileText, LuReceipt, LuTriangleAlert } from "react-icons/lu";
 import { addDays, addMonthsClamped, diffDays, formatDate, formatDateLong, monthKey, monthLabel, relativeDays, startOfMonth } from "@/lib/dates";
 import { docSituation, ALERT_LEVEL_LABEL } from "@/lib/domain";
 import { formatBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { CategoryBars, StackedBars } from "../../charts/Charts";
-import { Badge, Button, cx, EmptyState } from "../../ui";
+import { Badge, Button, cx, EmptyState, LogoMark } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
 import { Ribbon, type RibbonEvent } from "../Ribbon";
 import { MiniCalendar } from "./CalendarPage";
@@ -15,23 +15,35 @@ import { navigate } from "../routing";
 import { useUnreadAlerts } from "../Shell";
 import { StatusBadge, sumAmount, useDerived } from "../shared";
 
-function Kpi({ label, value, sub, tone = "default", icon, onClick }: { label: string; value: string; sub?: React.ReactNode; tone?: "default" | "overdue" | "soon" | "paid"; icon: React.ReactNode; onClick?: () => void }) {
+function Kpi({ label, value, sub, tone = "default", icon, onClick, share }: { label: string; value: string; sub?: React.ReactNode; tone?: "default" | "overdue" | "soon" | "paid"; icon: React.ReactNode; onClick?: () => void; share?: number }) {
   const toneCls = {
-    default: "text-navy-600 bg-sky-100",
+    default: "text-ink bg-sky-100",
     overdue: "text-overdue bg-overdue-soft",
     soon: "text-soon bg-soon-soft",
     paid: "text-paid bg-paid-soft",
   }[tone];
+  const bar = { default: "bg-ink", overdue: "bg-overdue", soon: "bg-soon", paid: "bg-paid" }[tone];
   return (
-    <button type="button" onClick={onClick} className="card group flex flex-col gap-3 p-4 text-left transition-colors hover:border-sky-300 sm:p-5">
-      <div className="flex items-center justify-between">
+    <button type="button" onClick={onClick} className="card group relative flex flex-col p-4 text-left transition-all hover:-translate-y-0.5 hover:border-ink/20 sm:p-5">
+      <div className="flex items-center gap-2.5">
+        <span className={cx("grid size-8 place-items-center rounded-full [&>svg]:size-4", toneCls)}>{icon}</span>
         <span className="text-[13px] font-semibold text-muted">{label}</span>
-        <span className={cx("grid size-8 place-items-center rounded-lg [&>svg]:size-4", toneCls)}>{icon}</span>
+        <LuArrowUpRight className="ml-auto size-4 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
-      <span className="font-display text-[1.6rem] font-semibold leading-none tracking-tight tabular">{value}</span>
-      {sub && <span className="text-xs text-muted">{sub}</span>}
+      <span className="mt-4 font-display text-[2.1rem] font-semibold leading-none tracking-[-0.03em] tabular">{value}</span>
+      {sub && <span className="mt-1.5 text-xs text-muted">{sub}</span>}
+      {share !== undefined && (
+        <span className="mt-4 h-1 overflow-hidden rounded-full bg-sky-100" aria-hidden>
+          <span className={cx("block h-full rounded-full", bar)} style={{ width: `${Math.max(2, Math.min(100, share * 100))}%` }} />
+        </span>
+      )}
     </button>
   );
+}
+
+function greeting(): string {
+  const h = new Date().getHours();
+  return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 
 export function Dashboard() {
@@ -107,35 +119,38 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-muted">{formatDateLong(today)}</p>
-          <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-tight">Visão geral</h1>
+          <h1 className="mt-1 font-display text-[1.9rem] font-semibold leading-tight tracking-[-0.03em] sm:text-[2.4rem]">{greeting()}, Empresa Demonstração</h1>
         </div>
         {unread.length > 0 && (
-          <a href="#/alertas" className="inline-flex items-center gap-2 self-start rounded-full bg-overdue-soft px-3 py-1.5 text-[13px] font-semibold text-overdue hover:bg-[#fbdcdc]">
-            <LuBell className="size-4" />
+          <a href="#/alertas" className="inline-flex items-center gap-2 self-start rounded-full border border-overdue/20 bg-white px-3.5 py-2 text-[13px] font-semibold text-overdue shadow-sm transition-colors hover:bg-overdue-soft sm:self-auto">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-overdue opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-overdue" />
+            </span>
             {unread.length} {unread.length === 1 ? "alerta não lido" : "alertas não lidos"}
           </a>
         )}
       </div>
 
       {/* Faixa de vencimentos */}
-      <section className="overflow-hidden rounded-[18px] bg-navy-900 p-4 text-white shadow-[var(--shadow-card)] sm:p-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="dot-grid-light relative overflow-hidden rounded-[28px] bg-ink p-5 text-paper shadow-[var(--shadow-pop)] sm:p-7">
+        <LogoMark tone="light" className="pointer-events-none absolute -bottom-24 -right-16 size-72 opacity-[0.04]" />
+        <div className="relative mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="font-display text-lg font-semibold">Próximos 30 dias</h2>
-            <p className="text-sm text-white/60">Cada coluna é um dia; a altura mostra quanto vence nele. Toque em um dia para ver os itens.</p>
+            <p className="text-sm text-paper/55">Total em aberto</p>
+            <p className="mt-1 font-display text-[2.4rem] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[3rem]">{formatBRL(sumAmount(open))}</p>
+            <p className="mt-3 text-sm text-paper/55">
+              <span className="font-semibold text-[#ff8f86]">{formatBRL(sumAmount(overdue))}</span> vencido
+              <span className="mx-2 text-paper/25">/</span>
+              <span className="font-semibold text-paper">{formatBRL(sumAmount(next7))}</span> nos próximos 7 dias
+            </p>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <div>
-              <p className="text-xs text-white/55">Em aberto</p>
-              <p className="font-display text-xl font-semibold tabular">{formatBRL(sumAmount(open))}</p>
-            </div>
-            <div>
-              <p className="text-xs text-white/55">Vencido</p>
-              <p className="font-display text-xl font-semibold tabular text-[#ff9a9a]">{formatBRL(sumAmount(overdue))}</p>
-            </div>
+          <div className="max-w-xs lg:text-right">
+            <h2 className="font-display text-base font-semibold">Próximos 30 dias</h2>
+            <p className="text-[13px] text-paper/50">A altura de cada coluna mostra quanto vence no dia. Toque para ver os itens.</p>
           </div>
         </div>
         <Ribbon today={today} events={ribbonEvents} tone="dark" />
@@ -143,10 +158,10 @@ export function Dashboard() {
 
       {/* Indicadores */}
       <section aria-label="Indicadores" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <Kpi label="Contas a pagar" value={String(open.length)} sub={`${formatBRL(sumAmount(open))} em aberto`} icon={<LuReceipt />} onClick={() => navigate("contas", { status: "abertas" })} />
-        <Kpi label="Vencidas" value={String(overdue.length)} sub={overdue.length ? formatBRL(sumAmount(overdue)) : "Nenhuma conta atrasada"} tone="overdue" icon={<LuTriangleAlert />} onClick={() => navigate("contas", { status: "vencido" })} />
-        <Kpi label="Vencem em 7 dias" value={String(next7.length)} sub={next7.length ? formatBRL(sumAmount(next7)) : "Nada para esta semana"} tone="soon" icon={<LuClock />} onClick={() => navigate("contas", { status: "7dias" })} />
-        <Kpi label="Pagas no mês" value={String(paidThisMonth.length)} sub={formatBRL(sumAmount(paidThisMonth))} tone="paid" icon={<LuCircleCheck />} onClick={() => navigate("contas", { status: "pago" })} />
+        <Kpi label="Contas a pagar" value={String(open.length)} sub={`${formatBRL(sumAmount(open))} em aberto`} share={withStatus.length ? open.length / withStatus.length : 0} icon={<LuReceipt />} onClick={() => navigate("contas", { status: "abertas" })} />
+        <Kpi label="Vencidas" value={String(overdue.length)} sub={overdue.length ? formatBRL(sumAmount(overdue)) : "Nenhuma conta atrasada"} tone="overdue" share={open.length ? overdue.length / open.length : 0} icon={<LuTriangleAlert />} onClick={() => navigate("contas", { status: "vencido" })} />
+        <Kpi label="Vencem em 7 dias" value={String(next7.length)} sub={next7.length ? formatBRL(sumAmount(next7)) : "Nada para esta semana"} tone="soon" share={open.length ? next7.length / open.length : 0} icon={<LuClock />} onClick={() => navigate("contas", { status: "7dias" })} />
+        <Kpi label="Pagas no mês" value={String(paidThisMonth.length)} sub={formatBRL(sumAmount(paidThisMonth))} tone="paid" share={paidThisMonth.length / Math.max(1, paidThisMonth.length + open.filter((x) => x.bill.dueDate.slice(0, 7) === today.slice(0, 7)).length)} icon={<LuCircleCheck />} onClick={() => navigate("contas", { status: "pago" })} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
@@ -160,9 +175,9 @@ export function Dashboard() {
           <StackedBars
             data={monthly}
             series={[
-              { key: "pago", label: "Pago", color: "#12264a" },
-              { key: "vencido", label: "Vencido", color: "#c23b3b" },
-              { key: "aberto", label: "A vencer", color: "#9ec6f2" },
+              { key: "pago", label: "Pago", color: "#111111" },
+              { key: "vencido", label: "Vencido", color: "#cf3f3c" },
+              { key: "aberto", label: "A vencer", color: "#c7c5bb" },
             ]}
           />
         </section>
@@ -178,7 +193,7 @@ export function Dashboard() {
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between px-4 pb-2 pt-4 sm:px-6 sm:pt-5">
             <h2 className="font-display text-base font-semibold">Próximos vencimentos</h2>
-            <a href="#/contas" className="inline-flex items-center gap-1 text-[13px] font-semibold text-navy-600 hover:underline">
+            <a href="#/contas" className="inline-flex items-center gap-1 text-[13px] font-semibold text-ink underline-offset-4 hover:underline">
               Ver todas <LuArrowUpRight className="size-3.5" />
             </a>
           </div>
@@ -216,7 +231,7 @@ export function Dashboard() {
         <section className="card p-4 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold">Calendário financeiro</h2>
-            <a href="#/calendario" className="inline-flex items-center gap-1 text-[13px] font-semibold text-navy-600 hover:underline">
+            <a href="#/calendario" className="inline-flex items-center gap-1 text-[13px] font-semibold text-ink underline-offset-4 hover:underline">
               Abrir <LuArrowUpRight className="size-3.5" />
             </a>
           </div>
@@ -225,7 +240,7 @@ export function Dashboard() {
         <section className="card p-4 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold">Contratos e documentos</h2>
-            <a href="#/documentos" className="inline-flex items-center gap-1 text-[13px] font-semibold text-navy-600 hover:underline">
+            <a href="#/documentos" className="inline-flex items-center gap-1 text-[13px] font-semibold text-ink underline-offset-4 hover:underline">
               Gerenciar <LuArrowUpRight className="size-3.5" />
             </a>
           </div>

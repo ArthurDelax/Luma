@@ -17,11 +17,11 @@ export interface RibbonEvent {
 }
 
 const KIND_COLOR: Record<RibbonKind, string> = {
-  vencida: "#c23b3b",
-  conta: "#3f8ae0",
-  recorrente: "#9ec6f2",
-  contrato: "#6a4fc7",
-  documento: "#0f7f8c",
+  vencida: "#ff6b5e",
+  conta: "#f2f2ee",
+  recorrente: "#8a887f",
+  contrato: "#a593ff",
+  documento: "#4cc3cc",
 };
 
 export const RIBBON_LEGEND: { kind: RibbonKind; label: string }[] = [
@@ -106,7 +106,7 @@ export function Ribbon({ today, events, days = 30, tone = "light", onDayClick }:
                   <span
                     className={cx(
                       "grid size-6 place-items-center rounded-full text-[11px] font-semibold tabular",
-                      isToday ? (dark ? "bg-sky-400 text-navy-950" : "bg-ink text-white") : weekend ? (dark ? "text-white/35" : "text-slate-400") : dark ? "text-white/70" : "text-slate-600",
+                      isToday ? (dark ? "bg-paper text-ink" : "bg-ink text-white") : weekend ? (dark ? "text-white/35" : "text-slate-400") : dark ? "text-white/70" : "text-slate-600",
                     )}
                   >
                     {date.getDate()}

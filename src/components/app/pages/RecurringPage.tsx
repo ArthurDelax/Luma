@@ -137,7 +137,7 @@ function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense
           <Textarea id="r-notes" value={f.notes} onChange={(e) => set("notes", e.target.value)} />
         </Field>
         <label className="flex items-center gap-2.5 text-sm font-semibold sm:col-span-2">
-          <input type="checkbox" className="size-4 accent-[#0e1f3d]" checked={f.active} onChange={(e) => set("active", e.target.checked)} />
+          <input type="checkbox" className="size-4 accent-[#111111]" checked={f.active} onChange={(e) => set("active", e.target.checked)} />
           Despesa ativa
         </label>
       </form>

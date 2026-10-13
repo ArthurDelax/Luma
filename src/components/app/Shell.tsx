@@ -13,6 +13,7 @@ import {
   LuPlus,
   LuReceipt,
   LuRepeat,
+  LuSearch,
   LuSettings,
   LuX,
 } from "react-icons/lu";
@@ -44,39 +45,66 @@ export function useUnreadAlerts() {
   }, [data, today]);
 }
 
+const GROUPS: { title: string; ids: RouteId[] }[] = [
+  { title: "Financeiro", ids: ["painel", "contas", "recorrentes", "relatorios"] },
+  { title: "Gestão", ids: ["documentos", "calendario", "alertas"] },
+  { title: "Sistema", ids: ["ajustes"] },
+];
+
 function SideNav({ current, onNavigate, counts }: { current: RouteId; onNavigate?: () => void; counts: Partial<Record<RouteId, number>> }) {
   return (
-    <nav aria-label="Navegação principal" className="flex flex-col gap-0.5">
-      {NAV.map((item) => {
-        const active = current === item.id;
-        return (
-          <a
-            key={item.id}
-            href={`#/${item.id}`}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={cx(
-              "group relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[14px] font-medium transition-colors [&>svg]:size-[18px]",
-              active ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white",
-            )}
-          >
-            {active && <span className="absolute -left-3 top-2 bottom-2 w-1 rounded-r-full bg-sky-400" />}
-            {item.icon}
-            <span className="flex-1">{item.label}</span>
-            {!!counts[item.id] && <span className={cx("rounded-full px-1.5 py-px text-[11px] font-bold tabular", item.id === "alertas" ? "bg-overdue text-white" : "bg-white/12 text-white/80")}>{counts[item.id]}</span>}
-          </a>
-        );
-      })}
+    <nav aria-label="Navegação principal" className="flex flex-col gap-6">
+      {GROUPS.map((g) => (
+        <div key={g.title}>
+          <p className="mb-2 px-3 text-[11px] font-semibold text-paper/35">{g.title}</p>
+          <div className="flex flex-col gap-0.5">
+            {g.ids.map((id) => {
+              const item = NAV.find((n) => n.id === id)!;
+              const active = current === id;
+              return (
+                <a
+                  key={id}
+                  href={`#/${id}`}
+                  onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
+                  className={cx(
+                    "group relative flex items-center gap-3 rounded-full px-3.5 py-2.5 text-[14px] font-medium transition-colors [&>svg]:size-[18px]",
+                    active ? "bg-paper text-ink" : "text-paper/60 hover:bg-white/[0.06] hover:text-paper",
+                  )}
+                >
+                  {item.icon}
+                  <span className="flex-1">{item.label}</span>
+                  {!!counts[id] && (
+                    <span className={cx("grid min-w-5 place-items-center rounded-full px-1.5 py-px text-[11px] font-bold tabular", active ? "bg-ink text-paper" : "bg-overdue text-white")}>{counts[id]}</span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
+  );
+}
+
+function CompanyCard() {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-2.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-paper font-display text-[13px] font-bold text-ink">ED</span>
+      <div className="min-w-0">
+        <p className="truncate text-[13px] font-semibold text-paper">Empresa Demonstração</p>
+        <p className="truncate text-[11px] text-paper/45">Ambiente de testes</p>
+      </div>
+    </div>
   );
 }
 
 function DemoNote() {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs leading-relaxed text-white/60">
-      <p className="font-semibold text-white/85">Versão demonstrativa</p>
+    <div className="dot-grid-light rounded-2xl border border-white/[0.08] p-3.5 text-xs leading-relaxed text-paper/55">
+      <p className="mb-0.5 font-semibold text-paper/90">Versão demonstrativa</p>
       Os dados ficam salvos apenas neste navegador.{" "}
-      <a href="#/ajustes" className="font-semibold text-sky-300 hover:underline">
+      <a href="#/ajustes" className="font-semibold text-paper underline underline-offset-2 hover:no-underline">
         Saiba mais
       </a>
     </div>
@@ -105,14 +133,14 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
     <div className="relative" ref={ref}>
       <IconButton label={`Notificações (${unread.length} não lidas)`} onClick={() => setOpen((o) => !o)} aria-expanded={open} className={cx("relative", dark && "text-white/80 hover:bg-white/10 hover:text-white")}>
         <LuBell className="size-5" />
-        {unread.length > 0 && <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-overdue px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white">{unread.length > 99 ? "99+" : unread.length}</span>}
+        {unread.length > 0 && <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-overdue px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-paper">{unread.length > 99 ? "99+" : unread.length}</span>}
       </IconButton>
       {open && (
         <div className="absolute right-0 top-11 z-40 w-[min(22rem,calc(100vw-2rem))] animate-pop-in overflow-hidden rounded-2xl border border-line bg-white text-ink shadow-[var(--shadow-pop)]">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="font-display font-semibold">Notificações</p>
             {unread.length > 0 && (
-              <button className="text-xs font-semibold text-navy-600 hover:underline" onClick={() => markAlertsRead(unread.map((a) => a.id))}>
+              <button className="text-xs font-semibold text-ink underline-offset-2 hover:underline" onClick={() => markAlertsRead(unread.map((a) => a.id))}>
                 Marcar todas como lidas
               </button>
             )}
@@ -123,7 +151,7 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
             <ul className="max-h-80 divide-y divide-line overflow-y-auto">
               {unread.slice(0, 8).map((a) => (
                 <li key={a.id} className="flex gap-3 px-4 py-3">
-                  <span className={cx("mt-1.5 size-2 shrink-0 rounded-full", a.severity === "critico" ? "bg-overdue" : a.severity === "atencao" ? "bg-soon" : "bg-sky-400")} />
+                  <span className={cx("mt-1.5 size-2 shrink-0 rounded-full", a.severity === "critico" ? "bg-overdue" : a.severity === "atencao" ? "bg-soon" : "bg-sky-300")} />
                   <div className="min-w-0 flex-1 text-sm">
                     <p className="truncate font-semibold">{a.title}</p>
                     <p className="text-xs text-muted">
@@ -134,7 +162,7 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
               ))}
             </ul>
           )}
-          <a href="#/alertas" onClick={() => setOpen(false)} className="block border-t border-line bg-paper/60 px-4 py-2.5 text-center text-sm font-semibold text-navy-700 hover:bg-sky-50">
+          <a href="#/alertas" onClick={() => setOpen(false)} className="block border-t border-line bg-paper/60 px-4 py-2.5 text-center text-sm font-semibold text-ink hover:bg-sky-100">
             Abrir central de alertas
           </a>
         </div>
@@ -159,14 +187,17 @@ export function Shell({ current, children }: { current: RouteId; children: React
   return (
     <div className="min-h-dvh lg:pl-[264px] print:pl-0">
       {/* Barra lateral (desktop) */}
-      <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col bg-navy-900 px-4 py-5 lg:flex">
-        <a href={href("/")} className="mb-7 px-2" aria-label="Luma — página inicial">
+      <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col overflow-y-auto bg-ink px-4 py-6 lg:flex">
+        <a href={href("/")} className="mb-6 px-2" aria-label="Luma — página inicial">
           <Logo tone="light" />
         </a>
+        <div className="mb-7">
+          <CompanyCard />
+        </div>
         <SideNav current={current} counts={counts} />
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto space-y-3 pt-8">
           <DemoNote />
-          <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-white/50 hover:text-white">
+          <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-paper/45 hover:text-paper">
             <LuHouse className="size-4" /> Voltar ao site
           </a>
         </div>
@@ -176,17 +207,20 @@ export function Shell({ current, children }: { current: RouteId; children: React
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 animate-fade-in bg-navy-950/50" onClick={() => setDrawer(false)} />
-          <aside className="relative flex h-full w-[82%] max-w-[300px] animate-slide-in flex-col bg-navy-900 px-4 py-5">
+          <aside className="relative flex h-full w-[82%] max-w-[300px] animate-slide-in flex-col overflow-y-auto bg-ink px-4 py-5">
             <div className="mb-6 flex items-center justify-between px-2">
               <Logo tone="light" />
               <IconButton label="Fechar menu" onClick={() => setDrawer(false)} className="text-white/70 hover:bg-white/10 hover:text-white">
                 <LuX className="size-5" />
               </IconButton>
             </div>
+            <div className="mb-6">
+              <CompanyCard />
+            </div>
             <SideNav current={current} counts={counts} onNavigate={() => setDrawer(false)} />
-            <div className="mt-auto space-y-3">
+            <div className="mt-auto space-y-3 pt-8">
               <DemoNote />
-              <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-white/50">
+              <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-paper/45">
                 <LuHouse className="size-4" /> Voltar ao site
               </a>
             </div>
@@ -195,7 +229,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
       )}
 
       {/* Topo */}
-      <header className="no-print sticky top-0 z-20 border-b border-line/80 bg-paper/85 backdrop-blur-md">
+      <header className="no-print sticky top-0 z-20 border-b border-line/70 bg-paper/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-2 px-4 sm:px-6 lg:px-8">
           <IconButton label="Abrir menu" className="lg:hidden" onClick={() => setDrawer(true)}>
             <LuMenu className="size-5" />
@@ -203,9 +237,10 @@ export function Shell({ current, children }: { current: RouteId; children: React
           <a href="#/painel" className="lg:hidden" aria-label="Painel">
             <Logo />
           </a>
-          <div className="hidden text-sm text-muted lg:block">
-            <span className="font-semibold text-ink">Empresa Demonstração</span> — ambiente de testes
-          </div>
+          <a href="#/contas" className="hidden h-10 w-80 items-center gap-2.5 whitespace-nowrap rounded-full border border-line bg-white/70 px-4 text-sm text-muted transition-colors hover:border-ink/25 lg:flex">
+            <LuSearch className="size-4 shrink-0" />
+            <span className="truncate">Buscar contas, fornecedores, chave Pix…</span>
+          </a>
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden gap-2 sm:flex">
               <Button variant="secondary" icon={<LuFileUp className="size-4" />} onClick={actions.importBoleto}>
@@ -236,16 +271,16 @@ export function Shell({ current, children }: { current: RouteId; children: React
           ] as const).map((item) =>
             item === null ? (
               <div key="fab" className="relative flex justify-center">
-                <button aria-label="Adicionar" aria-expanded={fab} onClick={() => setFab((f) => !f)} className={cx("-mt-5 grid size-14 place-items-center rounded-2xl bg-ink text-white shadow-lg ring-4 ring-paper transition-transform", fab && "rotate-45")}>
+                <button aria-label="Adicionar" aria-expanded={fab} onClick={() => setFab((f) => !f)} className={cx("-mt-5 grid size-14 place-items-center rounded-full bg-ink text-paper shadow-lg ring-4 ring-paper transition-transform", fab && "rotate-45")}>
                   <LuPlus className="size-6" />
                 </button>
                 {fab && (
                   <div className="absolute bottom-16 left-1/2 w-56 -translate-x-1/2 animate-pop-in overflow-hidden rounded-2xl border border-line bg-white shadow-[var(--shadow-pop)]">
-                    <button className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold hover:bg-sky-50" onClick={() => { setFab(false); actions.importBoleto(); }}>
-                      <LuFileUp className="size-5 text-navy-600" /> Importar boleto
+                    <button className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold hover:bg-sky-100" onClick={() => { setFab(false); actions.importBoleto(); }}>
+                      <LuFileUp className="size-5" /> Importar boleto
                     </button>
                     <button className="flex w-full items-center gap-3 border-t border-line px-4 py-3 text-left text-sm font-semibold hover:bg-sky-50" onClick={() => { setFab(false); actions.newBill(); }}>
-                      <LuPlus className="size-5 text-navy-600" /> Nova conta
+                      <LuPlus className="size-5" /> Nova conta
                     </button>
                   </div>
                 )}

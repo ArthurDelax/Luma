@@ -16,25 +16,30 @@ import {
   LuX,
   LuChevronDown,
   LuMonitorSmartphone,
+  LuArrowRight,
 } from "react-icons/lu";
 import { addDays, todayISO } from "@/lib/dates";
+import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
 import { Ribbon, type RibbonEvent } from "../app/Ribbon";
-import { cx, Logo } from "../ui";
+import { cx, Logo, LogoMark } from "../ui";
 
 const APP = href("/app/");
 
-function CTA({ children = "Experimentar demonstração", variant = "light", className }: { children?: React.ReactNode; variant?: "light" | "dark"; className?: string }) {
+function CTA({ children = "Experimentar demonstração", variant = "dark", className }: { children?: React.ReactNode; variant?: "light" | "dark"; className?: string }) {
   return (
     <a
       href={APP}
       className={cx(
-        "inline-flex h-12 items-center justify-center rounded-xl px-6 text-[15px] font-semibold transition-colors",
-        variant === "light" ? "bg-white text-ink hover:bg-sky-100" : "bg-ink text-white hover:bg-navy-700",
+        "group inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full pl-6 pr-2 text-[15px] font-semibold transition-all active:scale-[0.98]",
+        variant === "light" ? "bg-paper text-ink hover:bg-white" : "bg-ink text-paper hover:bg-navy-700",
         className,
       )}
     >
       {children}
+      <span className={cx("grid size-8 place-items-center rounded-full transition-transform group-hover:translate-x-0.5", variant === "light" ? "bg-ink text-paper" : "bg-paper text-ink")}>
+        <LuArrowRight className="size-4" />
+      </span>
     </a>
   );
 }
@@ -50,34 +55,34 @@ function Header() {
   }, []);
   const links = [
     ["#funcionalidades", "Funcionalidades"],
-    ["#boletos", "Leitura de boletos"],
+    ["#boletos", "Boletos e Pix"],
     ["#como-funciona", "Como funciona"],
     ["#perguntas", "Perguntas"],
   ];
   return (
-    <header className={cx("fixed inset-x-0 top-0 z-40 transition-colors", scrolled || open ? "bg-navy-900/95 backdrop-blur-md" : "bg-transparent")}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+    <header className={cx("fixed inset-x-0 top-0 z-40 transition-all", scrolled || open ? "border-b border-line/70 bg-paper/85 backdrop-blur-xl" : "border-b border-transparent")}>
+      <div className="mx-auto flex h-[72px] max-w-6xl items-center gap-6 px-4 sm:px-6">
         <a href={href("/")} aria-label="Luma — início">
-          <Logo tone="light" />
+          <Logo />
         </a>
         <nav aria-label="Seções" className="ml-6 hidden gap-1 md:flex">
           {links.map(([h, l]) => (
-            <a key={h} href={h} className="rounded-lg px-3 py-2 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white">
+            <a key={h} href={h} className="rounded-full px-3.5 py-2 text-sm font-medium text-ink/65 transition-colors hover:bg-ink/5 hover:text-ink">
               {l}
             </a>
           ))}
         </nav>
-        <a href={APP} className="ml-auto hidden h-10 items-center rounded-[10px] bg-white px-4 text-sm font-semibold text-ink hover:bg-sky-100 sm:inline-flex">
-          Experimentar demonstração
+        <a href={APP} className="ml-auto hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
+          Abrir demonstração
         </a>
-        <button className="ml-auto grid size-10 place-items-center rounded-lg text-white md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <button className="ml-auto grid size-10 place-items-center rounded-full text-ink md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           {open ? <LuX className="size-6" /> : <LuMenu className="size-6" />}
         </button>
       </div>
       {open && (
-        <nav className="border-t border-white/10 px-4 pb-5 pt-2 md:hidden">
+        <nav className="border-t border-line px-4 pb-5 pt-2 md:hidden">
           {links.map(([h, l]) => (
-            <a key={h} href={h} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-3 text-base font-medium text-white/85 hover:bg-white/5">
+            <a key={h} href={h} onClick={() => setOpen(false)} className="block rounded-2xl px-3 py-3 text-base font-medium text-ink hover:bg-ink/5">
               {l}
             </a>
           ))}
@@ -114,37 +119,64 @@ function Hero() {
   const [today, setToday] = useState("2026-01-15");
   useEffect(() => setToday(todayISO()), []);
   const events = useSampleEvents(today);
+  const open = events.reduce((a, e) => a + (e.amount ?? 0), 0);
+  const overdue = events.filter((e) => e.kind === "vencida").length;
+  const week = events.filter((e) => e.kind !== "vencida" && e.amount !== undefined && e.date <= addDays(today, 7)).length;
+  const docs = events.filter((e) => e.kind === "contrato" || e.kind === "documento").length;
   return (
-    <section className="relative overflow-hidden bg-navy-900 pb-16 pt-28 text-white sm:pb-24 sm:pt-36">
-      <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 size-[34rem] rounded-full bg-[radial-gradient(circle,rgba(106,168,234,0.28),transparent_65%)]" />
+    <section className="dot-grid relative overflow-hidden pb-20 pt-32 sm:pb-28 sm:pt-40">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="max-w-3xl">
-          <h1 className="font-display text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.02em] sm:text-[4.2rem]">
-            Sua empresa.
-            <br />
-            Tudo sob controle.
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-            A Luma reúne contas a pagar, boletos, despesas recorrentes, contratos e documentos em um só painel — e avisa antes de cada vencimento.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <CTA />
-            <a href="#funcionalidades" className="inline-flex h-12 items-center justify-center rounded-xl px-5 text-[15px] font-semibold text-white/85 ring-1 ring-inset ring-white/20 hover:bg-white/5">
-              Ver funcionalidades
-            </a>
+        <div className="grid items-end gap-10 lg:grid-cols-[1.25fr_1fr]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/80 py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium text-ink/75 shadow-sm">
+              <span className="grid size-6 place-items-center rounded-full bg-ink">
+                <LogoMark tone="light" className="size-3.5" />
+              </span>
+              Demonstração gratuita, sem cadastro
+            </span>
+            <h1 className="mt-6 font-display text-[2.9rem] font-bold leading-[1] tracking-[-0.035em] sm:text-[5rem]">
+              Sua empresa.
+              <br />
+              Tudo sob controle.
+            </h1>
           </div>
-          <p className="mt-4 text-sm text-white/50">Demonstração gratuita, sem cadastro. Os dados ficam salvos só no seu navegador.</p>
+          <div className="lg:pb-3">
+            <p className="max-w-md text-lg leading-relaxed text-ink/70">
+              Contas a pagar, boletos com Pix, despesas recorrentes, contratos e documentos em um só painel — com aviso antes de cada vencimento.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <CTA />
+              <a href="#funcionalidades" className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-ink/15 bg-white/60 px-6 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40">
+                Funcionalidades
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-14 rounded-[20px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)] sm:p-6">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="dot-grid-light relative mt-14 overflow-hidden rounded-[32px] bg-ink p-5 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:mt-16 sm:p-8">
+          <LogoMark tone="light" className="pointer-events-none absolute -bottom-28 -right-20 size-80 opacity-[0.05]" />
+          <div className="relative mb-6 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="font-display text-lg font-semibold">Os próximos 30 dias, de relance</p>
-              <p className="text-sm text-white/55">Exemplo com dados fictícios. Toque em um dia para ver o que vence.</p>
+              <p className="text-sm text-paper/50">Total em aberto — exemplo fictício</p>
+              <p className="mt-1 font-display text-[2.3rem] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[3.2rem]">{formatBRL(open)}</p>
             </div>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/70">Faixa de vencimentos</span>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {[
+                ["Vencidas", String(overdue), "text-[#ff8f86]"],
+                ["Em 7 dias", String(week), "text-paper"],
+                ["Contratos e docs.", String(docs), "text-[#4cc3cc]"],
+              ].map(([l, v, c]) => (
+                <div key={l} className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 sm:px-4">
+                  <p className="text-[11px] text-paper/50 sm:text-xs">{l}</p>
+                  <p className={cx("font-display text-xl font-semibold sm:text-2xl", c)}>{v}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <Ribbon today={today} events={events} tone="dark" />
+          <div className="relative">
+            <Ribbon today={today} events={events} tone="dark" />
+          </div>
         </div>
       </div>
     </section>
@@ -231,7 +263,7 @@ const FEATURES = [
   { icon: <LuFilePenLine />, title: "Contratos e documentos", text: "Validade de contratos, certificados digitais, licenças, alvarás e seguros em um só lugar." },
   { icon: <LuBell />, title: "Central de alertas", text: "Avisos 30, 15, 7 e 3 dias antes, no dia e depois do vencimento." },
   { icon: <LuCalendarDays />, title: "Calendário financeiro", text: "Contas, recorrências, contratos e documentos no mês, com cores por tipo." },
-  { icon: <LuChartColumn />, title: "Relatórios", text: "Despesas por período e categoria, contas pagas, pendentes e vencidas, evolução mensal. Exporte em CSV ou imprima.", wide: true },
+  { icon: <LuChartColumn />, title: "Relatórios", text: "Despesas por período e categoria, contas pagas, pendentes e vencidas, evolução mensal. Exporte em CSV ou imprima." },
 ];
 
 function Features() {
@@ -254,11 +286,15 @@ function Features() {
               <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{f.text}</p>
             </div>
           ))}
-          <div className="flex flex-col justify-between bg-navy-900 p-6 text-white sm:col-span-2 lg:col-span-2">
-            <p className="font-display text-lg font-semibold">Veja funcionando</p>
-            <a href={APP} className="mt-4 inline-flex h-10 w-fit items-center rounded-[10px] bg-white px-4 text-sm font-semibold text-ink hover:bg-sky-100">
-              Abrir demonstração
-            </a>
+          <div className="dot-grid-light flex flex-col gap-4 bg-ink p-6 text-paper sm:col-span-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-4 lg:px-8">
+            <div className="flex items-center gap-4">
+              <LogoMark tone="light" className="size-10 shrink-0" />
+              <div>
+                <p className="font-display text-lg font-semibold">Veja tudo isso funcionando</p>
+                <p className="text-sm text-paper/55">A demonstração já vem com dados fictícios para explorar.</p>
+              </div>
+            </div>
+            <CTA variant="light">Abrir demonstração</CTA>
           </div>
         </div>
       </div>

@@ -52,8 +52,8 @@ export function StackedBars({ data, series, height = 240 }: { data: BarDatum[]; 
           const y = padT + innerH - (t / max) * innerH;
           return (
             <g key={t}>
-              <line x1={padL} x2={W - 8} y1={y} y2={y} stroke="#e2e8f1" strokeDasharray={t === 0 ? undefined : "3 4"} />
-              <text x={padL - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#5b6b84" className="tabular">
+              <line x1={padL} x2={W - 8} y1={y} y2={y} stroke="#e3e2db" strokeDasharray={t === 0 ? undefined : "3 4"} />
+              <text x={padL - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#6b6a63" className="tabular">
                 {formatBRLCompact(t).replace(",00", "")}
               </text>
             </g>
@@ -65,7 +65,7 @@ export function StackedBars({ data, series, height = 240 }: { data: BarDatum[]; 
           const total = totals[i];
           return (
             <g key={d.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} tabIndex={0} aria-label={`${d.title}: ${formatBRL(total)}`}>
-              <rect x={padL + slot * i} y={padT} width={slot} height={innerH} fill={hover === i ? "#f3f8fe" : "transparent"} />
+              <rect x={padL + slot * i} y={padT} width={slot} height={innerH} fill={hover === i ? "#f2f2ee" : "transparent"} />
               {d.segments.map((s, si) => {
                 const h = (s.value / max) * innerH;
                 const y = padT + innerH - acc - h;
@@ -81,7 +81,7 @@ export function StackedBars({ data, series, height = 240 }: { data: BarDatum[]; 
                   />
                 ) : null;
               })}
-              <text x={x + barW / 2} y={H - 9} textAnchor="middle" fontSize="11.5" fill={d.highlight ? "#0e1f3d" : "#5b6b84"} fontWeight={d.highlight ? 700 : 500}>
+              <text x={x + barW / 2} y={H - 9} textAnchor="middle" fontSize="11.5" fill={d.highlight ? "#111111" : "#6b6a63"} fontWeight={d.highlight ? 700 : 500}>
                 {d.label}
               </text>
             </g>
@@ -152,7 +152,7 @@ export function CategoryBars({ data, limit = 7 }: { data: { label: string; value
             </span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-sky-100">
-            <div className="h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: i === 0 ? "#12264a" : i < 3 ? "#3f8ae0" : "#9ec6f2", transition: "width .4s ease" }} />
+            <div className="h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: i === 0 ? "#111111" : i < 3 ? "#5c5b55" : "#c7c5bb", transition: "width .4s ease" }} />
           </div>
         </li>
       ))}

@@ -424,7 +424,7 @@ export function BillEditor({
         <div className="grid gap-4 rounded-xl border border-line bg-paper/60 p-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2.5 text-sm font-semibold">
-              <input type="checkbox" className="size-4 accent-[#1f7a55]" checked={f.paid} onChange={(e) => set("paid", e.target.checked)} />
+              <input type="checkbox" className="size-4 accent-[#1f7f55]" checked={f.paid} onChange={(e) => set("paid", e.target.checked)} />
               Esta conta já foi paga
             </label>
             {f.paid && (
@@ -452,7 +452,7 @@ export function BillEditor({
             ) : null}
             {newFile && pendingFile === newFile && (
               <label className="flex items-center gap-2 text-[13px]">
-                <input type="checkbox" className="size-4 accent-[#0e1f3d]" checked={keepPdf} onChange={(e) => setKeepPdf(e.target.checked)} />
+                <input type="checkbox" className="size-4 accent-[#111111]" checked={keepPdf} onChange={(e) => setKeepPdf(e.target.checked)} />
                 Guardar este PDF junto com a conta
               </label>
             )}
