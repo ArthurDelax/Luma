@@ -8,6 +8,7 @@
 
 import { BASE_PATH } from "../paths.ts";
 import type { TextItem } from "./extract.ts";
+import { scanImageForBarcode, toGray } from "./itf.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type PdfJs = any;
@@ -45,6 +46,8 @@ export interface PdfReadResult {
   pages: number;
   /** Conteúdo dos QR Codes encontrados nas páginas (ex.: Pix Copia e Cola). */
   qrCodes: string[];
+  /** Códigos de barras (44 dígitos, DV conferido) lidos da imagem da página. */
+  barcodes: string[];
 }
 
 /* ---------------- QR Code ---------------- */
@@ -97,11 +100,9 @@ async function renderPage(page: PdfJs, scale: number): Promise<ImageData | null>
   return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }
 
-/** Procura QR Codes na página: primeiro na página inteira, depois em faixas (QR pequenos). */
-async function scanPageForQr(page: PdfJs, decode: QrDecoder): Promise<string | null> {
-  for (const scale of [2.5]) {
-    const img = await renderPage(page, scale);
-    if (!img) return null;
+/** Procura QR Codes na imagem da página: primeiro inteira, depois em faixas (QR pequenos). */
+async function scanImageForQr(img: ImageData, decode: QrDecoder): Promise<string | null> {
+  {
     const whole = await decode(img);
     if (whole) return whole;
     // faixas sobrepostas de 40% da altura: ajuda quando o QR é pequeno em relação à página
@@ -120,7 +121,7 @@ async function scanPageForQr(page: PdfJs, decode: QrDecoder): Promise<string | n
   return null;
 }
 
-export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr?: boolean } = {}): Promise<PdfReadResult> {
+export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr?: boolean; scanImage?: boolean } = {}): Promise<PdfReadResult> {
   if (data.byteLength > MAX_PDF_BYTES) {
     throw new PdfReadError("too_large", "O arquivo é maior que 15 MB.");
   }
@@ -153,6 +154,7 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
 
   const items: TextItem[] = [];
   const qrCodes: string[] = [];
+  const barcodes: string[] = [];
   const pages = Math.min(doc.numPages, maxPages);
   let decode: QrDecoder | null = null;
   if (options.scanQr !== false) {
@@ -169,16 +171,32 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
       if (typeof it.str !== "string") continue;
       items.push({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width ?? 0, page: p });
     }
-    if (decode && qrCodes.length === 0 && p <= 2) {
+    // Imagem da página: código de barras (útil em PDFs sem texto) e QR Code Pix.
+    if (p <= 2 && options.scanImage !== false && (barcodes.length === 0 || (decode && qrCodes.length === 0))) {
       try {
-        const qr = await Promise.race([scanPageForQr(page, decode), new Promise<null>((r) => setTimeout(() => r(null), QR_TIMEOUT_MS))]);
-        if (qr) qrCodes.push(qr);
+        const timeout = new Promise<null>((r) => setTimeout(() => r(null), QR_TIMEOUT_MS));
+        const img = await Promise.race([renderPage(page, 2.5), timeout]);
+        if (img) {
+          if (barcodes.length === 0) {
+            const bc = scanImageForBarcode(toGray(img));
+            if (bc) barcodes.push(bc);
+          }
+          if (decode && qrCodes.length === 0) {
+            let qr = await Promise.race([scanImageForQr(img, decode), timeout]);
+            // QR Codes pequenos (ex.: Pix do DARF) só são lidos com mais resolução
+            if (!qr) {
+              const big = await Promise.race([renderPage(page, 4.2), timeout]);
+              if (big) qr = await Promise.race([scanImageForQr(big, decode), timeout]);
+            }
+            if (qr) qrCodes.push(qr);
+          }
+        }
       } catch {
-        /* falha ao renderizar a página: ignora o QR */
+        /* falha ao renderizar a página: segue só com o texto */
       }
     }
   }
   const total = doc.numPages as number;
   await task.destroy();
-  return { items, pages: total, qrCodes };
+  return { items, pages: total, qrCodes, barcodes };
 }

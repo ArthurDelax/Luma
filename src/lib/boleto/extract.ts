@@ -302,7 +302,56 @@ function findParty(lines: Line[], labels: RegExp[]): { name?: string; cnpj?: str
 /* Extração principal                                                   */
 /* ------------------------------------------------------------------ */
 
-export function extractBoleto(items: TextItem[], referenceISO?: string, extras: { qrCodes?: string[] } = {}): ExtractedBoleto {
+/** Linha lida do código de barras da imagem (só aceita leitura com DV conferido). */
+function linhaFromBarcodes(barcodes: string[] | undefined, referenceISO?: string): LinhaResult | undefined {
+  for (const b of barcodes ?? []) {
+    const r = parseLinhaDigitavel(b, referenceISO);
+    if (!isParseError(r) && r.valid) return r;
+  }
+  return undefined;
+}
+
+/** Preenche valor, vencimento, banco e nº do documento a partir da linha/código de barras. */
+function applyLinha(result: ExtractedBoleto, linha: LinhaResult, source: "linha digitável" | "código de barras") {
+  result.linha = linha;
+  result.digitableLine = linha.digitable;
+  result.found.digitableLine = linha.valid ? `${source} (DV conferido)` : `${source} (DV não confere)`;
+  if (!linha.valid) {
+    result.warnings.push("Encontramos uma linha digitável, mas os dígitos verificadores não conferem. Confira a linha antes de salvar.");
+  }
+  if (linha.valid && linha.amount !== undefined) {
+    result.amount = linha.amount;
+    result.found.amount = source;
+  }
+  if (linha.valid && linha.dueDate) {
+    result.dueDate = linha.dueDate;
+    result.found.dueDate = linha.kind === "bancario" ? "fator de vencimento" : `${source} (${linha.agency ?? "guia"})`;
+  }
+  if (linha.valid && linha.documentNumber && !result.documentNumber) {
+    result.documentNumber = linha.documentNumber;
+    result.found.documentNumber = source;
+  }
+  if (linha.kind === "bancario" && linha.bankCode) {
+    const name = bankName(linha.bankCode);
+    result.bank = name ? `${linha.bankCode} – ${name}` : linha.bankCode;
+    result.found.bank = "código do banco";
+  }
+}
+
+/** Guia da Receita Federal reconhecida só pelo código de barras (PDF sem texto). */
+function applyAgencyGuide(result: ExtractedBoleto) {
+  if (result.guide || result.linha?.agency !== "Receita Federal") return;
+  const darf = GUIDES.find((g) => g.id === "darf")!;
+  result.guide = darf.name;
+  result.category = darf.category;
+  result.description = darf.name;
+  if (!result.supplier) {
+    result.supplier = darf.supplier;
+    result.found.supplier = "código de barras (Receita Federal)";
+  }
+}
+
+export function extractBoleto(items: TextItem[], referenceISO?: string, extras: { qrCodes?: string[]; barcodes?: string[] } = {}): ExtractedBoleto {
   const lines = buildLines(items);
   const fullText = lines.map((l) => l.text).join("\n");
   // versão sem separadores entre trechos da mesma linha (códigos longos vêm fatiados)
@@ -311,10 +360,16 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
   const result: ExtractedBoleto = { found: {}, warnings: [], textLength };
 
   if (textLength < 20) {
+    const fromImage = linhaFromBarcodes(extras.barcodes, referenceISO);
+    if (fromImage) {
+      applyLinha(result, fromImage, "código de barras");
+      applyAgencyGuide(result);
+    }
     applyPix(result, "", "", extras.qrCodes ?? []);
+    const read = [fromImage && "o código de barras", result.pix && "o QR Code Pix"].filter(Boolean).join(" e ");
     result.warnings.unshift(
-      result.pix
-        ? "O PDF não possui texto extraível (parece digitalizado). Lemos apenas o QR Code Pix — preencha o restante manualmente."
+      read
+        ? `O PDF não possui texto (é uma imagem). Lemos ${read}${fromImage?.dueDate ? "" : " — confira o vencimento"}; preencha o que faltar.`
         : "O PDF não possui texto extraível. Ele provavelmente é uma imagem digitalizada — preencha os dados manualmente.",
     );
     return result;
@@ -322,28 +377,11 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
 
   // 1) Linha digitável: a fonte mais confiável de valor, vencimento e banco.
   const pixInText = findPixPayloadInText([tightText, fullText]);
-  const linha = findDigitableLine(fullText, referenceISO, pixInText ? onlyDigits(pixInText.raw) : "");
-  if (linha) {
-    result.linha = linha;
-    result.digitableLine = linha.digitable;
-    result.found.digitableLine = linha.valid ? "linha digitável (DV conferido)" : "linha digitável (DV não confere)";
-    if (!linha.valid) {
-      result.warnings.push("Encontramos uma linha digitável, mas os dígitos verificadores não conferem. Confira a linha antes de salvar.");
-    }
-    if (linha.valid && linha.amount !== undefined) {
-      result.amount = linha.amount;
-      result.found.amount = "linha digitável";
-    }
-    if (linha.valid && linha.dueDate) {
-      result.dueDate = linha.dueDate;
-      result.found.dueDate = "fator de vencimento";
-    }
-    if (linha.kind === "bancario" && linha.bankCode) {
-      const name = bankName(linha.bankCode);
-      result.bank = name ? `${linha.bankCode} – ${name}` : linha.bankCode;
-      result.found.bank = "código do banco";
-    }
-  } else {
+  const textLinha = findDigitableLine(fullText, referenceISO, pixInText ? onlyDigits(pixInText.raw) : "");
+  const imageLinha = textLinha?.valid ? undefined : linhaFromBarcodes(extras.barcodes, referenceISO);
+  if (imageLinha) applyLinha(result, imageLinha, "código de barras");
+  else if (textLinha) applyLinha(result, textLinha, "linha digitável");
+  else {
     result.warnings.push("Não encontramos uma linha digitável no documento.");
   }
 
@@ -435,6 +473,7 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
     if (i >= 0) result.warnings.splice(i, 1); // guias pagas por Pix podem não ter linha digitável
   }
 
+  applyAgencyGuide(result);
   applyPix(result, fullText, tightText, extras.qrCodes ?? []);
   if (!result.linha && result.pix) {
     const i = result.warnings.indexOf("Não encontramos uma linha digitável no documento.");

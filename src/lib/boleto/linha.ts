@@ -42,6 +42,10 @@ export interface LinhaResult {
   /** Código do banco (bancário) ou segmento (arrecadação). */
   bankCode?: string;
   segment?: string;
+  /** Órgão identificado pelo código da empresa (ex.: Receita Federal em DARF). */
+  agency?: string;
+  /** Número do documento codificado no código de barras (ex.: DARF numerado). */
+  documentNumber?: string;
   /** Observações técnicas (ex.: valor é referência, não reais). */
   notes: string[];
 }
@@ -184,7 +188,8 @@ function analyzeArrecadacaoBarcode(barcode: string, digitable: string, blockChec
   } else if (valueId === "7" || valueId === "9") {
     notes.push("O valor deste documento é uma referência (quantidade/moeda), não um valor em reais.");
   }
-  notes.push("Documentos de arrecadação não codificam o vencimento de forma padronizada.");
+  const federal = receitaFederal(barcode);
+  if (!federal.dueDate) notes.push("Documentos de arrecadação não codificam o vencimento de forma padronizada.");
   return {
     kind: "arrecadacao",
     digitable,
@@ -193,8 +198,28 @@ function analyzeArrecadacaoBarcode(barcode: string, digitable: string, blockChec
     checks,
     amount,
     segment: barcode[1],
+    ...federal,
     notes,
   };
+}
+
+/**
+ * Guias da Receita Federal (DARF, inclusive INSS/DCTFWeb): segmento 5, empresa 0385.
+ * Posições 20–24 trazem o vencimento no formato AADDD (ano + dia do ano) e
+ * 25–41 o número do documento (ex.: 07.16.26217.9824419-6).
+ */
+function receitaFederal(barcode: string): { agency?: string; dueDate?: string; documentNumber?: string } {
+  if (barcode[1] !== "5" || barcode.slice(15, 19) !== "0385") return {};
+  const yy = Number(barcode.slice(19, 21));
+  const ddd = Number(barcode.slice(21, 24));
+  let dueDate: string | undefined;
+  if (ddd >= 1 && ddd <= 366) {
+    const iso = addDays(`20${String(yy).padStart(2, "0")}-01-01`, ddd - 1);
+    if (iso.startsWith(`20${String(yy).padStart(2, "0")}`)) dueDate = iso;
+  }
+  const n = barcode.slice(24, 41);
+  const documentNumber = /^\d{17}$/.test(n) && Number(n) > 0 ? `${n.slice(0, 2)}.${n.slice(2, 4)}.${n.slice(4, 9)}.${n.slice(9, 16)}-${n.slice(16)}` : undefined;
+  return { agency: "Receita Federal", dueDate, documentNumber };
 }
 
 function analyzeArrecadacaoLinha(linha: string): LinhaResult {

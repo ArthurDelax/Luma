@@ -248,3 +248,58 @@ test("guia do FGTS Digital (GFD): valor, vencimento, empregador e competência",
   assert.equal(r.pix?.dynamic, true);
   assert.deepEqual(r.warnings, []);
 });
+
+/* ---------------- Código de barras lido da imagem (PDF sem texto) ---------------- */
+
+import { decodeRow } from "../src/lib/boleto/itf.ts";
+
+const DARF_BARCODE = "85810000012345603852630007162630012345678123"; // fictício: R$ 1.234,56, venc. 27/10/2026
+
+/** Gera as larguras (barra, espaço, …) de um código Intercalado 2 de 5, como numa imagem. */
+function itfRuns(code: string, narrow = 2, wide = 6): number[] {
+  const P: Record<string, string> = { "0": "nnwwn", "1": "wnnnw", "2": "nwnnw", "3": "wwnnn", "4": "nnwnw", "5": "wnwnn", "6": "nwwnn", "7": "nnnww", "8": "wnnwn", "9": "nwnwn" };
+  const runs = [narrow, narrow, narrow, narrow];
+  for (let i = 0; i < code.length; i += 2) {
+    for (let j = 0; j < 5; j++) runs.push(P[code[i]][j] === "w" ? wide : narrow, P[code[i + 1]][j] === "w" ? wide : narrow);
+  }
+  runs.push(wide, narrow, narrow);
+  return runs;
+}
+
+test("DARF: código de barras traz vencimento (AADDD) e número do documento", () => {
+  const r = parseLinhaDigitavel(DARF_BARCODE, "2026-10-01");
+  assert.ok(!isParseError(r));
+  assert.equal(r.valid, true);
+  assert.equal(r.amount, 1234.56);
+  assert.equal(r.dueDate, "2026-10-27");
+  assert.equal(r.documentNumber, "07.16.26300.1234567-8");
+  assert.equal(r.agency, "Receita Federal");
+});
+
+test("arrecadação comum (não Receita) continua sem vencimento", () => {
+  const l = buildArrecadacaoLinha("2", "6", 287.4, "0123456789012345678901234567");
+  const r = parseLinhaDigitavel(l);
+  assert.ok(!isParseError(r));
+  assert.equal(r.dueDate, undefined);
+  assert.equal(r.agency, undefined);
+});
+
+test("leitor de código de barras: decodifica larguras com ruído e recusa código adulterado", () => {
+  const runs = itfRuns(DARF_BARCODE).map((w, i) => w + (i % 7 === 0 ? 1 : 0)); // pequenas variações de largura
+  assert.equal(decodeRow([3, 9, ...runs, 9]), DARF_BARCODE); // com outras barras antes
+  assert.equal(decodeRow(runs), DARF_BARCODE);
+  const broken = DARF_BARCODE.slice(0, 10) + (DARF_BARCODE[10] === "9" ? "0" : String(Number(DARF_BARCODE[10]) + 1)) + DARF_BARCODE.slice(11);
+  assert.equal(decodeRow(itfRuns(broken)), null);
+});
+
+test("PDF sem texto: usa o código de barras da imagem (DARF/INSS)", () => {
+  const r = extractBoleto([], "2026-10-01", { barcodes: [DARF_BARCODE] });
+  assert.equal(r.amount, 1234.56);
+  assert.equal(r.dueDate, "2026-10-27");
+  assert.equal(r.documentNumber, "07.16.26300.1234567-8");
+  assert.equal(r.supplier, "Receita Federal");
+  assert.equal(r.guide, "DARF");
+  assert.equal(r.category, "Impostos e taxas");
+  assert.equal(r.digitableLine?.length, 48);
+  assert.match(r.warnings[0], /código de barras/);
+});

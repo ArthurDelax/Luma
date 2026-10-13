@@ -46,8 +46,8 @@ export function ImportBoleto({
     setState("reading");
     try {
       const buf = await file.arrayBuffer();
-      const { items, qrCodes } = await readPdf(buf);
-      const result = extractBoleto(items, today, { qrCodes });
+      const { items, qrCodes, barcodes } = await readPdf(buf);
+      const result = extractBoleto(items, today, { qrCodes, barcodes });
       reset();
       onExtracted(file, result);
     } catch (e) {
