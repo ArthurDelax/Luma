@@ -45,7 +45,7 @@ jobs:
           WHATSAPP_NUMBER: "5562993047680"
           # Supabase: valores PÚBLICOS (URL do projeto e publishable key).
           # Nunca coloque aqui a secret key / service_role nem a senha do banco.
-          SUPABASE_URL: ""
+          SUPABASE_URL: "https://ttauvysbkhayoshgztga.supabase.co"
           SUPABASE_ANON_KEY: "sb_publishable_OoBLVfGok3IdLSvw805lTA_lXmpX26D"
 
       - uses: actions/upload-pages-artifact@v3
