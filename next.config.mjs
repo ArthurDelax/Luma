@@ -19,6 +19,9 @@ const nextConfig = {
     // A versão publicada no GitHub Pages é sempre a demonstração somente leitura.
     NEXT_PUBLIC_DEMO_MODE: process.env.DEMO_MODE ?? "true",
     NEXT_PUBLIC_WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER ?? "",
+    // Supabase: URL do projeto e chave pública (anon). Nunca use a chave service_role aqui.
+    NEXT_PUBLIC_SUPABASE_URL: process.env.SUPABASE_URL ?? "",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "",
   },
   eslint: { ignoreDuringBuilds: true },
 };

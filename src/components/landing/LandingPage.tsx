@@ -530,7 +530,12 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 max-w-6xl border-t border-white/10 px-4 pt-6 text-xs text-white/40 sm:px-6">© {new Date().getFullYear()} Luma.</div>
+      <div className="mx-auto mt-10 flex max-w-6xl items-center justify-between gap-4 border-t border-white/10 px-4 pt-6 text-xs text-white/40 sm:px-6">
+        <span>© {new Date().getFullYear()} Luma.</span>
+        <a href={href("/admin/")} className="text-white/25 transition-colors hover:text-white/60" rel="nofollow">
+          Acesso restrito
+        </a>
+      </div>
     </footer>
   );
 }
