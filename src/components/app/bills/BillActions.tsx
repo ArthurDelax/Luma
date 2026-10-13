@@ -5,6 +5,7 @@ import { LuCircleCheck, LuCopy, LuFileText, LuPencil, LuRotateCcw, LuTrash2 } fr
 import { openAttachment } from "@/lib/attachments";
 import type { ExtractedBoleto } from "@/lib/boleto/extract";
 import { formatLinha, isParseError, parseLinhaDigitavel } from "@/lib/boleto/linha";
+import { classifyPixKey, formatPixKey, parsePixPayload, PIX_KEY_TYPE_LABEL } from "@/lib/boleto/pix";
 import { formatDate, todayISO } from "@/lib/dates";
 import { billStatus, FREQUENCY_LABEL, type Occurrence } from "@/lib/domain";
 import { formatBRL, formatCNPJ, formatFileSize } from "@/lib/format";
@@ -149,6 +150,8 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
               digitableLine: result.digitableLine,
               documentNumber: result.documentNumber,
               bank: result.bank,
+              pixKey: result.pixKey,
+              pixCopiaECola: result.pixCopiaECola,
               source: "boleto",
             },
           });
@@ -200,6 +203,27 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
       <dt className="text-muted">{label}</dt>
       <dd className="min-w-0 break-words font-medium">{children}</dd>
     </div>
+  );
+}
+
+function CopyButton({ text, label, done }: { text: string; label: string; done: string }) {
+  const toast = useToast();
+  return (
+    <button
+      className="shrink-0 rounded-md p-1 text-muted hover:bg-sky-100 hover:text-ink"
+      aria-label={label}
+      title={label}
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          toast("success", done);
+        } catch {
+          toast("error", "Não foi possível copiar.");
+        }
+      }}
+    >
+      <LuCopy className="size-4" />
+    </button>
   );
 }
 
@@ -271,6 +295,33 @@ function BillDetail({ bill, today, onClose, actions, recurringName }: { bill: Bi
             {linha && !isParseError(linha) && (
               <span className={linha.valid ? "text-xs text-paid" : "text-xs text-overdue"}>{linha.valid ? "Dígitos verificadores conferem" : "Dígitos verificadores não conferem"}</span>
             )}
+          </Row>
+        )}
+        {bill.pixKey && (
+          <Row label="Chave Pix">
+            <div className="flex items-start gap-2">
+              <span className="break-all">{formatPixKey(bill.pixKey)}</span>
+              <CopyButton text={bill.pixKey} label="Copiar chave Pix" done="Chave Pix copiada." />
+            </div>
+            {classifyPixKey(bill.pixKey) && <span className="text-xs font-normal text-muted">{PIX_KEY_TYPE_LABEL[classifyPixKey(bill.pixKey)!.type]}</span>}
+          </Row>
+        )}
+        {bill.pixCopiaECola && (
+          <Row label="Pix Copia e Cola">
+            <div className="flex items-start gap-2">
+              <code className="line-clamp-3 break-all font-mono text-[12px] leading-relaxed">{bill.pixCopiaECola}</code>
+              <CopyButton text={bill.pixCopiaECola} label="Copiar código Pix" done="Código Pix copiado." />
+            </div>
+            {(() => {
+              const p = parsePixPayload(bill.pixCopiaECola);
+              if (!p) return null;
+              return (
+                <span className={p.crcValid ? "text-xs text-paid" : "text-xs text-overdue"}>
+                  {p.crcValid ? "Código íntegro (CRC confere)" : "CRC não confere"}
+                  {p.merchantName ? ` · recebedor: ${p.merchantName}` : ""}
+                </span>
+              );
+            })()}
           </Row>
         )}
         {bill.notes && <Row label="Observações"><span className="whitespace-pre-wrap font-normal">{bill.notes}</span></Row>}

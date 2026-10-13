@@ -38,7 +38,86 @@ export class PdfReadError extends Error {
 
 export const MAX_PDF_BYTES = 15 * 1024 * 1024;
 
-export async function readPdfTextItems(data: ArrayBuffer, maxPages = 3): Promise<{ items: TextItem[]; pages: number }> {
+export interface PdfReadResult {
+  items: TextItem[];
+  pages: number;
+  /** Conteúdo dos QR Codes encontrados nas páginas (ex.: Pix Copia e Cola). */
+  qrCodes: string[];
+}
+
+/* ---------------- QR Code ---------------- */
+
+type QrDecoder = (img: ImageData) => Promise<string | null>;
+let qrDecoder: Promise<QrDecoder> | null = null;
+
+/** Usa o BarcodeDetector nativo quando existir; senão, a biblioteca jsQR (carregada sob demanda). */
+function getQrDecoder(): Promise<QrDecoder> {
+  if (!qrDecoder) {
+    qrDecoder = (async () => {
+      const BD = (globalThis as any).BarcodeDetector;
+      let native: any = null;
+      try {
+        if (BD && (await BD.getSupportedFormats?.())?.includes("qr_code")) native = new BD({ formats: ["qr_code"] });
+      } catch {
+        native = null;
+      }
+      const { default: jsQR } = await import("jsqr");
+      return async (img: ImageData) => {
+        if (native) {
+          try {
+            const found = await native.detect(img);
+            if (found?.[0]?.rawValue) return String(found[0].rawValue);
+          } catch {
+            /* cai para o jsQR */
+          }
+        }
+        return jsQR(img.data, img.width, img.height, { inversionAttempts: "attemptBoth" })?.data ?? null;
+      };
+    })();
+    qrDecoder.catch(() => {
+      qrDecoder = null;
+    });
+  }
+  return qrDecoder;
+}
+
+async function renderPage(page: PdfJs, scale: number): Promise<ImageData | null> {
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, canvas, viewport }).promise;
+  return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+/** Procura QR Codes na página: primeiro na página inteira, depois em faixas (QR pequenos). */
+async function scanPageForQr(page: PdfJs, decode: QrDecoder): Promise<string | null> {
+  for (const scale of [2.5]) {
+    const img = await renderPage(page, scale);
+    if (!img) return null;
+    const whole = await decode(img);
+    if (whole) return whole;
+    // faixas sobrepostas de 40% da altura: ajuda quando o QR é pequeno em relação à página
+    const band = Math.floor(img.height * 0.4);
+    for (let y = 0; y + band <= img.height; y += Math.floor(band / 2)) {
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = band;
+      const cx = c.getContext("2d", { willReadFrequently: true });
+      if (!cx) break;
+      cx.putImageData(img, 0, -y);
+      const found = await decode(cx.getImageData(0, 0, img.width, band));
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr?: boolean } = {}): Promise<PdfReadResult> {
   if (data.byteLength > MAX_PDF_BYTES) {
     throw new PdfReadError("too_large", "O arquivo é maior que 15 MB.");
   }
@@ -70,7 +149,16 @@ export async function readPdfTextItems(data: ArrayBuffer, maxPages = 3): Promise
   }
 
   const items: TextItem[] = [];
+  const qrCodes: string[] = [];
   const pages = Math.min(doc.numPages, maxPages);
+  let decode: QrDecoder | null = null;
+  if (options.scanQr !== false) {
+    try {
+      decode = await getQrDecoder();
+    } catch {
+      decode = null; // sem leitor de QR: segue só com o texto
+    }
+  }
   for (let p = 1; p <= pages; p++) {
     const page = await doc.getPage(p);
     const content = await page.getTextContent();
@@ -78,8 +166,16 @@ export async function readPdfTextItems(data: ArrayBuffer, maxPages = 3): Promise
       if (typeof it.str !== "string") continue;
       items.push({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width ?? 0, page: p });
     }
+    if (decode && qrCodes.length === 0 && p <= 2) {
+      try {
+        const qr = await scanPageForQr(page, decode);
+        if (qr) qrCodes.push(qr);
+      } catch {
+        /* falha ao renderizar a página: ignora o QR */
+      }
+    }
   }
   const total = doc.numPages as number;
   await task.destroy();
-  return { items, pages: total };
+  return { items, pages: total, qrCodes };
 }

@@ -226,7 +226,7 @@ function ProductPreview() {
 
 const FEATURES = [
   { icon: <LuReceipt />, title: "Contas a pagar", text: "Cadastre, edite, filtre e marque como paga. Contas vencidas são identificadas automaticamente, e cadastros duplicados são bloqueados.", wide: true },
-  { icon: <LuFileUp />, title: "Importação de boletos", text: "Selecione o PDF e a Luma preenche beneficiário, CNPJ, valor, vencimento e linha digitável para você conferir." },
+  { icon: <LuFileUp />, title: "Importação de boletos", text: "Selecione o PDF e a Luma preenche beneficiário, CNPJ, valor, vencimento, linha digitável, chave Pix e Pix Copia e Cola para você conferir." },
   { icon: <LuRepeat />, title: "Despesas recorrentes", text: "Aluguel, internet, contabilidade e assinaturas com frequência mensal, trimestral ou anual." },
   { icon: <LuFilePenLine />, title: "Contratos e documentos", text: "Validade de contratos, certificados digitais, licenças, alvarás e seguros em um só lugar." },
   { icon: <LuBell />, title: "Central de alertas", text: "Avisos 30, 15, 7 e 3 dias antes, no dia e depois do vencimento." },
@@ -272,7 +272,8 @@ function Boletos() {
     ["CNPJ", "11.222.333/0001-81", true],
     ["Valor", "R$ 389,90", true],
     ["Vencimento", "20/11/2026", true],
-    ["Nº do documento", "000981", true],
+    ["Chave Pix", "11.222.333/0001-81 (CNPJ)", true],
+    ["Pix Copia e Cola", "lido do QR Code", true],
     ["Pagador", "—", false],
   ] as const;
   return (
@@ -305,7 +306,7 @@ function Boletos() {
         <div className="order-1 min-w-0 lg:order-2">
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Do PDF para a conta a pagar, sem digitar</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted">
-            Selecione o boleto e a Luma lê o texto do documento, encontra a linha digitável e confere os dígitos verificadores — de boletos bancários e de contas de consumo.
+            Selecione o boleto e a Luma lê o documento: encontra a linha digitável e confere os dígitos verificadores, e também pega a chave Pix e o código Pix Copia e Cola — inclusive lendo o QR Code.
           </p>
           <ul className="mt-6 space-y-3 text-[15px]">
             <li className="flex gap-3">
@@ -323,12 +324,12 @@ function Boletos() {
             <li className="flex gap-3">
               <LuReceipt className="mt-0.5 size-5 shrink-0 text-navy-600" />
               <span>
-                <strong>Sem pagar duas vezes.</strong> A mesma linha digitável não pode ser cadastrada de novo.
+                <strong>Sem pagar duas vezes.</strong> A mesma linha digitável ou o mesmo Pix não pode ser cadastrado de novo.
               </span>
             </li>
           </ul>
           <p className="mt-6 text-sm text-muted">
-            Linha digitável válida indica que os números foram lidos corretamente — não que o boleto seja legítimo. Confira sempre o beneficiário. PDFs escaneados (imagem) ainda não são lidos.
+            Linha digitável e Pix válidos indicam que os códigos foram lidos corretamente — não que a cobrança seja legítima. Se o recebedor do Pix for diferente do beneficiário do boleto, a Luma avisa. Em PDFs escaneados, só o QR Code Pix é lido.
           </p>
         </div>
       </div>
@@ -393,7 +394,7 @@ const FAQ = [
   ["Onde ficam os meus dados?", "Somente no navegador que você está usando (armazenamento local). Eles não são enviados para servidores e não aparecem em outros dispositivos. Se você limpar os dados do navegador, eles serão apagados — use a opção de backup em “Dados e ajustes”."],
   ["Os boletos em PDF são enviados para algum lugar?", "Não. A leitura acontece dentro do seu navegador, com a biblioteca PDF.js. Se você optar por anexar o PDF à conta, ele também fica guardado apenas no navegador."],
   ["A Luma paga os boletos?", "Não. A Luma organiza e lembra dos vencimentos. O pagamento continua sendo feito no seu banco; depois, basta marcar a conta como paga."],
-  ["Quais boletos a leitura automática reconhece?", "Boletos bancários (linha digitável de 47 dígitos) e documentos de arrecadação, como contas de consumo e tributos (48 dígitos), desde que o PDF tenha texto. PDFs digitalizados como imagem precisam ser preenchidos manualmente."],
+  ["Quais boletos a leitura automática reconhece?", "Boletos bancários (linha digitável de 47 dígitos), documentos de arrecadação, como contas de consumo e tributos (48 dígitos), e cobranças com Pix: a Luma pega a chave Pix escrita no documento e o código Pix Copia e Cola, inclusive lendo o QR Code. Em PDFs digitalizados como imagem, apenas o QR Code Pix é lido; o restante é preenchido manualmente."],
   ["Recebo alertas por e-mail ou WhatsApp?", "Ainda não. Nesta versão os alertas aparecem dentro da Luma, no ícone de notificações e na central de alertas."],
   ["Posso usar com mais de uma pessoa?", "Nesta demonstração não há login nem compartilhamento. Cada navegador tem seus próprios dados."],
 ];

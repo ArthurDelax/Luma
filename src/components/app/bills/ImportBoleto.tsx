@@ -3,7 +3,7 @@
 import { useRef, useState, type DragEvent } from "react";
 import { LuDownload, LuFileUp, LuLoaderCircle, LuShieldCheck } from "react-icons/lu";
 import { extractBoleto, type ExtractedBoleto } from "@/lib/boleto/extract";
-import { MAX_PDF_BYTES, PdfReadError, readPdfTextItems } from "@/lib/boleto/pdf";
+import { MAX_PDF_BYTES, PdfReadError, readPdf } from "@/lib/boleto/pdf";
 import { href } from "@/lib/paths";
 import { useStore } from "@/lib/store";
 import { Button, cx, Modal } from "../../ui";
@@ -46,8 +46,8 @@ export function ImportBoleto({
     setState("reading");
     try {
       const buf = await file.arrayBuffer();
-      const { items } = await readPdfTextItems(buf);
-      const result = extractBoleto(items, today);
+      const { items, qrCodes } = await readPdf(buf);
+      const result = extractBoleto(items, today, { qrCodes });
       reset();
       onExtracted(file, result);
     } catch (e) {
@@ -108,7 +108,7 @@ export function ImportBoleto({
           <>
             <LuLoaderCircle className="size-10 animate-spin text-sky-500" />
             <p className="mt-4 font-semibold">Lendo o boleto…</p>
-            <p className="mt-1 text-sm text-muted">O arquivo está sendo processado no seu navegador.</p>
+            <p className="mt-1 text-sm text-muted">Procurando linha digitável, chave Pix e QR Code. O arquivo é processado no seu navegador.</p>
           </>
         ) : (
           <>
@@ -136,7 +136,7 @@ export function ImportBoleto({
         </li>
         <li className="flex gap-2">
           <LuShieldCheck className="mt-0.5 size-4 shrink-0 text-paid" />
-          Funciona com boletos digitais (gerados pelo banco). PDFs digitalizados/escaneados não têm texto legível e precisam ser preenchidos à mão.
+          Reconhece linha digitável, chave Pix e QR Code Pix (copia e cola) de boletos digitais. Em PDFs escaneados o texto não é lido, mas o QR Code Pix ainda pode ser.
         </li>
         <li className="flex gap-2">
           <LuShieldCheck className="mt-0.5 size-4 shrink-0 text-paid" />

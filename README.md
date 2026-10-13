@@ -11,7 +11,7 @@ Luma é uma plataforma de gestão empresarial para pequenas e médias empresas, 
 - **Site institucional** com apresentação, funcionalidades, como funciona e perguntas frequentes.
 - **Painel** com faixa de vencimentos dos próximos 30 dias, indicadores, despesas por mês e por categoria, próximos vencimentos, calendário e alertas.
 - **Contas a pagar**: cadastrar, editar, excluir (com confirmação), marcar como paga, reabrir, buscar, filtrar (status, categoria, vencimento), ordenar (data, valor), anexar PDF, exportar CSV e bloqueio de duplicidades.
-- **Importação de boletos em PDF** (PDF.js, 100% no navegador): beneficiário, CNPJ, pagador, valor, vencimento, linha digitável, nº do documento e banco. Validação dos dígitos verificadores de boletos bancários (47 dígitos, módulo 10 + módulo 11) e de arrecadação (48 dígitos, módulo 10 ou 11 conforme o identificador de valor), incluindo o novo ciclo do fator de vencimento (a partir de 22/02/2025).
+- **Importação de boletos em PDF** (PDF.js, 100% no navegador): beneficiário, CNPJ, pagador, valor, vencimento, linha digitável, nº do documento, banco, **chave Pix** e **Pix Copia e Cola** (lido do texto ou do QR Code, com validação do CRC16 e alerta quando o recebedor do Pix difere do beneficiário). Validação dos dígitos verificadores de boletos bancários (47 dígitos, módulo 10 + módulo 11) e de arrecadação (48 dígitos, módulo 10 ou 11 conforme o identificador de valor), incluindo o novo ciclo do fator de vencimento (a partir de 22/02/2025).
 - **Despesas recorrentes** mensais, trimestrais ou anuais, com previsão de vencimentos e lançamento sem duplicar.
 - **Contratos e documentos** com situação (vigente, a vencer, vencido) e anexo.
 - **Central de alertas**: 30, 15, 7 e 3 dias antes, no dia e após o vencimento.

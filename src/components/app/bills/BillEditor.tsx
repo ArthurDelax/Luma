@@ -6,6 +6,7 @@ import { MAX_ATTACHMENT_BYTES, saveAttachment, deleteAttachment } from "@/lib/at
 import { FIELD_LABELS, type ExtractedBoleto, type FieldKey } from "@/lib/boleto/extract";
 import { formatLinha, isParseError, parseLinhaDigitavel } from "@/lib/boleto/linha";
 import { bankName } from "@/lib/boleto/banks";
+import { classifyPixKey, formatPixKey, namesLookRelated, parsePixPayload, PIX_KEY_TYPE_LABEL } from "@/lib/boleto/pix";
 import { formatDate, isValidISO } from "@/lib/dates";
 import { CATEGORIES, findDuplicates, type DuplicateMatch } from "@/lib/domain";
 import { amountToInput, formatBRL, formatCNPJ, formatFileSize, isValidCNPJ, onlyDigits, parseBRL } from "@/lib/format";
@@ -26,6 +27,8 @@ interface FormState {
   digitableLine: string;
   bank: string;
   payer: string;
+  pixKey: string;
+  pixCopiaECola: string;
   notes: string;
   paid: boolean;
   paidAt: string;
@@ -43,6 +46,8 @@ function toForm(b: BillDraft, today: string): FormState {
     digitableLine: b.digitableLine ? formatLinha(b.digitableLine) : "",
     bank: b.bank ?? "",
     payer: b.payer ?? "",
+    pixKey: b.pixKey ? formatPixKey(b.pixKey) : "",
+    pixCopiaECola: b.pixCopiaECola ?? "",
     notes: b.notes ?? "",
     paid: !!b.paidAt,
     paidAt: b.paidAt ?? today,
@@ -99,6 +104,9 @@ export function BillEditor({
     return parseLinhaDigitavel(d, today);
   }, [f.digitableLine, today]);
 
+  const pix = useMemo(() => (f.pixCopiaECola.trim() ? parsePixPayload(f.pixCopiaECola) : undefined), [f.pixCopiaECola]);
+  const keyInfo = useMemo(() => (f.pixKey.trim() ? classifyPixKey(f.pixKey) : undefined), [f.pixKey]);
+
   const fromPdf = (k: FieldKey) => (extraction?.found[k] ? <Badge tone="info" className="!py-0 !text-[11px]">lido do PDF</Badge> : undefined);
 
   function validate(): { errors: Errors; bill?: Omit<Bill, "id" | "createdAt" | "updatedAt"> } {
@@ -113,6 +121,8 @@ export function BillEditor({
     if (!f.category) e.category = "Escolha uma categoria.";
     if (f.supplierCnpj.trim() && !isValidCNPJ(f.supplierCnpj)) e.supplierCnpj = "CNPJ inválido (dígitos verificadores não conferem).";
     if (onlyDigits(f.digitableLine) && linha && isParseError(linha)) e.digitableLine = linha.error;
+    if (f.pixKey.trim() && !classifyPixKey(f.pixKey)) e.pixKey = "Chave Pix inválida. Use CPF, CNPJ, e-mail, celular com +55 ou chave aleatória.";
+    if (f.pixCopiaECola.trim() && !pix) e.pixCopiaECola = "Este não parece ser um código Pix Copia e Cola (deve começar com 000201).";
     if (f.paid && !isValidISO(f.paidAt)) e.paidAt = "Informe a data do pagamento.";
     if (Object.keys(e).length) return { errors: e };
     return {
@@ -128,6 +138,8 @@ export function BillEditor({
         digitableLine: onlyDigits(f.digitableLine) || undefined,
         bank: f.bank.trim() || undefined,
         payer: f.payer.trim() || undefined,
+        pixKey: f.pixKey.trim() ? classifyPixKey(f.pixKey)?.key : undefined,
+        pixCopiaECola: pix?.raw,
         notes: f.notes.trim() || undefined,
         paidAt: f.paid ? f.paidAt : undefined,
         recurringId: initial.recurringId,
@@ -352,6 +364,49 @@ export function BillEditor({
                   </button>
                 )}
               </div>
+            )}
+          </Field>
+
+          <Field
+            label="Chave Pix"
+            htmlFor="b-pixkey"
+            className="sm:col-span-2"
+            error={errors.pixKey}
+            extra={fromPdf("pixKey")}
+            hint={keyInfo ? `${PIX_KEY_TYPE_LABEL[keyInfo.type]} reconhecido` : "Opcional. CPF, CNPJ, e-mail, celular ou chave aleatória."}
+          >
+            <Input id="b-pixkey" value={f.pixKey} onChange={(e) => set("pixKey", e.target.value)} onBlur={() => keyInfo && set("pixKey", formatPixKey(keyInfo.key, keyInfo.type))} placeholder="Ex.: financeiro@fornecedor.com.br" maxLength={120} invalid={!!errors.pixKey} />
+          </Field>
+          <Field label="Pix Copia e Cola" htmlFor="b-pixcode" error={errors.pixCopiaECola} extra={fromPdf("pixCopiaECola")} className="sm:col-span-2">
+            <Textarea
+              id="b-pixcode"
+              value={f.pixCopiaECola}
+              onChange={(e) => set("pixCopiaECola", e.target.value)}
+              placeholder="00020126…"
+              className="min-h-16 break-all font-mono text-[12px]"
+              maxLength={600}
+            />
+            {pix && (
+              <div className={cx("flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-[13px]", pix.crcValid ? "bg-paid-soft text-paid" : "bg-overdue-soft text-overdue")}>
+                {pix.crcValid ? <LuCircleCheck className="size-4" /> : <LuCircleAlert className="size-4" />}
+                <span className="font-semibold">{pix.crcValid ? "Código Pix íntegro (CRC confere)" : "CRC não confere — o código pode estar incompleto"}</span>
+                <span className="text-slate-600">
+                  {pix.merchantName && `Recebedor: ${pix.merchantName}`}
+                  {pix.amount !== undefined && ` · ${formatBRL(pix.amount)}`}
+                  {pix.dynamic && " · QR dinâmico"}
+                </span>
+                {pix.crcValid && pix.key && !f.pixKey.trim() && (
+                  <button type="button" onClick={() => set("pixKey", formatPixKey(pix.key!, pix.keyType))} className="ml-auto rounded-md bg-white px-2 py-1 text-xs font-semibold text-navy-700 hover:bg-sky-50">
+                    Usar chave do código
+                  </button>
+                )}
+              </div>
+            )}
+            {pix?.merchantName && f.supplier.trim() && !namesLookRelated(f.supplier, pix.merchantName) && (
+              <p className="flex items-start gap-1.5 text-xs font-medium text-soon">
+                <LuTriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+                O recebedor do Pix ({pix.merchantName}) é diferente do fornecedor informado. Confirme antes de pagar.
+              </p>
             )}
           </Field>
 

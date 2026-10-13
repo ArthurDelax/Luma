@@ -11,6 +11,7 @@ import { brDateToISO } from "../dates.ts";
 import { isValidCNPJ, onlyDigits, parseBRL } from "../format.ts";
 import { bankName } from "./banks.ts";
 import { isParseError, parseLinhaDigitavel, type LinhaResult } from "./linha.ts";
+import { findPixKeyInText, findPixPayloadInText, namesLookRelated, parsePixPayload, PIX_KEY_TYPE_LABEL, type PixKeyType, type PixPayload } from "./pix.ts";
 
 export interface TextItem {
   str: string;
@@ -28,7 +29,9 @@ export type FieldKey =
   | "dueDate"
   | "digitableLine"
   | "documentNumber"
-  | "bank";
+  | "bank"
+  | "pixKey"
+  | "pixCopiaECola";
 
 export interface ExtractedBoleto {
   supplier?: string;
@@ -39,6 +42,10 @@ export interface ExtractedBoleto {
   digitableLine?: string;
   documentNumber?: string;
   bank?: string;
+  pixKey?: string;
+  pixKeyType?: PixKeyType;
+  pixCopiaECola?: string;
+  pix?: PixPayload;
   linha?: LinhaResult;
   /** Campos encontrados, com a origem da informação. */
   found: Partial<Record<FieldKey, string>>;
@@ -90,13 +97,18 @@ export function buildLines(items: TextItem[]): Line[] {
 /* ------------------------------------------------------------------ */
 
 /** Procura no texto sequências numéricas que formem uma linha digitável válida. */
-export function findDigitableLine(fullText: string, referenceISO?: string): LinhaResult | undefined {
+export function findDigitableLine(fullText: string, referenceISO?: string, excludeDigits = ""): LinhaResult | undefined {
   const candidates: string[] = [];
   const re = /\d[\d.\s-]{38,80}\d/g;
   for (const m of fullText.matchAll(re)) {
     const digits = onlyDigits(m[0]);
     for (const len of [48, 47, 44]) {
-      for (let i = 0; i + len <= digits.length; i++) candidates.push(digits.slice(i, i + len));
+      for (let i = 0; i + len <= digits.length; i++) {
+        const c = digits.slice(i, i + len);
+        // ignora números que fazem parte do código Pix Copia e Cola
+        if (excludeDigits && excludeDigits.includes(c)) continue;
+        candidates.push(c);
+      }
     }
   }
   let invalid: LinhaResult | undefined;
@@ -231,19 +243,27 @@ function findParty(lines: Line[], labels: RegExp[]): { name?: string; cnpj?: str
 /* Extração principal                                                   */
 /* ------------------------------------------------------------------ */
 
-export function extractBoleto(items: TextItem[], referenceISO?: string): ExtractedBoleto {
+export function extractBoleto(items: TextItem[], referenceISO?: string, extras: { qrCodes?: string[] } = {}): ExtractedBoleto {
   const lines = buildLines(items);
   const fullText = lines.map((l) => l.text).join("\n");
+  // versão sem separadores entre trechos da mesma linha (códigos longos vêm fatiados)
+  const tightText = lines.map((l) => l.items.map((i) => i.str).join("")).join("\n");
   const textLength = fullText.replace(/\s/g, "").length;
   const result: ExtractedBoleto = { found: {}, warnings: [], textLength };
 
   if (textLength < 20) {
-    result.warnings.push("O PDF não possui texto extraível. Ele provavelmente é uma imagem digitalizada — preencha os dados manualmente.");
+    applyPix(result, "", "", extras.qrCodes ?? []);
+    result.warnings.unshift(
+      result.pix
+        ? "O PDF não possui texto extraível (parece digitalizado). Lemos apenas o QR Code Pix — preencha o restante manualmente."
+        : "O PDF não possui texto extraível. Ele provavelmente é uma imagem digitalizada — preencha os dados manualmente.",
+    );
     return result;
   }
 
   // 1) Linha digitável: a fonte mais confiável de valor, vencimento e banco.
-  const linha = findDigitableLine(fullText, referenceISO);
+  const pixInText = findPixPayloadInText([tightText, fullText]);
+  const linha = findDigitableLine(fullText, referenceISO, pixInText ? onlyDigits(pixInText.raw) : "");
   if (linha) {
     result.linha = linha;
     result.digitableLine = linha.digitable;
@@ -332,7 +352,76 @@ export function extractBoleto(items: TextItem[], referenceISO?: string): Extract
     }
   }
 
+  applyPix(result, fullText, tightText, extras.qrCodes ?? []);
+  if (!result.linha && result.pix) {
+    const i = result.warnings.indexOf("Não encontramos uma linha digitável no documento.");
+    if (i >= 0) result.warnings[i] = "Não encontramos linha digitável — o documento parece ser uma cobrança via Pix.";
+  }
+
   return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pix                                                                  */
+/* ------------------------------------------------------------------ */
+
+function applyPix(result: ExtractedBoleto, fullText: string, tightText: string, qrCodes: string[]) {
+  // 1) QR Code (mais confiável), 2) código copia e cola impresso no texto.
+  let payload: PixPayload | undefined;
+  let source = "";
+  for (const q of qrCodes) {
+    const p = parsePixPayload(q);
+    if (p && (!payload || (p.crcValid && !payload.crcValid))) {
+      payload = p;
+      source = "QR Code Pix";
+    }
+  }
+  if (!payload && (fullText || tightText)) {
+    payload = findPixPayloadInText([tightText, fullText]);
+    if (payload) source = "Pix Copia e Cola impresso";
+  }
+
+  if (payload) {
+    result.pix = payload;
+    result.pixCopiaECola = payload.raw;
+    result.found.pixCopiaECola = payload.crcValid ? `${source} (CRC conferido)` : `${source} (CRC não confere)`;
+    if (!payload.crcValid) {
+      result.warnings.push("O código Pix encontrado está com o dígito de controle (CRC) incorreto. Confira antes de usar.");
+    }
+    if (payload.key) {
+      result.pixKey = payload.key;
+      result.pixKeyType = payload.keyType;
+      result.found.pixKey = source;
+    }
+    if (payload.crcValid && payload.amount !== undefined) {
+      if (result.amount === undefined) {
+        result.amount = payload.amount;
+        result.found.amount = source;
+      } else if (Math.abs(result.amount - payload.amount) > 0.009) {
+        result.warnings.push("O valor do Pix é diferente do valor do boleto. Confira antes de pagar.");
+      }
+    }
+    if (payload.merchantName) {
+      if (!result.supplier) {
+        result.supplier = payload.merchantName;
+        result.found.supplier = "recebedor do Pix";
+      } else if (!namesLookRelated(result.supplier, payload.merchantName)) {
+        result.warnings.push(
+          `O recebedor do Pix ("${payload.merchantName}") não parece ser o beneficiário do boleto ("${result.supplier}"). Confirme com o fornecedor antes de pagar.`,
+        );
+      }
+    }
+  }
+
+  // Chave escrita no documento ("Chave Pix: ...") quando o código não trouxe uma.
+  if (!result.pixKey && fullText) {
+    const k = findPixKeyInText(fullText);
+    if (k) {
+      result.pixKey = k.key;
+      result.pixKeyType = k.type;
+      result.found.pixKey = `campo Chave Pix (${PIX_KEY_TYPE_LABEL[k.type]})`;
+    }
+  }
 }
 
 export const FIELD_LABELS: Record<FieldKey, string> = {
@@ -344,4 +433,6 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   digitableLine: "Linha digitável",
   documentNumber: "Nº do documento",
   bank: "Banco emissor",
+  pixKey: "Chave Pix",
+  pixCopiaECola: "Pix Copia e Cola",
 };

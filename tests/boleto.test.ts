@@ -162,3 +162,74 @@ test("PDF sem boleto não preenche campos", async () => {
   assert.equal(r.digitableLine, undefined);
   assert.equal(r.amount, undefined);
 });
+
+/* ---------------- Pix ---------------- */
+
+import { buildPixPayload, classifyPixKey, crc16, findPixKeyInText, parsePixPayload } from "../src/lib/boleto/pix.ts";
+
+test("Pix: exemplo oficial do Banco Central (CRC e campos)", () => {
+  const ex = "00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D";
+  const p = parsePixPayload(ex);
+  assert.ok(p);
+  assert.equal(p.crcValid, true);
+  assert.equal(p.key, "123e4567-e12b-12d1-a456-426655440000");
+  assert.equal(p.keyType, "aleatoria");
+  assert.equal(p.merchantName, "Fulano de Tal");
+  assert.equal(p.merchantCity, "BRASILIA");
+  assert.equal(p.amount, undefined);
+  assert.equal(crc16(ex.slice(0, -4)), "1D3D");
+});
+
+test("Pix: CRC alterado é detectado e código que não é Pix é ignorado", () => {
+  const ok = buildPixPayload({ key: "11222333000181", name: "Empresa", city: "SP", amount: 10 });
+  const bad = ok.slice(0, -1) + (ok.endsWith("0") ? "1" : "0");
+  assert.equal(parsePixPayload(bad)?.crcValid, false);
+  assert.equal(parsePixPayload("000201010212"), undefined);
+  assert.equal(parsePixPayload("qualquer texto"), undefined);
+});
+
+test("Pix: tipos de chave", () => {
+  assert.equal(classifyPixKey("11.222.333/0001-81")?.type, "cnpj");
+  assert.equal(classifyPixKey("529.982.247-25")?.type, "cpf");
+  assert.equal(classifyPixKey("529.982.247-26"), undefined);
+  assert.equal(classifyPixKey("Financeiro@Empresa.com.br")?.key, "financeiro@empresa.com.br");
+  assert.equal(classifyPixKey("+55 (11) 98765-4321")?.type, "telefone");
+  assert.equal(classifyPixKey("123e4567-e12b-12d1-a456-426655440000")?.type, "aleatoria");
+  assert.deepEqual(findPixKeyInText("Pague via Pix\nChave Pix (CNPJ): 11.222.333/0001-81\n"), { key: "11222333000181", type: "cnpj" });
+  assert.deepEqual(findPixKeyInText("CHAVE PIX: pagamentos@fornecedor.com"), { key: "pagamentos@fornecedor.com", type: "email" });
+});
+
+test("boleto com Pix: lê chave e copia e cola impressos", async () => {
+  const r = extractBoleto(await pdfItems(fx("boleto-pix.pdf")), "2026-10-13");
+  assert.equal(r.digitableLine, "23790000172345678901723456789017616260000145090");
+  assert.equal(r.pixKey, "11222333000181");
+  assert.equal(r.pixKeyType, "cnpj");
+  assert.equal(r.pix?.crcValid, true);
+  assert.equal(r.pix?.amount, 1450.9);
+  assert.ok(r.pixCopiaECola?.startsWith("000201"));
+  assert.deepEqual(r.warnings, []);
+});
+
+test("boleto com Pix de outro recebedor gera alerta", async () => {
+  const r = extractBoleto(await pdfItems(fx("boleto-pix-divergente.pdf")), "2026-10-13");
+  assert.equal(r.pixKeyType, "aleatoria");
+  assert.ok(r.warnings.some((w) => w.includes("não parece ser o beneficiário")));
+});
+
+test("cobrança só com QR Code Pix usa os dados do QR", async () => {
+  const pay = JSON.parse(readFileSync(fx("linhas.json"), "utf8")).pix.somente as string;
+  const r = extractBoleto(await pdfItems(fx("pix-somente-qr.pdf")), "2026-10-13", { qrCodes: [pay] });
+  assert.equal(r.pixKey, "financeiro@exemplo-fornecedor.com.br");
+  assert.equal(r.amount, 250);
+  assert.equal(r.supplier, "FORNECEDOR EXEMPLO LTDA");
+  assert.equal(r.found.pixCopiaECola, "QR Code Pix (CRC conferido)");
+  assert.ok(r.warnings.some((w) => w.includes("cobrança via Pix")));
+});
+
+test("PDF digitalizado com QR Code Pix ainda aproveita o QR", async () => {
+  const pay = JSON.parse(readFileSync(fx("linhas.json"), "utf8")).pix.somente as string;
+  const r = extractBoleto(await pdfItems(fx("digitalizado-com-qr.pdf")), "2026-10-13", { qrCodes: [pay] });
+  assert.equal(r.textLength, 0);
+  assert.equal(r.amount, 250);
+  assert.ok(r.warnings[0].includes("QR Code Pix"));
+});

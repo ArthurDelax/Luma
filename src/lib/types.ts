@@ -31,6 +31,10 @@ export interface Bill {
   digitableLine?: string;
   bank?: string;
   payer?: string;
+  /** Chave Pix do recebedor (CPF, CNPJ, e-mail, celular ou chave aleatória). */
+  pixKey?: string;
+  /** Código Pix Copia e Cola (BR Code), quando houver. */
+  pixCopiaECola?: string;
   notes?: string;
   /** Preenchido quando a conta foi paga. O status "pago" deriva deste campo. */
   paidAt?: ISODate;

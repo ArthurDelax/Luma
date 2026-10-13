@@ -69,7 +69,7 @@ export function BillsPage({ route }: { route: Route }) {
         if (category && bill.category !== category) return false;
         if (range && (bill.dueDate < range[0] || bill.dueDate > range[1])) return false;
         if (nq) {
-          const hay = normalizeText([bill.description, bill.supplier, bill.documentNumber, bill.notes, bill.category].join(" "));
+          const hay = normalizeText([bill.description, bill.supplier, bill.documentNumber, bill.notes, bill.category, bill.pixKey].join(" "));
           const digitHit = dq.length >= 4 && (onlyDigits(bill.digitableLine).includes(dq) || onlyDigits(bill.supplierCnpj).includes(dq));
           if (!hay.includes(nq) && !digitHit) return false;
         }
@@ -107,8 +107,8 @@ export function BillsPage({ route }: { route: Route }) {
 
   const exportCsv = () => {
     const csv = toCSV(
-      ["Descrição", "Fornecedor", "CNPJ", "Categoria", "Vencimento", "Valor", "Status", "Data de pagamento", "Nº documento", "Linha digitável", "Observações"],
-      filtered.map(({ bill, status: s }) => [bill.description, bill.supplier, bill.supplierCnpj, bill.category, formatDate(bill.dueDate), bill.amount, STATUS_LABEL[s], bill.paidAt ? formatDate(bill.paidAt) : "", bill.documentNumber, bill.digitableLine, bill.notes]),
+      ["Descrição", "Fornecedor", "CNPJ", "Categoria", "Vencimento", "Valor", "Status", "Data de pagamento", "Nº documento", "Linha digitável", "Chave Pix", "Observações"],
+      filtered.map(({ bill, status: s }) => [bill.description, bill.supplier, bill.supplierCnpj, bill.category, formatDate(bill.dueDate), bill.amount, STATUS_LABEL[s], bill.paidAt ? formatDate(bill.paidAt) : "", bill.documentNumber, bill.digitableLine, bill.pixKey, bill.notes]),
     );
     downloadText(`luma-contas-${today}.csv`, csv);
     toast("success", `${filtered.length} contas exportadas em CSV.`);
@@ -138,7 +138,7 @@ export function BillsPage({ route }: { route: Route }) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <LuSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por descrição, fornecedor, nº do documento ou linha digitável" className="pl-9" aria-label="Buscar contas" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por descrição, fornecedor, nº do documento, linha digitável ou chave Pix" className="pl-9" aria-label="Buscar contas" />
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex">
             <Select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Filtrar por categoria" className="sm:w-52">

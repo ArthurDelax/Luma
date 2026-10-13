@@ -5,6 +5,7 @@
  */
 
 import { addDays, addMonthsClamped, diffDays, isValidISO, parseISO, toISO } from "./dates.ts";
+import { parsePixPayload } from "./boleto/pix.ts";
 import { normalizeText, onlyDigits } from "./format.ts";
 import type { Bill, BillStatus, BusinessDocument, Frequency, ISODate, RecurringExpense } from "./types.ts";
 
@@ -63,12 +64,20 @@ export interface DuplicateMatch {
 export function findDuplicates(candidate: Partial<Bill>, bills: Bill[]): DuplicateMatch[] {
   const matches: DuplicateMatch[] = [];
   const line = onlyDigits(candidate.digitableLine);
+  const pixCode = candidate.pixCopiaECola?.trim();
   const supplier = normalizeText(candidate.supplier);
   const doc = normalizeText(candidate.documentNumber);
   for (const b of bills) {
     if (b.id === candidate.id) continue;
     if (line && onlyDigits(b.digitableLine) === line) {
       matches.push({ bill: b, reason: "mesma linha digitável", level: "forte" });
+      continue;
+    }
+    if (pixCode && b.pixCopiaECola?.trim() === pixCode) {
+      // QR com identificador (txid) ou dinâmico é único por cobrança; o estático sem txid pode se repetir.
+      const parsed = parsePixPayload(pixCode);
+      const unique = !!parsed && (parsed.dynamic || !!parsed.txid);
+      matches.push({ bill: b, reason: "mesmo código Pix Copia e Cola", level: unique ? "forte" : "possivel" });
       continue;
     }
     if (candidate.recurringId && b.recurringId === candidate.recurringId && b.occurrenceDate === candidate.occurrenceDate) {
