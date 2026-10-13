@@ -28,7 +28,7 @@ Ele cria a tabela onde ficam as contas, recorrentes, contratos e documentos de c
 
 Supabase → **Authentication** → **URL Configuration**:
 
-- **Site URL:** endereço do site (ex.: `https://arthurdelax.github.io/Luma/` ou, com domínio próprio, `https://xn--gestoluma-o2a.com.br/`)
+- **Site URL:** `https://xn--gestoluma-o2a.com.br/` (gestãoluma.com.br — domínio do site desde 13/10/2026)
 - **Redirect URLs:** adicionar
   - `<endereço do site>/convite/`
   - `<endereço do site>/admin/`
