@@ -127,7 +127,7 @@ export function Dashboard() {
             <h2 className="font-display text-lg font-semibold">Próximos 30 dias</h2>
             <p className="text-sm text-white/60">Cada coluna é um dia; a altura mostra quanto vence nele. Toque em um dia para ver os itens.</p>
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div>
               <p className="text-xs text-white/55">Em aberto</p>
               <p className="font-display text-xl font-semibold tabular">{formatBRL(sumAmount(open))}</p>
