@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { StoreProvider, useStore } from "@/lib/store";
 import { ConfirmProvider, LogoMark, ToastProvider } from "../ui";
 import { BillActionsProvider } from "./bills/BillActions";
+import { DemoBlockedDialog } from "./DemoGate";
 import { AlertsPage } from "./pages/AlertsPage";
 import { BillsPage } from "./pages/BillsPage";
 import { CalendarPage } from "./pages/CalendarPage";
@@ -49,6 +50,7 @@ function Screen() {
           {route.id === "ajustes" && <SettingsPage />}
         </div>
       </Shell>
+      <DemoBlockedDialog />
     </BillActionsProvider>
   );
 }

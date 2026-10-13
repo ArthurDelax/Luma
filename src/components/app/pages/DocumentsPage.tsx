@@ -21,7 +21,7 @@ const SITUATION: Record<DocSituation, { tone: Tone; label: (d: number) => string
 };
 
 function DocForm({ initial, onClose }: { initial: Partial<BusinessDocument>; onClose: () => void }) {
-  const { addDocument, updateDocument } = useStore();
+  const { addDocument, updateDocument, requireWrite } = useStore();
   const toast = useToast();
   const [f, setF] = useState({
     name: initial.name ?? "",
@@ -43,6 +43,7 @@ function DocForm({ initial, onClose }: { initial: Partial<BusinessDocument>; onC
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!requireWrite()) return;
     const err: Record<string, string> = {};
     if (!f.name.trim()) err.name = "Informe o nome.";
     if (!f.type) err.type = "Escolha o tipo.";
@@ -168,7 +169,10 @@ function DocForm({ initial, onClose }: { initial: Partial<BusinessDocument>; onC
 }
 
 export function DocumentsPage() {
-  const { data, today, deleteDocument } = useStore();
+  const { data, today, deleteDocument, requireWrite } = useStore();
+  const openEditor = (d: Partial<BusinessDocument>) => {
+    if (requireWrite()) setEditing(d);
+  };
   const confirm = useConfirm();
   const toast = useToast();
   const [editing, setEditing] = useState<Partial<BusinessDocument> | null>(null);
@@ -195,6 +199,7 @@ export function DocumentsPage() {
   const expired = attention.filter((d) => docSituation(d, today).situation === "vencido");
 
   const remove = async (d: BusinessDocument) => {
+    if (!requireWrite()) return;
     const ok = await confirm({ title: "Excluir registro?", message: <><strong>{d.name}</strong> será excluído definitivamente{d.attachment ? ", junto com o anexo" : ""}.</>, confirmLabel: "Excluir", danger: true });
     if (ok) {
       deleteDocument(d.id);
@@ -208,7 +213,7 @@ export function DocumentsPage() {
         title="Contratos e documentos"
         description="Controle a validade de contratos, certificados, licenças, alvarás e seguros."
         actions={
-          <Button icon={<LuPlus className="size-4" />} onClick={() => setEditing({})}>
+          <Button icon={<LuPlus className="size-4" />} onClick={() => openEditor({})}>
             Novo registro
           </Button>
         }
@@ -249,7 +254,7 @@ export function DocumentsPage() {
 
       {rows.length === 0 ? (
         <div className="card">
-          <EmptyState icon={<LuFilePenLine className="size-6" />} title={data.documents.length ? "Nenhum registro encontrado" : "Nenhum contrato ou documento"} action={!data.documents.length && <Button onClick={() => setEditing({})}>Cadastrar registro</Button>}>
+          <EmptyState icon={<LuFilePenLine className="size-6" />} title={data.documents.length ? "Nenhum registro encontrado" : "Nenhum contrato ou documento"} action={!data.documents.length && <Button onClick={() => openEditor({})}>Cadastrar registro</Button>}>
             {data.documents.length ? "Ajuste os filtros para ver mais resultados." : "Cadastre contratos e documentos para receber alertas antes do vencimento."}
           </EmptyState>
         </div>
@@ -301,7 +306,7 @@ export function DocumentsPage() {
                       <LuPaperclip className="size-4" />
                     </IconButton>
                   )}
-                  <IconButton label="Editar" onClick={() => setEditing(d)}>
+                  <IconButton label="Editar" onClick={() => openEditor(d)}>
                     <LuPencil className="size-4" />
                   </IconButton>
                   <IconButton label="Excluir" onClick={() => remove(d)} className="hover:!bg-overdue-soft hover:!text-overdue">

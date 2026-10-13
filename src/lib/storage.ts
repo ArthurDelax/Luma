@@ -57,6 +57,20 @@ export class LocalStorageRepository implements DataRepository {
   }
 }
 
+/** Repositório só em memória: usado pela demonstração pública (nada é gravado). */
+export class MemoryRepository implements DataRepository {
+  private data: LumaData | null = null;
+  load(): LumaData | null {
+    return this.data;
+  }
+  save(data: LumaData): void {
+    this.data = data;
+  }
+  clear(): void {
+    this.data = null;
+  }
+}
+
 /** Valida um backup importado pelo usuário. */
 export function parseBackup(text: string): LumaData {
   const parsed = JSON.parse(text);

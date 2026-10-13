@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { LuCircleAlert, LuCircleCheck, LuFileText, LuPaperclip, LuScanText, LuTrash2, LuTriangleAlert } from "react-icons/lu";
+import { LuLock, LuCircleAlert, LuCircleCheck, LuFileText, LuPaperclip, LuScanText, LuTrash2, LuTriangleAlert } from "react-icons/lu";
 import { MAX_ATTACHMENT_BYTES, saveAttachment, deleteAttachment } from "@/lib/attachments";
 import { FIELD_LABELS, type ExtractedBoleto, type FieldKey } from "@/lib/boleto/extract";
 import { formatLinha, isParseError, parseLinhaDigitavel } from "@/lib/boleto/linha";
@@ -69,7 +69,7 @@ export function BillEditor({
   extraction?: ExtractedBoleto;
   pendingFile?: File;
 }) {
-  const { data, today, addBill, updateBill } = useStore();
+  const { data, today, addBill, updateBill, requireWrite, readOnly } = useStore();
   const toast = useToast();
   const editing = !!initial.id;
   const [f, setF] = useState<FormState>(() => toForm(initial, today));
@@ -152,6 +152,7 @@ export function BillEditor({
 
   async function submit(e: FormEvent, force = false) {
     e.preventDefault();
+    if (!requireWrite()) return;
     const { errors: errs, bill } = validate();
     setErrors(errs);
     if (!bill) {
@@ -233,6 +234,12 @@ export function BillEditor({
       }
     >
       <form id="bill-form" onSubmit={(e) => submit(e)} noValidate className="space-y-5">
+        {readOnly && (
+          <p className="flex items-center gap-2 rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-[13px] text-ink/75">
+            <LuLock className="size-4 shrink-0" />
+            Demonstração: você pode conferir a leitura do documento, mas o cadastro está disponível apenas para assinantes.
+          </p>
+        )}
         {extraction && (
           <div
             className={cx(

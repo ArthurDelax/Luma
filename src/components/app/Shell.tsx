@@ -23,6 +23,7 @@ import { href } from "@/lib/paths";
 import { useStore } from "@/lib/store";
 import { Button, cx, IconButton, Logo } from "../ui";
 import { useBillActions } from "./bills/BillActions";
+import { DemoBanner } from "./DemoGate";
 import { navigate, type RouteId } from "./routing";
 
 export const NAV: { id: RouteId; label: string; icon: ReactNode }[] = [
@@ -102,10 +103,10 @@ function CompanyCard() {
 function DemoNote() {
   return (
     <div className="dot-grid-light rounded-2xl border border-white/[0.08] p-3.5 text-xs leading-relaxed text-paper/55">
-      <p className="mb-0.5 font-semibold text-paper/90">Versão demonstrativa</p>
-      Os dados ficam salvos apenas neste navegador.{" "}
-      <a href="#/ajustes" className="font-semibold text-paper underline underline-offset-2 hover:no-underline">
-        Saiba mais
+      <p className="mb-0.5 font-semibold text-paper/90">Demonstração</p>
+      Dados fictícios e alterações desativadas.{" "}
+      <a href={href("/planos/")} className="font-semibold text-paper underline underline-offset-2 hover:no-underline">
+        Conhecer planos
       </a>
     </div>
   );
@@ -255,6 +256,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
         </div>
       </header>
 
+      <DemoBanner />
       {storageError && <div className="bg-overdue px-4 py-2 text-center text-sm font-medium text-white">{storageError}</div>}
 
       <main className="mx-auto max-w-[1240px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">{children}</main>

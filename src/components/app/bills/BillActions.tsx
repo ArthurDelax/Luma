@@ -36,7 +36,7 @@ export function useBillActions() {
 }
 
 export function BillActionsProvider({ children }: { children: ReactNode }) {
-  const { data, today, markPaid, reopenBill, deleteBill, addBill } = useStore();
+  const { data, today, markPaid, reopenBill, deleteBill, addBill, requireWrite } = useStore();
   const toast = useToast();
   const confirm = useConfirm();
   const [editor, setEditor] = useState<{ draft: BillDraft; extraction?: ExtractedBoleto; file?: File; key: number } | null>(null);
@@ -46,20 +46,23 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
   const [payDate, setPayDate] = useState(todayISO());
 
   const payBill = useCallback((bill: Bill) => {
+    if (!requireWrite()) return;
     setPayDate(todayISO());
     setPaying(bill);
-  }, []);
+  }, [requireWrite]);
 
   const reopen = useCallback(
     (bill: Bill) => {
+      if (!requireWrite()) return;
       reopenBill(bill.id);
       toast("info", "Conta reaberta.", { label: "Desfazer", onClick: () => markPaid(bill.id, bill.paidAt) });
     },
-    [reopenBill, markPaid, toast],
+    [reopenBill, markPaid, toast, requireWrite],
   );
 
   const remove = useCallback(
     async (bill: Bill) => {
+      if (!requireWrite()) return false;
       const ok = await confirm({
         title: "Excluir conta?",
         message: (
@@ -78,11 +81,12 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
       }
       return ok;
     },
-    [confirm, deleteBill, toast],
+    [confirm, deleteBill, toast, requireWrite],
   );
 
   const launchOccurrence = useCallback(
     (o: Occurrence) => {
+      if (!requireWrite()) return;
       const exists = data.bills.some((b) => b.recurringId === o.recurring.id && b.occurrenceDate === o.date);
       if (exists) {
         toast("info", "Esta ocorrência já foi lançada.");
@@ -100,13 +104,17 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
       });
       toast("success", `Conta lançada para ${formatDate(o.date)}.`);
     },
-    [addBill, data.bills, toast],
+    [addBill, data.bills, toast, requireWrite],
   );
 
   const actions = useMemo<BillActions>(
     () => ({
-      newBill: (prefill) => setEditor({ draft: prefill ?? {}, key: Date.now() }),
+      newBill: (prefill) => {
+        if (!requireWrite()) return;
+        setEditor({ draft: prefill ?? {}, key: Date.now() });
+      },
       editBill: (bill) => {
+        if (!requireWrite()) return;
         setDetailId(null);
         setEditor({ draft: bill, key: Date.now() });
       },
@@ -117,7 +125,7 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
       reopen,
       remove,
     }),
-    [launchOccurrence, payBill, reopen, remove],
+    [launchOccurrence, payBill, reopen, remove, requireWrite],
   );
 
   const detail = detailId ? data.bills.find((b) => b.id === detailId) : undefined;

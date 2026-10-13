@@ -24,7 +24,7 @@ interface Form {
 }
 
 function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense>; onClose: () => void }) {
-  const { today, addRecurring, updateRecurring } = useStore();
+  const { today, addRecurring, updateRecurring, requireWrite } = useStore();
   const toast = useToast();
   const [f, setF] = useState<Form>({
     description: initial.description ?? "",
@@ -46,6 +46,7 @@ function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (!requireWrite()) return;
     const err: typeof errors = {};
     const amount = parseBRL(f.amount);
     const day = Number(f.dayOfMonth);
@@ -146,7 +147,10 @@ function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense
 }
 
 export function RecurringPage() {
-  const { data, today, updateRecurring, deleteRecurring } = useStore();
+  const { data, today, updateRecurring, deleteRecurring, requireWrite } = useStore();
+  const openEditor = (r: Partial<RecurringExpense>) => {
+    if (requireWrite()) setEditing(r);
+  };
   const actions = useBillActions();
   const confirm = useConfirm();
   const toast = useToast();
@@ -158,6 +162,7 @@ export function RecurringPage() {
   const monthlyTotal = active.reduce((a, r) => a + monthlyEquivalent(r), 0);
 
   const remove = async (r: RecurringExpense) => {
+    if (!requireWrite()) return;
     const launched = data.bills.filter((b) => b.recurringId === r.id).length;
     const ok = await confirm({
       title: "Excluir despesa recorrente?",
@@ -177,6 +182,7 @@ export function RecurringPage() {
   };
 
   const launchAll = () => {
+    if (!requireWrite()) return;
     pendingThisMonth.forEach((o) => actions.launchOccurrence(o));
   };
 
@@ -186,7 +192,7 @@ export function RecurringPage() {
         title="Despesas recorrentes"
         description="Aluguel, internet, softwares e outras despesas que se repetem. Lance cada vencimento como conta a pagar quando quiser — sem duplicar."
         actions={
-          <Button icon={<LuPlus className="size-4" />} onClick={() => setEditing({})}>
+          <Button icon={<LuPlus className="size-4" />} onClick={() => openEditor({})}>
             Nova despesa recorrente
           </Button>
         }
@@ -211,7 +217,7 @@ export function RecurringPage() {
         <section className="card overflow-hidden">
           <h2 className="px-5 pb-3 pt-5 font-display text-base font-semibold">Cadastradas</h2>
           {data.recurring.length === 0 ? (
-            <EmptyState icon={<LuRepeat className="size-6" />} title="Nenhuma despesa recorrente" action={<Button onClick={() => setEditing({})}>Cadastrar despesa</Button>}>
+            <EmptyState icon={<LuRepeat className="size-6" />} title="Nenhuma despesa recorrente" action={<Button onClick={() => openEditor({})}>Cadastrar despesa</Button>}>
               Cadastre despesas fixas para prever os próximos vencimentos.
             </EmptyState>
           ) : (
@@ -235,10 +241,10 @@ export function RecurringPage() {
                       </div>
                       <span className="font-semibold tabular">{formatBRL(r.amount)}</span>
                       <div className="flex gap-0.5">
-                        <IconButton label={r.active ? "Desativar" : "Ativar"} onClick={() => { updateRecurring(r.id, { active: !r.active }); toast("info", r.active ? "Despesa desativada." : "Despesa ativada."); }}>
+                        <IconButton label={r.active ? "Desativar" : "Ativar"} onClick={() => { if (!requireWrite()) return; updateRecurring(r.id, { active: !r.active }); toast("info", r.active ? "Despesa desativada." : "Despesa ativada."); }}>
                           {r.active ? <LuPause className="size-4" /> : <LuPlay className="size-4" />}
                         </IconButton>
-                        <IconButton label="Editar" onClick={() => setEditing(r)}>
+                        <IconButton label="Editar" onClick={() => openEditor(r)}>
                           <LuPencil className="size-4" />
                         </IconButton>
                         <IconButton label="Excluir" onClick={() => remove(r)} className="hover:!bg-overdue-soft hover:!text-overdue">

@@ -22,9 +22,12 @@ import { addDays, todayISO } from "@/lib/dates";
 import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
 import { Ribbon, type RibbonEvent } from "../app/Ribbon";
+import { PricingCalculator } from "../pricing/Pricing";
 import { cx, Logo, LogoMark } from "../ui";
 
 const APP = href("/app/");
+const HOME = href("/");
+const PLANS = href("/planos/");
 
 function CTA({ children = "Experimentar demonstração", variant = "dark", className }: { children?: React.ReactNode; variant?: "light" | "dark"; className?: string }) {
   return (
@@ -44,7 +47,7 @@ function CTA({ children = "Experimentar demonstração", variant = "dark", class
   );
 }
 
-function Header() {
+export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -54,15 +57,15 @@ function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   const links = [
-    ["#funcionalidades", "Funcionalidades"],
-    ["#boletos", "Boletos e Pix"],
-    ["#como-funciona", "Como funciona"],
-    ["#perguntas", "Perguntas"],
+    [`${HOME}#funcionalidades`, "Funcionalidades"],
+    [`${HOME}#boletos`, "Boletos e Pix"],
+    [PLANS, "Planos"],
+    [`${HOME}#perguntas`, "Perguntas"],
   ];
   return (
     <header className={cx("fixed inset-x-0 top-0 z-40 transition-all", scrolled || open ? "border-b border-line/70 bg-paper/85 backdrop-blur-xl" : "border-b border-transparent")}>
       <div className="mx-auto flex h-[72px] max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <a href={href("/")} aria-label="Luma — início">
+        <a href={HOME} aria-label="Luma — início">
           <Logo />
         </a>
         <nav aria-label="Seções" className="ml-6 hidden gap-1 md:flex">
@@ -133,7 +136,7 @@ function Hero() {
               <span className="grid size-6 place-items-center rounded-full bg-ink">
                 <LogoMark tone="light" className="size-3.5" />
               </span>
-              Demonstração gratuita, sem cadastro
+              Demonstração com dados fictícios, sem cadastro
             </span>
             <h1 className="mt-6 font-display text-[2.9rem] font-bold leading-[1] tracking-[-0.035em] sm:text-[5rem]">
               Sua empresa.
@@ -426,14 +429,33 @@ function HowItWorks() {
 }
 
 const FAQ = [
-  ["A Luma é gratuita?", "Esta versão demonstrativa é gratuita e não exige cadastro. Ela serve para conhecer o produto."],
-  ["Onde ficam os meus dados?", "Somente no navegador que você está usando (armazenamento local). Eles não são enviados para servidores e não aparecem em outros dispositivos. Se você limpar os dados do navegador, eles serão apagados — use a opção de backup em “Dados e ajustes”."],
-  ["Os boletos em PDF são enviados para algum lugar?", "Não. A leitura acontece dentro do seu navegador, com a biblioteca PDF.js. Se você optar por anexar o PDF à conta, ele também fica guardado apenas no navegador."],
+  ["Quanto custa a Luma?", "R$ 99,90 por mês para até 2 usuários. Cada usuário adicional custa R$ 29,90, até o limite de 10 usuários. A cobrança é mensal, via Pix, sem fidelidade."],
+  ["Posso testar antes de contratar?", "Sim. A demonstração é pública e usa apenas dados fictícios. Você navega por tudo — painel, contas, calendário, relatórios e leitura de boletos —, mas cadastrar, editar e excluir ficam disponíveis apenas para assinantes."],
+  ["Já posso contratar online?", "Ainda não. A contratação por Pix com liberação automática do ambiente está em desenvolvimento. Assim que estiver ativa, ela aparecerá na página de planos."],
+  ["Os dados da minha empresa ficam separados?", "Sim. Na versão comercial, cada empresa terá um ambiente exclusivo, com seus próprios usuários, contas, boletos, contratos e documentos, isolados das demais empresas."],
+  ["Os boletos em PDF são enviados para algum lugar?", "Na demonstração, não: a leitura acontece dentro do seu navegador, com a biblioteca PDF.js."],
   ["A Luma paga os boletos?", "Não. A Luma organiza e lembra dos vencimentos. O pagamento continua sendo feito no seu banco; depois, basta marcar a conta como paga."],
-  ["Quais boletos a leitura automática reconhece?", "Boletos bancários (linha digitável de 47 dígitos), documentos de arrecadação, como contas de consumo e tributos (48 dígitos), e cobranças com Pix: a Luma pega a chave Pix escrita no documento e o código Pix Copia e Cola, inclusive lendo o QR Code. Em PDFs digitalizados como imagem, apenas o QR Code Pix é lido; o restante é preenchido manualmente."],
-  ["Recebo alertas por e-mail ou WhatsApp?", "Ainda não. Nesta versão os alertas aparecem dentro da Luma, no ícone de notificações e na central de alertas."],
-  ["Posso usar com mais de uma pessoa?", "Nesta demonstração não há login nem compartilhamento. Cada navegador tem seus próprios dados."],
+  ["Quais boletos a leitura automática reconhece?", "Boletos bancários (linha digitável de 47 dígitos), documentos de arrecadação, como contas de consumo e tributos (48 dígitos), guias como FGTS Digital, DAS e DARF, e cobranças com Pix: a Luma pega a chave Pix e o código Pix Copia e Cola, inclusive lendo o QR Code."],
+  ["Recebo alertas por e-mail ou WhatsApp?", "Ainda não. Os alertas aparecem dentro da Luma, no ícone de notificações e na central de alertas."],
 ];
+
+export function PlansSection({ standalone = false }: { standalone?: boolean }) {
+  return (
+    <section id="planos" className={cx("scroll-mt-20 bg-paper", standalone ? "pb-20 pt-32 sm:pb-28 sm:pt-40" : "py-20 sm:py-28")}>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mb-10 max-w-2xl">
+          {standalone ? (
+            <h1 className="font-display text-[2.6rem] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[4rem]">Um preço simples, por usuário</h1>
+          ) : (
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um preço simples, por usuário</h2>
+          )}
+          <p className="mt-4 text-lg leading-relaxed text-muted">R$ 99,90 por mês para até 2 usuários. Cada usuário adicional custa R$ 29,90, até 10 usuários.</p>
+        </div>
+        <PricingCalculator />
+      </div>
+    </section>
+  );
+}
 
 function Faq() {
   return (
@@ -441,7 +463,7 @@ function Faq() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.6fr]">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Perguntas frequentes</h2>
-          <p className="mt-4 text-muted">O que você precisa saber sobre esta versão.</p>
+          <p className="mt-4 text-muted">Planos, demonstração e funcionamento.</p>
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-white">
           {FAQ.map(([q, a]) => (
@@ -465,40 +487,46 @@ function FinalCta() {
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight">Experimente a Luma agora</h2>
-          <p className="mt-2 max-w-xl text-muted">Versão demonstrativa: sem login, sem servidor, com dados armazenados localmente no seu navegador.</p>
+          <p className="mt-2 max-w-xl text-muted">Navegue pela demonstração com dados fictícios, sem cadastro. Quando quiser, escolha o plano para a sua equipe.</p>
         </div>
-        <CTA variant="dark" />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <CTA variant="dark" />
+          <a href={PLANS} className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-ink/15 px-6 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40">
+            Ver planos
+          </a>
+        </div>
       </div>
     </section>
   );
 }
 
-function Footer() {
+export function Footer() {
   return (
     <footer className="bg-navy-950 py-12 text-white/60">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <Logo tone="light" />
           <p className="mt-3 text-sm">Sua empresa. Tudo sob controle.</p>
-          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">Versão demonstrativa. Os dados ficam armazenados apenas no navegador de quem usa. Não há autenticação, banco de dados on-line, envio de notificações ou cobrança.</p>
+          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">A demonstração usa apenas dados fictícios e não permite alterações. A contratação online ainda não está ativa.</p>
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Produto</p>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><a className="hover:text-white" href="#funcionalidades">Funcionalidades</a></li>
-            <li><a className="hover:text-white" href="#boletos">Leitura de boletos</a></li>
+            <li><a className="hover:text-white" href={`${HOME}#funcionalidades`}>Funcionalidades</a></li>
+            <li><a className="hover:text-white" href={`${HOME}#boletos`}>Leitura de boletos</a></li>
+            <li><a className="hover:text-white" href={PLANS}>Planos</a></li>
             <li><a className="hover:text-white" href={APP}>Demonstração</a></li>
           </ul>
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Ajuda</p>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><a className="hover:text-white" href="#como-funciona">Como funciona</a></li>
-            <li><a className="hover:text-white" href="#perguntas">Perguntas frequentes</a></li>
+            <li><a className="hover:text-white" href={`${HOME}#como-funciona`}>Como funciona</a></li>
+            <li><a className="hover:text-white" href={`${HOME}#perguntas`}>Perguntas frequentes</a></li>
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 max-w-6xl border-t border-white/10 px-4 pt-6 text-xs text-white/40 sm:px-6">© {new Date().getFullYear()} Luma. Projeto demonstrativo.</div>
+      <div className="mx-auto mt-10 max-w-6xl border-t border-white/10 px-4 pt-6 text-xs text-white/40 sm:px-6">© {new Date().getFullYear()} Luma.</div>
     </footer>
   );
 }
@@ -513,6 +541,7 @@ export function LandingPage() {
         <Boletos />
         <Benefits />
         <HowItWorks />
+        <PlansSection />
         <Faq />
         <FinalCta />
       </main>

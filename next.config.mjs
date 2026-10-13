@@ -14,7 +14,12 @@ const nextConfig = {
   trailingSlash: true,
   images: { unoptimized: true },
   reactStrictMode: true,
-  env: { NEXT_PUBLIC_BASE_PATH: basePath },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+    // A versão publicada no GitHub Pages é sempre a demonstração somente leitura.
+    NEXT_PUBLIC_DEMO_MODE: process.env.DEMO_MODE ?? "true",
+    NEXT_PUBLIC_WHATSAPP_NUMBER: process.env.WHATSAPP_NUMBER ?? "",
+  },
   eslint: { ignoreDuringBuilds: true },
 };
 

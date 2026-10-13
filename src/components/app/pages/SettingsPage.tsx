@@ -9,7 +9,7 @@ import { useStore } from "@/lib/store";
 import { Button, PageHeader, useConfirm, useToast } from "../../ui";
 
 export function SettingsPage() {
-  const { data, today, resetToSample, clearAll, replaceAll } = useStore();
+  const { data, today, resetToSample, clearAll, replaceAll, requireWrite, readOnly } = useStore();
   const confirm = useConfirm();
   const toast = useToast();
   const file = useRef<HTMLInputElement>(null);
@@ -29,6 +29,7 @@ export function SettingsPage() {
   const attachments = data.bills.filter((b) => b.attachment).length + data.documents.filter((d) => d.attachment).length;
 
   const restore = async () => {
+    if (!requireWrite()) return;
     const ok = await confirm({
       title: "Restaurar dados de exemplo?",
       message: "Todas as contas, despesas recorrentes, contratos, documentos e anexos atuais serão substituídos pelos dados de demonstração. Esta ação não pode ser desfeita.",
@@ -42,6 +43,7 @@ export function SettingsPage() {
   };
 
   const wipe = async () => {
+    if (!requireWrite()) return;
     const ok = await confirm({
       title: "Apagar todos os dados?",
       message: "Tudo o que está salvo neste navegador será apagado, inclusive os anexos. Esta ação não pode ser desfeita.",
@@ -60,7 +62,7 @@ export function SettingsPage() {
   };
 
   const importBackup = async (f: File | undefined) => {
-    if (!f) return;
+    if (!f || !requireWrite()) return;
     try {
       const parsed = parseBackup(await f.text());
       const ok = await confirm({
@@ -87,15 +89,23 @@ export function SettingsPage() {
       <section className="card mb-6 overflow-hidden">
         <div className="bg-navy-900 px-5 py-5 text-white sm:px-6">
           <h2 className="font-display text-lg font-semibold">Esta é uma versão demonstrativa</h2>
-          <p className="mt-1 text-sm text-white/70">Tudo funciona de verdade, mas apenas dentro do seu navegador.</p>
+          <p className="mt-1 text-sm text-white/70">{readOnly ? "Explore à vontade: as alterações estão desativadas." : "Tudo funciona de verdade, mas apenas dentro do seu navegador."}</p>
         </div>
         <ul className="grid gap-px bg-line text-sm sm:grid-cols-2">
-          {[
-            ["Dados locais", "Contas, contratos e alertas ficam salvos neste navegador, neste dispositivo. Não há sincronização entre dispositivos."],
-            ["Sem login", "Não há autenticação. Qualquer pessoa que use este navegador verá os mesmos dados."],
-            ["Anexos", "PDFs anexados ficam no armazenamento do navegador (até 10 MB cada) e são perdidos se os dados do site forem limpos."],
-            ["Sem envios", "Não há envio de e-mails, WhatsApp ou SMS, nem cobrança de assinatura. Alertas aparecem só dentro da Luma."],
-          ].map(([t, d]) => (
+          {(readOnly
+            ? [
+                ["Dados fictícios", "Empresas, contas, valores e documentos desta demonstração são inventados. Nada do que você vê pertence a uma empresa real."],
+                ["Somente leitura", "Você pode navegar, pesquisar, filtrar, exportar CSV e testar a leitura de boletos. Cadastrar, editar e excluir é exclusivo para assinantes."],
+                ["Nada é gravado", "A demonstração roda só nesta página: ao recarregar, os dados fictícios voltam ao estado original."],
+                ["Versão comercial", "Na versão para assinantes, cada empresa terá um ambiente exclusivo, com usuários, permissões e dados isolados."],
+              ]
+            : [
+                ["Dados locais", "Contas, contratos e alertas ficam salvos neste navegador, neste dispositivo. Não há sincronização entre dispositivos."],
+                ["Sem login", "Não há autenticação. Qualquer pessoa que use este navegador verá os mesmos dados."],
+                ["Anexos", "PDFs anexados ficam no armazenamento do navegador (até 10 MB cada) e são perdidos se os dados do site forem limpos."],
+                ["Sem envios", "Não há envio de e-mails, WhatsApp ou SMS, nem cobrança de assinatura. Alertas aparecem só dentro da Luma."],
+              ]
+          ).map(([t, d]) => (
             <li key={t} className="bg-white px-5 py-4">
               <p className="font-semibold">{t}</p>
               <p className="mt-0.5 text-slate-600">{d}</p>
@@ -150,7 +160,7 @@ export function SettingsPage() {
             desc: "Substitui os dados atuais pelos de um backup da Luma.",
             action: (
               <>
-                <Button variant="secondary" onClick={() => file.current?.click()}>
+                <Button variant="secondary" onClick={() => requireWrite() && file.current?.click()}>
                   Importar backup
                 </Button>
                 <input ref={file} type="file" accept="application/json,.json" className="sr-only" onChange={(e) => importBackup(e.target.files?.[0])} aria-label="Arquivo de backup" />
