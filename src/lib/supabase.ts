@@ -104,8 +104,10 @@ async function request<T>(path: string, init: RequestInit & { token?: string } =
   const headers: Record<string, string> = {
     apikey: SUPABASE_ANON_KEY,
     "Content-Type": "application/json",
-    Authorization: `Bearer ${init.token ?? SUPABASE_ANON_KEY}`,
   };
+  // Chave nova (sb_publishable_…) não é JWT: vai só no "apikey". A antiga (anon) também pode ir no Authorization.
+  const bearer = init.token ?? (SUPABASE_ANON_KEY.startsWith("sb_") ? "" : SUPABASE_ANON_KEY);
+  if (bearer) headers.Authorization = `Bearer ${bearer}`;
   let res: Response;
   try {
     res = await fetch(`${SUPABASE_URL}${path}`, { ...init, headers: { ...headers, ...(init.headers as Record<string, string>) } });

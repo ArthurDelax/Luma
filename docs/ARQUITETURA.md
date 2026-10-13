@@ -25,9 +25,8 @@ Este documento descreve como a Luma deixa de ser apenas uma demonstração está
 ```
 
 - **Frontend:** reaproveita todas as telas atuais. A troca principal é o repositório de dados: hoje `LocalStorageRepository`/`MemoryRepository`; no SaaS, um `ApiRepository` que conversa com a API (a interface `DataRepository` já existe para isso).
-- **Backend:** rotas de servidor do próprio Next.js (ou um serviço Node separado) hospedadas em uma plataforma com servidor (Vercel, Render, Fly.io, Railway, AWS…). **A escolha do provedor depende da sua aprovação** (há custos).
-- **Banco:** PostgreSQL gerenciado (ex.: Neon, Supabase, AWS RDS), com backups automáticos e criptografia em repouso.
-- **Arquivos (PDFs):** bucket privado compatível com S3, acesso só por URL assinada de curta duração.
+- **Backend e banco: Supabase** (escolhido) — PostgreSQL gerenciado + autenticação (com verificação em duas etapas) + armazenamento de arquivos. O site estático conversa direto com o Supabase usando apenas a chave pública; a segurança fica no banco (RLS e funções que verificam permissão). Partes que exigem segredo (ex.: webhook do Pix) rodarão em Edge Functions do Supabase. Configuração: [SUPABASE.md](SUPABASE.md).
+- **Arquivos (PDFs):** Supabase Storage em bucket privado, acesso só por URL assinada de curta duração.
 - **Leitura de boletos:** continua no navegador (PDF.js), como hoje.
 
 ## 2. Modelo de dados multiempresa (multi-tenant)
@@ -74,7 +73,7 @@ Todas as tabelas de negócio têm `org_id` obrigatório.
 
 ## 4. Contratação por Pix (fluxo seguro)
 
-**Provedor escolhido: Banco Inter (API Pix Inter Empresas)** — cobrança imediata (`cob`) e com vencimento (`cobv`), QR Code, copia e cola, webhook e consulta. Requer conta PJ no Inter, uma integração criada no Internet Banking PJ (client_id/client_secret) e o certificado digital da integração (mTLS), que ficará **somente** no servidor. A integração começa em ambiente de testes e só vai para produção com sua autorização. A confirmar na documentação do Inter: se o webhook exige mTLS do lado do recebedor (isso influencia a hospedagem) — como alternativa segura, o backend também consulta o status da cobrança periodicamente.
+**Provedor: a definir (etapa adiada).** O Banco Inter foi descartado por exigir conta PJ; a recomendação é o **Asaas**, que aceita CPF, gera cobrança Pix com QR Code e copia e cola e avisa por webhook. A chave da API ficará **somente** no servidor (Edge Function), a integração começa em ambiente de testes (sandbox) e só vai para produção com sua autorização.
 
 ```
 1. Cliente escolhe usuários na calculadora
@@ -146,12 +145,13 @@ Todas as tabelas de negócio têm `org_id` obrigatório.
 | Etapa | Conteúdo | Situação |
 |---|---|---|
 | 1 | Preços, calculadora, botões de contratação, demonstração somente leitura | **Concluída** |
-| 2 | Backend em ambiente de desenvolvimento: banco, organizações, usuários, papéis, licenças, RLS, testes de isolamento | Pendente — requer escolha de hospedagem e banco |
-| 3 | Painel administrativo, criação manual de empresas e convites | Pendente |
+| 2 | Banco: organizações, administradores, papéis, licenças, convites, RLS e testes de segurança | **Pronto** (aguardando aplicar no Supabase) |
+| 3 | Painel administrativo, criação manual de empresas e links de ativação | **Pronto** (aguardando conectar ao Supabase) |
+| 3b | Área da empresa com dados no banco (contas, documentos, equipe e permissões) | Pendente |
 | 4 | Integração Pix em **ambiente de testes (sandbox)** do provedor escolhido | Pendente — requer sua aprovação do provedor |
 | 5 | Confirmação automática, provisionamento, renovação, carência e suspensão | Pendente |
 | 6 | Revisão de segurança, LGPD, pentest e preparação para produção | Pendente |
 
-**Decisões tomadas:** Pix pelo Banco Inter; WhatsApp comercial (62) 99304-7680.
+**Decisões tomadas:** banco e autenticação no Supabase; WhatsApp comercial (62) 99304-7680; domínio gestãoluma.com.br (`xn--gestoluma-o2a.com.br`).
 
-**Decisões pendentes:** hospedagem e banco (recomendação: Neon + Render), domínio próprio e provedor de e-mail.
+**Decisões pendentes:** provedor Pix (recomendação: Asaas) e provedor de e-mail.

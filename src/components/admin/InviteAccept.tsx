@@ -67,6 +67,9 @@ export function InviteAccept() {
       setStage("unconfigured");
       return;
     }
+    // outro link colado na mesma aba: recarrega para ler o novo convite
+    const onHash = () => window.location.reload();
+    window.addEventListener("hashchange", onHash);
     (async () => {
       // volta do link de confirmação de e-mail
       const fromEmail = await sessionFromUrlHash().catch(() => null);
@@ -94,6 +97,7 @@ export function InviteAccept() {
       }
       setStage("form");
     })();
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
   const submit = async (e: FormEvent) => {
