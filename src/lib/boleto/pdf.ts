@@ -248,7 +248,8 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
           const normalized = normalizeDarkBoxes(toGray(ocr.img));
           for (const psm of [6, 11]) {
             const check = extractBoleto([], undefined, { ocrItems, ocrItemsAlt, barcodes });
-            if (check.dueDate && check.amount !== undefined) break;
+            const dueOk = !!check.dueDate && Math.abs(new Date(check.dueDate).getTime() - Date.now()) < 400 * 86_400_000;
+            if (dueOk && check.amount !== undefined) break;
             ocrItemsAlt.push(await ocrPage(normalized, 2.5, p, psm));
           }
         }

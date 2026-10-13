@@ -370,9 +370,25 @@ export function extractBoleto(
   const ownText = items.map((i) => i.str).join("").replace(/\s/g, "").length;
   if (ownText < 20 && extras.ocrItems && extras.ocrItems.map((i) => i.str).join("").replace(/\s/g, "").length >= 20) {
     const r = extractBoleto(extras.ocrItems, referenceISO, { qrCodes: extras.qrCodes, barcodes: extras.barcodes });
-    for (const altItems of extras.ocrItemsAlt ?? []) {
+    const alts = (extras.ocrItemsAlt ?? []).map((a) => extractBoleto(a, referenceISO, { qrCodes: extras.qrCodes, barcodes: extras.barcodes }));
+    // OCR pode trocar dígitos (ex.: 2026 → 2020): fica com um vencimento plausível entre as leituras.
+    const plausible = (iso?: string) => {
+      if (!iso) return false;
+      const ref = referenceISO ? new Date(referenceISO).getTime() : Date.now();
+      const days = (new Date(iso).getTime() - ref) / 86_400_000;
+      return days > -400 && days < 400;
+    };
+    if (r.dueDate && !plausible(r.dueDate) && r.found.dueDate !== "código de barras (Receita Federal)") {
+      const better = alts.find((a) => plausible(a.dueDate));
+      if (better) {
+        r.dueDate = better.dueDate;
+        r.found.dueDate = better.found.dueDate;
+      } else {
+        r.warnings.push("O ano do vencimento lido parece incorreto — confira a data.");
+      }
+    }
+    for (const alt of alts) {
       // completa o que faltou com as leituras extras
-      const alt = extractBoleto(altItems, referenceISO, { qrCodes: extras.qrCodes, barcodes: extras.barcodes });
       for (const k of ["dueDate", "amount", "payer", "documentNumber", "supplierCnpj"] as const) {
         if (r[k] === undefined && alt[k] !== undefined) {
           (r as unknown as Record<string, unknown>)[k] = alt[k];
