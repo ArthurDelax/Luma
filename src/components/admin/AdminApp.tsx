@@ -298,7 +298,10 @@ function MfaEnroll({ session, onDone, onCancel }: { session: Session; onDone: (s
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-line bg-white p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={enroll.qr_code} alt="QR Code para o aplicativo autenticador" className="size-44" />
-          <p className="break-all text-center font-mono text-[11px] text-muted">Código manual: {enroll.secret}</p>
+          <div className="text-center">
+            <p className="text-xs text-muted">Não conseguiu escanear? No aplicativo, escolha “inserir chave de configuração” e digite:</p>
+            <p className="mt-1 select-all break-all font-mono text-sm font-semibold tracking-wider">{enroll.secret.replace(/(.{4})/g, "$1 ").trim()}</p>
+          </div>
         </div>
       ) : (
         !error && <p className="text-sm text-muted">Gerando QR Code…</p>

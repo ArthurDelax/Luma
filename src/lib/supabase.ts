@@ -248,7 +248,24 @@ export async function enrollTotp(s: Session): Promise<TotpEnrollment> {
     token: s.access_token,
     body: JSON.stringify({ factor_type: "totp", friendly_name: `Luma ${new Date().toISOString().slice(0, 16)}`, issuer: "Luma" }),
   });
-  return { id: r.id, ...r.totp };
+  return { id: r.id, ...r.totp, qr_code: qrDataUrl(r.totp.qr_code) };
+}
+
+/** A API devolve o SVG "cru"; transforma em endereço de imagem (aceita também já prefixado). */
+export function qrDataUrl(raw: string): string {
+  if (!raw) return "";
+  const prefixed = raw.match(/^data:image\/svg\+xml(?:;[^,]*)?,([\s\S]*)$/);
+  const svg = prefixed ? safeDecode(prefixed[1]) : raw;
+  if (/^data:image\/(png|gif|jpeg)/.test(raw)) return raw;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
 }
 
 export async function verifyTotp(s: Session, factorId: string, code: string): Promise<Session> {
