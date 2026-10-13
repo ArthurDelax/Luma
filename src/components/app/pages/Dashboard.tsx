@@ -6,6 +6,7 @@ import { addDays, addMonthsClamped, diffDays, formatDate, formatDateLong, monthK
 import { docSituation, ALERT_LEVEL_LABEL } from "@/lib/domain";
 import { formatBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
+import { useWorkspace } from "@/lib/workspace";
 import { CategoryBars, StackedBars } from "../../charts/Charts";
 import { Badge, Button, cx, EmptyState, LogoMark } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
@@ -48,6 +49,8 @@ function greeting(): string {
 
 export function Dashboard() {
   const { data, today } = useStore();
+  const ws = useWorkspace();
+  const companyName = ws.mode === "cloud" ? (ws.orgName ?? "") : "Empresa Demonstração";
   const { withStatus, open, overdue, next7, upcomingOccurrences } = useDerived();
   const actions = useBillActions();
   const { unread, all } = useUnreadAlerts();
@@ -96,23 +99,41 @@ export function Dashboard() {
 
   const upcoming = [...open].sort((a, b) => a.bill.dueDate.localeCompare(b.bill.dueDate)).slice(0, 7);
 
+  const header = (
+    <div>
+      <p className="text-sm text-muted">{formatDateLong(today)}</p>
+      <h1 className="mt-1 font-display text-[1.9rem] font-semibold leading-tight tracking-[-0.03em] sm:text-[2.4rem]">{greeting()}{companyName ? `, ${companyName}` : ""}</h1>
+    </div>
+  );
+
   if (data.bills.length === 0 && data.documents.length === 0 && data.recurring.length === 0) {
     return (
-      <div className="card">
-        <EmptyState
-          icon={<LuReceipt className="size-6" />}
-          title="Seu painel está vazio"
-          action={
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button onClick={() => actions.newBill()}>Cadastrar primeira conta</Button>
-              <Button variant="secondary" onClick={() => navigate("ajustes")}>
-                Restaurar dados de exemplo
-              </Button>
-            </div>
-          }
-        >
-          Cadastre contas, despesas recorrentes e documentos para acompanhar seus vencimentos aqui.
-        </EmptyState>
+      <div className="space-y-6">
+        {header}
+        <div className="card">
+          <EmptyState
+            icon={<LuReceipt className="size-6" />}
+            title={ws.mode === "cloud" ? "Bem-vindo à Luma!" : "Seu painel está vazio"}
+            action={
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button onClick={() => actions.newBill()}>Cadastrar primeira conta</Button>
+                {ws.mode === "cloud" ? (
+                  <Button variant="secondary" onClick={actions.importBoleto}>
+                    Importar boleto em PDF
+                  </Button>
+                ) : (
+                  <Button variant="secondary" onClick={() => navigate("ajustes")}>
+                    Restaurar dados de exemplo
+                  </Button>
+                )}
+              </div>
+            }
+          >
+            {ws.mode === "cloud"
+              ? "Comece cadastrando suas contas a pagar ou importando um boleto. Depois, adicione despesas recorrentes e contratos para acompanhar todos os vencimentos aqui."
+              : "Cadastre contas, despesas recorrentes e documentos para acompanhar seus vencimentos aqui."}
+          </EmptyState>
+        </div>
       </div>
     );
   }
@@ -120,10 +141,7 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm text-muted">{formatDateLong(today)}</p>
-          <h1 className="mt-1 font-display text-[1.9rem] font-semibold leading-tight tracking-[-0.03em] sm:text-[2.4rem]">{greeting()}, Empresa Demonstração</h1>
-        </div>
+        {header}
         {unread.length > 0 && (
           <a href="#/alertas" className="inline-flex items-center gap-2 self-start rounded-full border border-overdue/20 bg-white px-3.5 py-2 text-[13px] font-semibold text-overdue shadow-sm transition-colors hover:bg-overdue-soft sm:self-auto">
             <span className="relative flex size-2">

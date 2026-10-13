@@ -11,6 +11,7 @@ import { formatDate, isValidISO } from "@/lib/dates";
 import { CATEGORIES, findDuplicates, type DuplicateMatch } from "@/lib/domain";
 import { amountToInput, formatBRL, formatCNPJ, formatFileSize, isValidCNPJ, onlyDigits, parseBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
+import { useWorkspace } from "@/lib/workspace";
 import type { AttachmentMeta, Bill } from "@/lib/types";
 import { Badge, Button, cx, Field, Input, Modal, Select, Textarea, useToast } from "../../ui";
 
@@ -70,6 +71,7 @@ export function BillEditor({
   pendingFile?: File;
 }) {
   const { data, today, addBill, updateBill, requireWrite, readOnly } = useStore();
+  const ws = useWorkspace();
   const toast = useToast();
   const editing = !!initial.id;
   const [f, setF] = useState<FormState>(() => toForm(initial, today));
@@ -237,7 +239,11 @@ export function BillEditor({
         {readOnly && (
           <p className="flex items-center gap-2 rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-[13px] text-ink/75">
             <LuLock className="size-4 shrink-0" />
-            Demonstração: você pode conferir a leitura do documento, mas o cadastro está disponível apenas para assinantes.
+            {ws.mode !== "cloud"
+              ? "Demonstração: você pode conferir a leitura do documento, mas o cadastro está disponível apenas para assinantes."
+              : ws.readOnlyReason === "suspensa"
+                ? "Assinatura suspensa: você pode conferir a leitura do documento, mas não cadastrar."
+                : "Perfil somente consulta: você pode conferir a leitura do documento, mas não cadastrar."}
           </p>
         )}
         {extraction && (
