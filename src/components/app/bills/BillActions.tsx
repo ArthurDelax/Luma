@@ -135,13 +135,14 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
         }}
         onExtracted={(file, result) => {
           setImportOpen(false);
-          const desc = result.supplier ? `Boleto — ${result.supplier}` : file.name.replace(/\.pdf$/i, "");
+          const desc = result.description ?? (result.supplier ? `Boleto — ${result.supplier}` : file.name.replace(/\.pdf$/i, ""));
           setEditor({
             key: Date.now(),
             file,
             extraction: result,
             draft: {
               description: desc.slice(0, 140),
+              category: result.category,
               supplier: result.supplier,
               supplierCnpj: result.supplierCnpj,
               payer: result.payer,

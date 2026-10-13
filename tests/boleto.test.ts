@@ -233,3 +233,18 @@ test("PDF digitalizado com QR Code Pix ainda aproveita o QR", async () => {
   assert.equal(r.amount, 250);
   assert.ok(r.warnings[0].includes("QR Code Pix"));
 });
+
+test("guia do FGTS Digital (GFD): valor, vencimento, empregador e competência", async () => {
+  const r = extractBoleto(await pdfItems(fx("guia-fgts.pdf")), "2026-10-13");
+  assert.equal(r.guide, "FGTS");
+  assert.equal(r.amount, 129.68);
+  assert.equal(r.dueDate, "2026-10-20");
+  assert.equal(r.payer, "EMPRESA EXEMPLO LTDA — CNPJ 11.222.333");
+  assert.equal(r.supplier, "FGTS Digital (Caixa Econômica Federal)");
+  assert.equal(r.description, "FGTS — competência 09/2026");
+  assert.equal(r.category, "Folha e encargos");
+  assert.equal(r.documentNumber, "0100000000000000-1");
+  assert.equal(r.pix?.crcValid, true);
+  assert.equal(r.pix?.dynamic, true);
+  assert.deepEqual(r.warnings, []);
+});

@@ -249,6 +249,7 @@ export function BillEditor({
                 <LuCircleAlert className="mt-0.5 size-5 shrink-0 text-overdue" />
               )}
               <div className="min-w-0 flex-1 text-sm">
+                {extraction.guide && <p className="mb-1 text-xs font-semibold text-muted">Documento reconhecido: guia {extraction.guide}</p>}
                 <p className="font-semibold">
                   {extractionStatus === "completa"
                     ? "Leitura concluída"

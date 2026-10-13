@@ -8,7 +8,7 @@
  */
 
 import { brDateToISO } from "../dates.ts";
-import { isValidCNPJ, onlyDigits, parseBRL } from "../format.ts";
+import { formatCNPJ, isValidCNPJ, onlyDigits, parseBRL } from "../format.ts";
 import { bankName } from "./banks.ts";
 import { isParseError, parseLinhaDigitavel, type LinhaResult } from "./linha.ts";
 import { findPixKeyInText, findPixPayloadInText, namesLookRelated, parsePixPayload, PIX_KEY_TYPE_LABEL, type PixKeyType, type PixPayload } from "./pix.ts";
@@ -42,6 +42,11 @@ export interface ExtractedBoleto {
   digitableLine?: string;
   documentNumber?: string;
   bank?: string;
+  /** Sugestões quando o tipo de documento é reconhecido (ex.: guia do FGTS). */
+  description?: string;
+  category?: string;
+  /** Tipo de guia reconhecido (ex.: "FGTS", "DARF"). */
+  guide?: string;
   pixKey?: string;
   pixKeyType?: PixKeyType;
   pixCopiaECola?: string;
@@ -62,12 +67,66 @@ interface Line {
 }
 
 const LABELS = {
-  supplier: [/benefici[aá]rio(?!\s*final)/i, /cedente/i],
-  payer: [/pagador/i, /sacado/i],
-  dueDate: [/vencimento/i],
-  amount: [/valor\s+(do\s+)?documento/i, /\(=\)\s*valor\s+cobrado/i, /valor\s+a\s+pagar/i, /valor\s+total/i],
+  supplier: [/benefici[aá]rio(?!\s*final)/i, /cedente/i, /favorecido/i, /recebedor/i],
+  payer: [
+    /pagador/i,
+    /sacado/i,
+    /nome\s*\/?\s*raz[ãa]o\s+social(\s+do\s+(empregador|contribuinte))?/i,
+    /raz[ãa]o\s+social(\s+do\s+(empregador|contribuinte))?/i,
+    /nome\s+do\s+(contribuinte|empregador|cliente)/i,
+    /contribuinte/i,
+    /empregador/i,
+  ],
+  payerDocument: [/cpf\s*\/\s*cnpj(\s+do\s+(empregador|contribuinte|pagador))?/i, /cnpj\s*\/\s*cpf/i, /cnpj(\s+do\s+(empregador|contribuinte|pagador))/i],
+  dueDate: [
+    /data\s+de\s+vencimento/i,
+    /vencimento/i,
+    /pagar\s+(este\s+documento\s+)?at[ée]/i,
+    /pag[áa]vel\s+at[ée]/i,
+    /data\s+limite(\s+para\s+pagamento)?/i,
+  ],
+  amount: [
+    /\(=\)\s*valor\s+cobrado/i,
+    /valor\s+(do\s+)?documento/i,
+    /valor\s+a\s+(pagar|recolher)/i,
+    /total\s+a\s+(pagar|recolher)/i,
+    /total\s+da\s+guia/i,
+    /valor\s+total/i,
+    /total\s+do\s+documento/i,
+  ],
   documentNumber: [/n[º°o.]*\s*(do\s+)?documento/i, /n[uú]mero\s+do\s+documento/i, /num\.?\s*doc/i],
 };
+
+/* ------------------------------------------------------------------ */
+/* Guias de tributos e encargos                                         */
+/* ------------------------------------------------------------------ */
+
+interface GuideTemplate {
+  id: string;
+  match: RegExp;
+  name: string;
+  supplier: string;
+  category: string;
+  /** Rótulo do número/identificador da guia. */
+  idLabels?: RegExp[];
+  /** Rótulo da competência / período de apuração. */
+  periodLabels?: RegExp[];
+}
+
+/**
+ * Guias oficiais reconhecidas pelo título impresso. O destinatário é inferido do
+ * próprio tipo de guia (ex.: GFD → FGTS/Caixa), e o usuário pode corrigir.
+ */
+const GUIDES: GuideTemplate[] = [
+  { id: "fgts", match: /guia\s+do\s+fgts\s+digital|\bGFD\b/i, name: "FGTS", supplier: "FGTS Digital (Caixa Econômica Federal)", category: "Folha e encargos", idLabels: [/identificador/i], periodLabels: [/compet[êe]ncia/i] },
+  { id: "das", match: /documento\s+de\s+arrecada[çc][ãa]o\s+do\s+simples\s+nacional|\bDAS\b.*simples/i, name: "DAS — Simples Nacional", supplier: "Receita Federal (Simples Nacional)", category: "Impostos e taxas", idLabels: [/n[uú]mero\s+do\s+documento/i], periodLabels: [/per[íi]odo\s+de\s+apura[çc][ãa]o/i, /compet[êe]ncia/i] },
+  { id: "dae", match: /documento\s+de\s+arrecada[çc][ãa]o\s+do\s+e-?social/i, name: "DAE — eSocial", supplier: "Receita Federal (eSocial)", category: "Folha e encargos", idLabels: [/n[uú]mero\s+do\s+documento/i], periodLabels: [/per[íi]odo\s+de\s+apura[çc][ãa]o/i, /compet[êe]ncia/i] },
+  { id: "darf", match: /documento\s+de\s+arrecada[çc][ãa]o\s+de\s+receitas\s+federais|\bDARF\b/i, name: "DARF", supplier: "Receita Federal", category: "Impostos e taxas", idLabels: [/n[uú]mero\s+do\s+documento/i], periodLabels: [/per[íi]odo\s+de\s+apura[çc][ãa]o/i, /compet[êe]ncia/i] },
+  { id: "gps", match: /guia\s+da\s+previd[êe]ncia\s+social/i, name: "GPS — INSS", supplier: "INSS (Previdência Social)", category: "Folha e encargos", periodLabels: [/compet[êe]ncia/i] },
+  { id: "gru", match: /guia\s+de\s+recolhimento\s+da\s+uni[ãa]o/i, name: "GRU", supplier: "Tesouro Nacional (GRU)", category: "Impostos e taxas", idLabels: [/n[uú]mero\s+de\s+refer[êe]ncia/i] },
+];
+
+const periodMatcher = (t: string) => t.match(/\b(\d{2}\/\d{4})\b/)?.[1] ?? t.match(/\b(\d{2}\/\d{2}\/\d{4})\b/)?.[1];
 
 /* ------------------------------------------------------------------ */
 /* Organização do texto em linhas                                       */
@@ -296,7 +355,7 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
       result.warnings.push("O vencimento impresso difere do vencimento codificado na linha digitável. Usamos o impresso — confira.");
     }
     result.dueDate = dueFromLabel;
-    result.found.dueDate = "campo Vencimento";
+    result.found.dueDate = "campo de vencimento";
   }
 
   // 3) Valor pelo rótulo, quando a linha não informa.
@@ -305,7 +364,7 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
   if (amountFromLabel !== undefined && amountFromLabel > 0) {
     if (result.amount === undefined) {
       result.amount = amountFromLabel;
-      result.found.amount = "campo Valor do Documento";
+      result.found.amount = "campo de valor";
     } else if (Math.abs(result.amount - amountFromLabel) > 0.009) {
       result.warnings.push("O valor impresso difere do valor da linha digitável. Confira antes de salvar.");
     }
@@ -323,8 +382,10 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
   }
   const payer = findParty(lines, LABELS.payer);
   if (payer.name && payer.name !== result.supplier) {
-    result.payer = payer.name;
-    result.found.payer = "campo Pagador";
+    const docText = findByLabels(lines, LABELS.payerDocument, (t) => t.match(/\b(\d{3}\.?\d{3}\.?\d{3}-?\d{2}|\d{2}\.?\d{3}\.?\d{3}(?:\/?\d{4}-?\d{2})?)\b/)?.[1]);
+    const payerDoc = payer.cnpj ? formatCNPJ(payer.cnpj) : docText;
+    result.payer = payerDoc ? `${payer.name} — ${onlyDigits(payerDoc).length === 11 ? "CPF" : "CNPJ"} ${payerDoc}` : payer.name;
+    result.found.payer = "campo Pagador / Contribuinte";
   }
 
   // 5) Número do documento.
@@ -350,6 +411,28 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
       result.bank = `${m[1]} – ${name}`;
       result.found.bank = "cabeçalho do boleto";
     }
+  }
+
+  // 7) Guias de tributos e encargos (FGTS, DAS, DARF…).
+  const guide = GUIDES.find((g) => g.match.test(fullText));
+  if (guide) {
+    result.guide = guide.name;
+    result.category = guide.category;
+    if (!result.supplier) {
+      result.supplier = guide.supplier;
+      result.found.supplier = `tipo de guia (${guide.name})`;
+    }
+    const period = guide.periodLabels ? findByLabels(lines, guide.periodLabels, periodMatcher) : undefined;
+    result.description = period ? `${guide.name} — competência ${period}` : guide.name;
+    if (guide.idLabels) {
+      const id = findByLabels(lines, guide.idLabels, docMatcher);
+      if (id) {
+        result.documentNumber = id;
+        result.found.documentNumber = "identificador da guia";
+      }
+    }
+    const i = result.warnings.indexOf("Não encontramos uma linha digitável no documento.");
+    if (i >= 0) result.warnings.splice(i, 1); // guias pagas por Pix podem não ter linha digitável
   }
 
   applyPix(result, fullText, tightText, extras.qrCodes ?? []);
