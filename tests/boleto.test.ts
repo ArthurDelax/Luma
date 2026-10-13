@@ -303,3 +303,27 @@ test("PDF sem texto: usa o código de barras da imagem (DARF/INSS)", () => {
   assert.equal(r.digitableLine?.length, 48);
   assert.match(r.warnings[0], /código de barras/);
 });
+
+test("boleto bancário sem texto: valor e vencimento pelo código de barras da imagem", () => {
+  const r = extractBoleto([], "2026-10-13", { barcodes: ["34195164100002875401091234567812345678901230"] });
+  assert.equal(r.amount, 2875.4);
+  assert.equal(r.dueDate, "2026-11-25");
+  assert.equal(r.bank, "341 – Itaú Unibanco");
+  assert.equal(r.digitableLine?.length, 47);
+});
+
+test("texto embaralhado (sem linha válida): usa o código de barras da imagem", () => {
+  const items: TextItem[] = ["Beneficiário", "Fornecedor Teste Ltda", "∆∑ø¥ˆ¨ 3419X.Y1091 23456.7812Z", "Vencimento", "25/11/2026"].map((str, i) => ({ str, x: 50, y: 700 - i * 14, w: 100, page: 1 }));
+  const r = extractBoleto(items, "2026-10-13", { barcodes: ["34195164100002875401091234567812345678901230"] });
+  assert.equal(r.amount, 2875.4);
+  assert.equal(r.dueDate, "2026-11-25");
+  assert.equal(r.found.digitableLine, "código de barras (DV conferido)");
+});
+
+test("layout fora do padrão: vencimento e valor por aproximação, com aviso", () => {
+  const items: TextItem[] = ["Fatura de serviços", "Pagar até o dia 05/12/2026", "Total R$ 1.980,00", "Desconto R$ 20,00"].map((str, i) => ({ str, x: 50, y: 700 - i * 14, w: 100, page: 1 }));
+  const r = extractBoleto(items, "2026-10-13");
+  assert.equal(r.dueDate, "2026-12-05");
+  assert.equal(r.amount, 1980);
+  assert.ok(r.warnings.some((w) => /aproximação/.test(w)));
+});

@@ -113,14 +113,28 @@ export function toGray(img: { width: number; height: number; data: Uint8ClampedA
 export function scanImageForBarcode(img: GrayImage, step = 3): string | null {
   for (let y = 0; y < img.height; y += step) {
     const row = y * img.width;
-    // pula linhas praticamente brancas
+    // pula linhas praticamente brancas e calcula o contraste da linha (digitalizações acinzentadas)
     let darkCount = 0;
-    for (let x = 0; x < img.width; x += 4) if (img.gray[row + x] < 128) darkCount++;
-    if (darkCount < 40) continue;
-    const runs = runsFromRow((x) => img.gray[row + x] < 140, img.width);
+    let min = 255;
+    let max = 0;
+    for (let x = 0; x < img.width; x += 2) {
+      const v = img.gray[row + x];
+      if (v < min) min = v;
+      if (v > max) max = v;
+      if (v < 160) darkCount++;
+    }
+    if (darkCount < 40 || max - min < 60) continue;
+    const threshold = Math.min(170, (min + max) / 2);
+    const runs = runsFromRow((x) => img.gray[row + x] < threshold, img.width);
     if (runs.length < RUNS) continue;
-    const found = decodeRow(runs);
+    const found = decodeRow(runs) ?? decodeRow(reverseRuns(runs));
     if (found) return found;
   }
   return null;
+}
+
+/** Inverte a leitura (documento de cabeça para baixo), mantendo o início numa barra. */
+function reverseRuns(runs: number[]): number[] {
+  const r = [...runs].reverse();
+  return r.length % 2 === 0 ? r.slice(1) : r; // a última posição pode ser espaço em branco
 }

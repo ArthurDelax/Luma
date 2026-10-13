@@ -7,7 +7,7 @@
  */
 
 import { BASE_PATH } from "../paths.ts";
-import type { TextItem } from "./extract.ts";
+import { buildLines, findDigitableLine, type TextItem } from "./extract.ts";
 import { scanImageForBarcode, toGray } from "./itf.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -167,33 +167,43 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
   for (let p = 1; p <= pages; p++) {
     const page = await doc.getPage(p);
     const content = await page.getTextContent();
+    const pageItems: TextItem[] = [];
     for (const it of content.items as any[]) {
       if (typeof it.str !== "string") continue;
-      items.push({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width ?? 0, page: p });
+      pageItems.push({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width ?? 0, page: p });
     }
-    // Imagem da página: código de barras (útil em PDFs sem texto) e QR Code Pix.
-    if (p <= 2 && options.scanImage !== false && (barcodes.length === 0 || (decode && qrCodes.length === 0))) {
-      try {
-        const timeout = new Promise<null>((r) => setTimeout(() => r(null), QR_TIMEOUT_MS));
-        const img = await Promise.race([renderPage(page, 2.5), timeout]);
-        if (img) {
-          if (barcodes.length === 0) {
-            const bc = scanImageForBarcode(toGray(img));
-            if (bc) barcodes.push(bc);
-          }
-          if (decode && qrCodes.length === 0) {
-            let qr = await Promise.race([scanImageForQr(img, decode), timeout]);
-            // QR Codes pequenos (ex.: Pix do DARF) só são lidos com mais resolução
-            if (!qr) {
-              const big = await Promise.race([renderPage(page, 4.2), timeout]);
-              if (big) qr = await Promise.race([scanImageForQr(big, decode), timeout]);
-            }
-            if (qr) qrCodes.push(qr);
-          }
+    items.push(...pageItems);
+    if (p > 2 || options.scanImage === false) continue;
+
+    // O que ainda falta e só pode vir da imagem da página:
+    //  - código de barras, quando o texto não traz uma linha digitável válida
+    //    (PDF sem texto, texto embaralhado pela fonte, linha cortada…);
+    //  - QR Code Pix, quando o documento fala em Pix ou não tem texto.
+    const text = buildLines(items).map((l) => l.text).join("\n");
+    const hasText = text.replace(/\s/g, "").length >= 20;
+    const needBarcode = barcodes.length === 0 && !findDigitableLine(text)?.valid;
+    const wantQr = !!decode && qrCodes.length === 0 && (!hasText || /pix|qr\s*code/i.test(text));
+    if (!needBarcode && !wantQr) continue;
+    try {
+      const deadline = Date.now() + QR_TIMEOUT_MS;
+      const timeout = () => new Promise<null>((r) => setTimeout(() => r(null), Math.max(0, deadline - Date.now())));
+      for (const scale of [2.5, 4.2]) {
+        const needBc = needBarcode && barcodes.length === 0;
+        const needQr = wantQr && qrCodes.length === 0;
+        if ((!needBc && !needQr) || Date.now() > deadline) break;
+        const img = await Promise.race([renderPage(page, scale), timeout()]);
+        if (!img) break;
+        if (needBc) {
+          const bc = scanImageForBarcode(toGray(img));
+          if (bc) barcodes.push(bc);
         }
-      } catch {
-        /* falha ao renderizar a página: segue só com o texto */
+        if (needQr && decode) {
+          const qr = await Promise.race([scanImageForQr(img, decode), timeout()]);
+          if (qr) qrCodes.push(qr);
+        }
       }
+    } catch {
+      /* falha ao renderizar a página: segue só com o texto */
     }
   }
   const total = doc.numPages as number;

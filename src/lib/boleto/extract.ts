@@ -408,6 +408,27 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
     }
   }
 
+  // 3b) Últimos recursos quando os rótulos não foram reconhecidos (layouts fora do padrão).
+  if (!result.dueDate) {
+    const near = fullText.match(/venc[a-zçã.]*[^\n\d]{0,40}?(\d{2}\/\d{2}\/\d{4})/i)?.[1];
+    const dates = Array.from(new Set(Array.from(fullText.matchAll(/\b(\d{2}\/\d{2}\/\d{4})\b/g), (m) => m[1])));
+    const pick = near ?? (dates.length === 1 ? dates[0] : undefined);
+    const iso = pick ? brDateToISO(pick) : undefined;
+    if (iso) {
+      result.dueDate = iso;
+      result.found.dueDate = near ? "data próxima de “vencimento”" : "única data do documento";
+      result.warnings.push("Confira o vencimento: ele foi identificado por aproximação.");
+    }
+  }
+  if (result.amount === undefined) {
+    const values = Array.from(fullText.matchAll(/R\$\s*([\d.]+,\d{2})\b/g), (m) => parseBRL(m[1])).filter((v): v is number => v !== undefined && v > 0);
+    if (values.length) {
+      result.amount = Math.max(...values);
+      result.found.amount = "maior valor em R$ do documento";
+      result.warnings.push("Confira o valor: ele foi identificado por aproximação (maior valor em R$ do documento).");
+    }
+  }
+
   // 4) Beneficiário e pagador.
   const supplier = findParty(lines, LABELS.supplier);
   if (supplier.name) {
