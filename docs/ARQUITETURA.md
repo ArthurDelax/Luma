@@ -74,7 +74,7 @@ Todas as tabelas de negócio têm `org_id` obrigatório.
 
 ## 4. Contratação por Pix (fluxo seguro)
 
-Provedores brasileiros com cobrança Pix, QR Code, copia e cola, webhook e consulta de status: **Efí (Gerencianet), Asaas, Mercado Pago, PagBank, Banco Inter** entre outros. **Nenhum será integrado sem a sua aprovação.**
+**Provedor escolhido: Banco Inter (API Pix Inter Empresas)** — cobrança imediata (`cob`) e com vencimento (`cobv`), QR Code, copia e cola, webhook e consulta. Requer conta PJ no Inter, uma integração criada no Internet Banking PJ (client_id/client_secret) e o certificado digital da integração (mTLS), que ficará **somente** no servidor. A integração começa em ambiente de testes e só vai para produção com sua autorização. A confirmar na documentação do Inter: se o webhook exige mTLS do lado do recebedor (isso influencia a hospedagem) — como alternativa segura, o backend também consulta o status da cobrança periodicamente.
 
 ```
 1. Cliente escolhe usuários na calculadora
@@ -152,4 +152,6 @@ Provedores brasileiros com cobrança Pix, QR Code, copia e cola, webhook e consu
 | 5 | Confirmação automática, provisionamento, renovação, carência e suspensão | Pendente |
 | 6 | Revisão de segurança, LGPD, pentest e preparação para produção | Pendente |
 
-**Decisões que dependem de você:** provedor de hospedagem e banco, provedor de autenticação, provedor Pix, domínio próprio, provedor de e-mail e o número de WhatsApp comercial.
+**Decisões tomadas:** Pix pelo Banco Inter; WhatsApp comercial (62) 99304-7680.
+
+**Decisões pendentes:** hospedagem e banco (recomendação: Neon + Render), domínio próprio e provedor de e-mail.

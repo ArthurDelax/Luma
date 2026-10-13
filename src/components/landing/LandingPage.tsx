@@ -19,6 +19,7 @@ import {
   LuArrowRight,
 } from "react-icons/lu";
 import { addDays, todayISO } from "@/lib/dates";
+import { whatsappLink } from "@/lib/contact";
 import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
 import { Ribbon, type RibbonEvent } from "../app/Ribbon";
@@ -523,6 +524,9 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li><a className="hover:text-white" href={`${HOME}#como-funciona`}>Como funciona</a></li>
             <li><a className="hover:text-white" href={`${HOME}#perguntas`}>Perguntas frequentes</a></li>
+            {whatsappLink() && (
+              <li><a className="hover:text-white" href={whatsappLink()!} target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a></li>
+            )}
           </ul>
         </div>
       </div>
