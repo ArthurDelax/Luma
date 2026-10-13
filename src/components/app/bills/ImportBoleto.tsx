@@ -23,11 +23,13 @@ export function ImportBoleto({
   const [state, setState] = useState<"idle" | "reading" | "error">("idle");
   const [error, setError] = useState("");
   const [drag, setDrag] = useState(false);
+  const [ocrRunning, setOcrRunning] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setState("idle");
     setError("");
+    setOcrRunning(false);
   };
 
   async function handle(file: File | undefined) {
@@ -44,10 +46,11 @@ export function ImportBoleto({
       return;
     }
     setState("reading");
+    setOcrRunning(false);
     try {
       const buf = await file.arrayBuffer();
-      const { items, qrCodes, barcodes } = await readPdf(buf);
-      const result = extractBoleto(items, today, { qrCodes, barcodes });
+      const { items, qrCodes, barcodes, ocrItems, ocrItemsAlt } = await readPdf(buf, 3, { onStatus: () => setOcrRunning(true) });
+      const result = extractBoleto(items, today, { qrCodes, barcodes, ocrItems, ocrItemsAlt });
       reset();
       onExtracted(file, result);
     } catch (e) {
@@ -107,8 +110,12 @@ export function ImportBoleto({
         {state === "reading" ? (
           <>
             <LuLoaderCircle className="size-10 animate-spin text-sky-500" />
-            <p className="mt-4 font-semibold">Lendo o boleto…</p>
-            <p className="mt-1 text-sm text-muted">Procurando linha digitável, chave Pix e QR Code. O arquivo é processado no seu navegador.</p>
+            <p className="mt-4 font-semibold">{ocrRunning ? "Documento em imagem: reconhecendo o texto…" : "Lendo o boleto…"}</p>
+            <p className="mt-1 text-sm text-muted">
+              {ocrRunning
+                ? "Pode levar alguns segundos (na primeira vez, um pouco mais). Tudo acontece no seu navegador — o arquivo não é enviado."
+                : "Procurando linha digitável, chave Pix e QR Code. O arquivo é processado no seu navegador."}
+            </p>
           </>
         ) : (
           <>

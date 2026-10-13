@@ -57,6 +57,8 @@ export interface ExtractedBoleto {
   warnings: string[];
   /** Quantidade de caracteres de texto extraídos (0 = provavelmente digitalizado). */
   textLength: number;
+  /** O texto veio de reconhecimento de imagem (OCR). */
+  ocr?: boolean;
 }
 
 interface Line {
@@ -126,7 +128,15 @@ const GUIDES: GuideTemplate[] = [
   { id: "gru", match: /guia\s+de\s+recolhimento\s+da\s+uni[ãa]o/i, name: "GRU", supplier: "Tesouro Nacional (GRU)", category: "Impostos e taxas", idLabels: [/n[uú]mero\s+de\s+refer[êe]ncia/i] },
 ];
 
-const periodMatcher = (t: string) => t.match(/\b(\d{2}\/\d{4})\b/)?.[1] ?? t.match(/\b(\d{2}\/\d{2}\/\d{4})\b/)?.[1];
+const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const periodMatcher = (t: string) => {
+  const byName = t.match(/\b(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s*(?:\/|de)\s*(\d{4})\b/i);
+  if (byName) {
+    const m = MONTHS.indexOf(byName[1].toLowerCase().replace("marco", "março")) + 1;
+    return `${String(m).padStart(2, "0")}/${byName[2]}`;
+  }
+  return t.match(/\b(\d{2}\/\d{4})\b/)?.[1] ?? t.match(/\b(\d{2}\/\d{2}\/\d{4})\b/)?.[1];
+};
 
 /* ------------------------------------------------------------------ */
 /* Organização do texto em linhas                                       */
@@ -351,7 +361,34 @@ function applyAgencyGuide(result: ExtractedBoleto) {
   }
 }
 
-export function extractBoleto(items: TextItem[], referenceISO?: string, extras: { qrCodes?: string[]; barcodes?: string[] } = {}): ExtractedBoleto {
+export function extractBoleto(
+  items: TextItem[],
+  referenceISO?: string,
+  extras: { qrCodes?: string[]; barcodes?: string[]; ocrItems?: TextItem[]; ocrItemsAlt?: TextItem[][] } = {},
+): ExtractedBoleto {
+  // PDF em imagem: usa o texto reconhecido por OCR como se fosse o texto do PDF.
+  const ownText = items.map((i) => i.str).join("").replace(/\s/g, "").length;
+  if (ownText < 20 && extras.ocrItems && extras.ocrItems.map((i) => i.str).join("").replace(/\s/g, "").length >= 20) {
+    const r = extractBoleto(extras.ocrItems, referenceISO, { qrCodes: extras.qrCodes, barcodes: extras.barcodes });
+    for (const altItems of extras.ocrItemsAlt ?? []) {
+      // completa o que faltou com as leituras extras
+      const alt = extractBoleto(altItems, referenceISO, { qrCodes: extras.qrCodes, barcodes: extras.barcodes });
+      for (const k of ["dueDate", "amount", "payer", "documentNumber", "supplierCnpj"] as const) {
+        if (r[k] === undefined && alt[k] !== undefined) {
+          (r as unknown as Record<string, unknown>)[k] = alt[k];
+          if (alt.found[k]) r.found[k] = alt.found[k];
+        }
+      }
+      if (!r.linha?.valid && alt.linha?.valid) {
+        r.linha = alt.linha;
+        r.digitableLine = alt.digitableLine;
+        r.found.digitableLine = alt.found.digitableLine;
+      }
+    }
+    r.ocr = true;
+    r.warnings.unshift("O PDF é uma imagem: lemos o texto por reconhecimento de imagem (OCR). Confira valor e vencimento antes de salvar.");
+    return r;
+  }
   const lines = buildLines(items);
   const fullText = lines.map((l) => l.text).join("\n");
   // versão sem separadores entre trechos da mesma linha (códigos longos vêm fatiados)
@@ -483,7 +520,7 @@ export function extractBoleto(items: TextItem[], referenceISO?: string, extras: 
     }
     const period = guide.periodLabels ? findByLabels(lines, guide.periodLabels, periodMatcher) : undefined;
     result.description = period ? `${guide.name} — competência ${period}` : guide.name;
-    if (guide.idLabels) {
+    if (guide.idLabels && !result.linha?.documentNumber) {
       const id = findByLabels(lines, guide.idLabels, docMatcher);
       if (id) {
         result.documentNumber = id;

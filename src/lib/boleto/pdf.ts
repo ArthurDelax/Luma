@@ -7,8 +7,9 @@
  */
 
 import { BASE_PATH } from "../paths.ts";
-import { buildLines, findDigitableLine, type TextItem } from "./extract.ts";
+import { buildLines, extractBoleto, findDigitableLine, type TextItem } from "./extract.ts";
 import { scanImageForBarcode, toGray } from "./itf.ts";
+import { normalizeDarkBoxes, ocrPage } from "./ocr.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type PdfJs = any;
@@ -48,6 +49,10 @@ export interface PdfReadResult {
   qrCodes: string[];
   /** Códigos de barras (44 dígitos, DV conferido) lidos da imagem da página. */
   barcodes: string[];
+  /** Texto reconhecido por OCR nas páginas que não têm texto (PDF em imagem). */
+  ocrItems: TextItem[];
+  /** Leituras extras por OCR (caixas escuras invertidas, modo esparso), feitas quando faltou valor ou vencimento. */
+  ocrItemsAlt: TextItem[][];
 }
 
 /* ---------------- QR Code ---------------- */
@@ -124,7 +129,7 @@ async function scanImageForQr(img: ImageData, decode: QrDecoder, wholeFirst = tr
   return null;
 }
 
-export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr?: boolean; scanImage?: boolean } = {}): Promise<PdfReadResult> {
+export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr?: boolean; scanImage?: boolean; ocr?: boolean; onStatus?: (s: "ocr") => void } = {}): Promise<PdfReadResult> {
   if (data.byteLength > MAX_PDF_BYTES) {
     throw new PdfReadError("too_large", "O arquivo é maior que 15 MB.");
   }
@@ -158,6 +163,8 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
   const items: TextItem[] = [];
   const qrCodes: string[] = [];
   const barcodes: string[] = [];
+  const ocrItems: TextItem[] = [];
+  const ocrItemsAlt: TextItem[][] = [];
   const pages = Math.min(doc.numPages, maxPages);
   let decode: QrDecoder | null = null;
   if (options.scanQr !== false) {
@@ -187,7 +194,19 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
     const hasText = text.replace(/\s/g, "").length >= 20;
     const needBarcode = barcodes.length === 0 && !findDigitableLine(text)?.valid;
     const wantQr = !!decode && qrCodes.length === 0 && (!hasText || /pix|qr\s*code/i.test(text));
-    if (!needBarcode && !wantQr) continue;
+    const pageHasText = pageItems.map((i) => i.str).join("").replace(/\s/g, "").length >= 20;
+    const wantOcr = options.ocr !== false && !pageHasText && p === 1;
+    let firstImg: ImageData | null = null;
+    const ocr: { job: Promise<TextItem[]> | null; img: ImageData | null } = { job: null, img: null };
+    // o OCR roda em paralelo (outro processo) enquanto procuramos código de barras e QR Code
+    const startOcr = (img: ImageData) => {
+      if (!wantOcr || ocr.job) return;
+      options.onStatus?.("ocr");
+      ocr.img = img;
+      ocr.job = ocrPage(toGray(img), 2.5, p);
+      ocr.job.catch(() => {});
+    };
+    if (!needBarcode && !wantQr && !wantOcr) continue;
     if (!imageDeadline) imageDeadline = Date.now() + QR_TIMEOUT_MS; // um único prazo para o documento todo
     try {
       const deadline = imageDeadline;
@@ -198,6 +217,10 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
         if ((!needBc && !needQr) || Date.now() > deadline) break;
         const img = await Promise.race([renderPage(page, scale), timeout()]);
         if (!img) break;
+        if (!firstImg) {
+          firstImg = img;
+          startOcr(img);
+        }
         if (needBc) {
           const bc = scanImageForBarcode(toGray(img));
           if (bc) barcodes.push(bc);
@@ -211,8 +234,30 @@ export async function readPdf(data: ArrayBuffer, maxPages = 3, options: { scanQr
     } catch {
       /* falha ao renderizar a página: segue só com o texto */
     }
+
+    // PDF em imagem: reconhece o texto (vencimento, valor, nomes…) por OCR.
+    if (wantOcr) {
+      try {
+        if (!ocr.job) {
+          const img = firstImg ?? (await renderPage(page, 2.5));
+          if (img) startOcr(img);
+        }
+        if (ocr.job) ocrItems.push(...(await ocr.job));
+        // Formulários com caixas às vezes escondem campos do modo automático: tenta o modo esparso.
+        if (ocr.img) {
+          const normalized = normalizeDarkBoxes(toGray(ocr.img));
+          for (const psm of [6, 11]) {
+            const check = extractBoleto([], undefined, { ocrItems, ocrItemsAlt, barcodes });
+            if (check.dueDate && check.amount !== undefined) break;
+            ocrItemsAlt.push(await ocrPage(normalized, 2.5, p, psm));
+          }
+        }
+      } catch {
+        /* OCR indisponível: segue com código de barras e QR Code */
+      }
+    }
   }
   const total = doc.numPages as number;
   await task.destroy();
-  return { items, pages: total, qrCodes, barcodes };
+  return { items, pages: total, qrCodes, barcodes, ocrItems, ocrItemsAlt };
 }

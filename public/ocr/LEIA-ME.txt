@@ -1,0 +1,6 @@
+Reconhecimento de texto (OCR) usado na importação de boletos em imagem.
+Roda inteiramente no navegador do usuário: nenhum documento é enviado a servidores.
+
+- tesseract-core-lstm.js / .wasm: Tesseract.js-core 5.1.1 (Apache-2.0) — https://github.com/naptha/tesseract.js-core
+- por.traineddata: modelo "fast" de português do projeto Tesseract (Apache-2.0) — https://github.com/tesseract-ocr/tessdata_fast
+- ocr-worker.js: código da Luma que conecta o Tesseract à leitura de boletos.

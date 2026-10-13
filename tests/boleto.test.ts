@@ -327,3 +327,28 @@ test("layout fora do padrão: vencimento e valor por aproximação, com aviso", 
   assert.equal(r.amount, 1980);
   assert.ok(r.warnings.some((w) => /aproximação/.test(w)));
 });
+
+/* ---------------- OCR (PDF em imagem) ---------------- */
+
+import { tsvToItems } from "../src/lib/boleto/ocr.ts";
+
+test("OCR: palavras viram trechos, bordas de caixa são descartadas e o texto alimenta a extração", () => {
+  // TSV no formato do Tesseract: level page block par line word left top width height conf text
+  const W = (b: number, l: number, left: number, top: number, w: number, text: string) => `5\t1\t${b}\t1\t${l}\t1\t${left}\t${top}\t${w}\t30\t90\t${text}`;
+  const tsv = [
+    W(1, 1, 560, 90, 80, "GFD"), W(1, 1, 650, 90, 60, "Guia"), W(1, 1, 720, 90, 40, "do"), W(1, 1, 770, 90, 80, "FGTS"), W(1, 1, 860, 90, 100, "Digital"),
+    W(2, 1, 960, 180, 70, "Pagar"), W(2, 1, 1040, 180, 50, "este"), W(2, 1, 1100, 180, 120, "documento"), W(2, 1, 1230, 180, 40, "até"),
+    W(3, 1, 975, 215, 200, "25/11/2026"),
+    W(4, 1, 1010, 275, 70, "Valor"), W(4, 1, 1090, 275, 20, "a"), W(4, 1, 1120, 275, 100, "recolher"),
+    W(5, 1, 1080, 310, 110, "842,15"), W(5, 1, 1200, 310, 8, "|"),
+  ].join("\n");
+  const items = tsvToItems(tsv, { width: 1400, height: 1754 }, 2, 1);
+  assert.ok(items.some((i) => i.str === "Pagar este documento até"));
+  assert.ok(!items.some((i) => i.str.includes("|")));
+  const r = extractBoleto([], "2026-10-13", { ocrItems: items });
+  assert.equal(r.ocr, true);
+  assert.equal(r.guide, "FGTS");
+  assert.equal(r.dueDate, "2026-11-25");
+  assert.equal(r.amount, 842.15);
+  assert.match(r.warnings[0], /OCR/);
+});
