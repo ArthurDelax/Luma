@@ -93,7 +93,7 @@ export function StackedBars({ data, series, height = 240 }: { data: BarDatum[]; 
           className="pointer-events-none absolute top-1 z-10 min-w-44 -translate-x-1/2 rounded-lg bg-navy-900 px-3 py-2 text-xs text-white shadow-lg"
           style={{ left: `${((padL + slot * hover + slot / 2) / W) * 100}%` }}
         >
-          <div className="mb-1 font-semibold capitalize">{data[hover].title}</div>
+          <div className="mb-1 font-semibold first-letter:uppercase">{data[hover].title}</div>
           {data[hover].segments.map((s) => (
             <div key={s.key} className="flex items-center justify-between gap-4">
               <span className="flex items-center gap-1.5 text-white/75">

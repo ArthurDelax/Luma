@@ -278,7 +278,7 @@ function Boletos() {
   return (
     <section id="boletos" className="scroll-mt-20 bg-paper py-20 sm:py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-        <div className="order-2 lg:order-1">
+        <div className="order-2 min-w-0 lg:order-1">
           <div className="card overflow-hidden">
             <div className="flex items-center gap-3 border-b border-line px-5 py-4">
               <LuScanText className="size-5 text-soon" />
@@ -290,19 +290,19 @@ function Boletos() {
             <dl className="divide-y divide-line">
               {fields.map(([k, v, ok]) => (
                 <div key={k} className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                  <dt className="w-36 shrink-0 text-muted">{k}</dt>
+                  <dt className="w-28 shrink-0 text-muted sm:w-36">{k}</dt>
                   <dd className={cx("min-w-0 flex-1 truncate font-medium", !ok && "text-muted")}>{ok ? v : "não identificado — preencha"}</dd>
                   {ok ? <LuCircleCheck className="size-4 shrink-0 text-paid" /> : <span className="size-4 shrink-0 rounded-full border-2 border-dashed border-soon" />}
                 </div>
               ))}
             </dl>
             <div className="border-t border-line bg-paid-soft/60 px-5 py-3">
-              <p className="font-mono text-[12px] text-ink">23790.00017 23456.789017 72345.678903 1 77160000038990</p>
+              <p className="break-all font-mono text-[12px] text-ink">23790.00017 23456.789017 72345.678903 1 77160000038990</p>
               <p className="mt-0.5 text-xs font-semibold text-paid">Dígitos verificadores conferem</p>
             </div>
           </div>
         </div>
-        <div className="order-1 lg:order-2">
+        <div className="order-1 min-w-0 lg:order-2">
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Do PDF para a conta a pagar, sem digitar</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted">
             Selecione o boleto e a Luma lê o texto do documento, encontra a linha digitável e confere os dígitos verificadores — de boletos bancários e de contas de consumo.

@@ -82,6 +82,10 @@
   button:disabled {
     cursor: not-allowed;
   }
+  /* Evita que textos longos (truncados) alarguem colunas de grid no celular. */
+  .grid > * {
+    min-width: 0;
+  }
 }
 
 @utility tabular {

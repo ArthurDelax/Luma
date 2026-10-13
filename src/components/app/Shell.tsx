@@ -207,12 +207,14 @@ export function Shell({ current, children }: { current: RouteId; children: React
             <span className="font-semibold text-ink">Empresa Demonstração</span> — ambiente de testes
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="secondary" className="hidden sm:inline-flex" icon={<LuFileUp className="size-4" />} onClick={actions.importBoleto}>
-              Importar boleto
-            </Button>
-            <Button className="hidden sm:inline-flex" icon={<LuPlus className="size-4" />} onClick={() => actions.newBill()}>
-              Nova conta
-            </Button>
+            <div className="hidden gap-2 sm:flex">
+              <Button variant="secondary" icon={<LuFileUp className="size-4" />} onClick={actions.importBoleto}>
+                Importar boleto
+              </Button>
+              <Button icon={<LuPlus className="size-4" />} onClick={() => actions.newBill()}>
+                Nova conta
+              </Button>
+            </div>
             <NotificationsButton />
           </div>
         </div>

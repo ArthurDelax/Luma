@@ -144,7 +144,7 @@ export function CalendarPage() {
             <IconButton label="Mês anterior" onClick={() => setMonth(addMonthsClamped(month, -1, 1))}>
               <LuChevronLeft className="size-5" />
             </IconButton>
-            <h2 className="min-w-40 text-center font-display text-lg font-semibold capitalize">{monthLabel(month.slice(0, 7), false)}</h2>
+            <h2 className="min-w-40 text-center font-display text-lg font-semibold first-letter:uppercase">{monthLabel(month.slice(0, 7), false)}</h2>
             <IconButton label="Próximo mês" onClick={() => setMonth(addMonthsClamped(month, 1, 1))}>
               <LuChevronRight className="size-5" />
             </IconButton>
