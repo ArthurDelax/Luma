@@ -6,10 +6,13 @@ import { downloadText } from "@/lib/csv";
 import { formatFileSize } from "@/lib/format";
 import { parseBackup, STORAGE_KEY } from "@/lib/storage";
 import { useStore } from "@/lib/store";
+import { ROLE_LABEL, useWorkspace } from "@/lib/workspace";
 import { Button, PageHeader, useConfirm, useToast } from "../../ui";
 
 export function SettingsPage() {
   const { data, today, resetToSample, clearAll, replaceAll, requireWrite, readOnly } = useStore();
+  const ws = useWorkspace();
+  const cloud = ws.mode === "cloud";
   const confirm = useConfirm();
   const toast = useToast();
   const file = useRef<HTMLInputElement>(null);
@@ -84,8 +87,33 @@ export function SettingsPage() {
 
   return (
     <div className="max-w-3xl">
-      <PageHeader title="Dados e ajustes" description="Gerencie os dados desta demonstração." />
+      <PageHeader title="Dados e ajustes" description={cloud ? "Informações da sua empresa e cópias de segurança." : "Gerencie os dados desta demonstração."} />
 
+      {cloud && (
+        <section className="card mb-6 overflow-hidden">
+          <div className="bg-ink px-5 py-5 text-paper sm:px-6">
+            <h2 className="font-display text-lg font-semibold">{ws.orgName}</h2>
+            <p className="mt-1 text-sm text-paper/70">
+              {ws.email} · {ws.role ? ROLE_LABEL[ws.role] : ""}
+            </p>
+          </div>
+          <ul className="grid gap-px bg-line text-sm sm:grid-cols-2">
+            {[
+              ["Dados no servidor", "Contas, contratos, documentos e anexos ficam salvos com segurança e aparecem em qualquer computador ou celular em que você entrar."],
+              ["Exclusivos da sua empresa", "Somente os usuários da sua empresa têm acesso. Nem outras empresas nem a equipe da Luma veem seus dados financeiros."],
+              ["Equipe", "Todos os usuários da empresa veem as mesmas informações. Alterações de um aparecem para os outros em até 1 minuto."],
+              ["Cópia de segurança", "Você pode baixar um backup completo (sem os PDFs) quando quiser."],
+            ].map(([t, d]) => (
+              <li key={t} className="bg-white px-5 py-4">
+                <p className="font-semibold">{t}</p>
+                <p className="mt-0.5 text-slate-600">{d}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {!cloud && (
       <section className="card mb-6 overflow-hidden">
         <div className="bg-navy-900 px-5 py-5 text-white sm:px-6">
           <h2 className="font-display text-lg font-semibold">Esta é uma versão demonstrativa</h2>
@@ -113,6 +141,7 @@ export function SettingsPage() {
           ))}
         </ul>
       </section>
+      )}
 
       <section className="card mb-6 p-5 sm:p-6">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold">
@@ -136,10 +165,12 @@ export function SettingsPage() {
             <dd className="font-display text-xl font-semibold">{attachments}</dd>
           </div>
         </dl>
+        {!cloud && (
         <p className="mt-3 text-xs text-muted">
           Dados: {formatFileSize(usage.local)}
           {usage.used !== undefined && usage.quota ? ` — uso total do site: ${formatFileSize(usage.used)} de ${formatFileSize(usage.quota)} disponíveis` : ""}
         </p>
+        )}
       </section>
 
       <section className="card divide-y divide-line">
@@ -187,7 +218,9 @@ export function SettingsPage() {
               </Button>
             ),
           },
-        ].map((row) => (
+        ]
+          .filter((row) => !cloud || row.title === "Baixar backup" || row.title === "Importar backup")
+          .map((row) => (
           <div key={row.title} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:px-6">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-100 text-navy-600">{row.icon}</span>
             <div className="flex-1">

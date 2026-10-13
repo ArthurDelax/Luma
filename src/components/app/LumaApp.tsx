@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import type { CloudSync } from "@/lib/cloud";
 import { StoreProvider, useStore } from "@/lib/store";
-import { ConfirmProvider, LogoMark, ToastProvider } from "../ui";
+import { WorkspaceProvider, type Workspace } from "@/lib/workspace";
+import { Button, ConfirmProvider, LogoMark, ToastProvider } from "../ui";
 import { BillActionsProvider } from "./bills/BillActions";
 import { DemoBlockedDialog } from "./DemoGate";
 import { AlertsPage } from "./pages/AlertsPage";
@@ -17,13 +19,26 @@ import { NAV, Shell } from "./Shell";
 import { useHashRoute } from "./routing";
 
 function Screen() {
-  const { ready } = useStore();
+  const { ready, loadError, retryLoad } = useStore();
   const route = useHashRoute();
 
   useEffect(() => {
     const label = NAV.find((n) => n.id === route.id)?.label ?? "Painel";
     document.title = `${label} · Luma`;
   }, [route.id]);
+
+  if (loadError) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-paper px-4">
+        <div className="flex max-w-sm flex-col items-center gap-3 text-center">
+          <LogoMark className="size-10" />
+          <p className="font-display text-lg font-semibold">Não foi possível carregar os dados</p>
+          <p className="text-sm text-muted">{loadError}</p>
+          <Button onClick={retryLoad}>Tentar de novo</Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!ready) {
     return (
@@ -55,9 +70,9 @@ function Screen() {
   );
 }
 
-export function LumaApp() {
-  return (
-    <StoreProvider>
+export function LumaApp({ cloud, readOnly, workspace }: { cloud?: CloudSync; readOnly?: boolean; workspace?: Workspace } = {}) {
+  const store = (
+    <StoreProvider cloud={cloud} readOnly={readOnly}>
       <ToastProvider>
         <ConfirmProvider>
           <Screen />
@@ -65,4 +80,5 @@ export function LumaApp() {
       </ToastProvider>
     </StoreProvider>
   );
+  return workspace ? <WorkspaceProvider value={workspace}>{store}</WorkspaceProvider> : store;
 }

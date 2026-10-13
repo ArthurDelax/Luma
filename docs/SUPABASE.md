@@ -18,6 +18,12 @@ Nenhum passo exige enviar senhas a ninguém.
 2. Copie o arquivo [`supabase/migrations/0001_plataforma.sql`](../supabase/migrations/0001_plataforma.sql) inteiro (no GitHub, botão **Raw** → selecionar tudo → copiar), cole e clique em **Run**.
 3. Deve aparecer "Success. No rows returned". Pode rodar de novo sem problema.
 
+### 1b. Dados das empresas e anexos
+
+Repita o mesmo procedimento com [`supabase/migrations/0002_dados_empresa.sql`](../supabase/migrations/0002_dados_empresa.sql).
+Ele cria a tabela onde ficam as contas, recorrentes, contratos e documentos de cada empresa
+(isolados por empresa no próprio banco) e a pasta privada `anexos` para os PDFs.
+
 ## 2. Configurar os endereços de login
 
 Supabase → **Authentication** → **URL Configuration**:
@@ -53,13 +59,30 @@ on conflict do nothing;
 3. Envie o link ao cliente (WhatsApp ou e-mail). Ele cria a própria senha — você nunca vê nem envia senhas.
 4. O painel mostra "Convite pendente" até o cliente ativar, depois "Acesso ativado".
 
+## Como o cliente entra na própria base
+
+1. Depois de ativar o convite, o cliente usa o botão **Entrar** no topo do site (`/empresa/`).
+2. E-mail + senha → abre direto o painel da empresa dele (se tiver mais de uma, escolhe qual).
+3. Tudo o que ele cadastra fica no servidor e aparece em qualquer computador ou celular.
+
+Permissões dentro da empresa:
+
+| Situação | Pode ver | Pode alterar |
+|---|---|---|
+| Administrador / Financeiro, empresa ativa ou inadimplente | Sim | Sim |
+| Somente consulta | Sim | Não (só marcar alertas como lidos) |
+| Empresa **suspensa** | Sim | Não |
+| Empresa **cancelada** ou usuário desativado | Não | Não |
+
+O dono da plataforma **não** vê os dados financeiros dos clientes.
+
 ## Segurança (resumo)
 
 - RLS ligada em todas as tabelas; o acesso é só por funções que verificam permissão.
 - Painel exige estar em `platform_admins` **e** sessão com 2 etapas (`aal2`) — verificado no banco, não só na tela.
 - Convites: token aleatório de 32 bytes, só o hash fica salvo, uso único, e-mail precisa coincidir.
 - Sessão do painel encerra após 30 minutos sem uso.
-- Testes: `supabase/tests/security_test.py` (32 verificações em PostgreSQL local).
+- Testes: `supabase/tests/security_test.py` (32 verificações) e `supabase/tests/dados_test.py` (31 verificações de isolamento dos dados e anexos), em PostgreSQL local.
 
 ## Limites do plano grátis
 

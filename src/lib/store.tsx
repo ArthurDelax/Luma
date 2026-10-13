@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { clearAttachments, deleteAttachment } from "./attachments.ts";
+import { clearAttachments, deleteAttachment, setAttachmentBackend } from "./attachments.ts";
+import type { CloudSync } from "./cloud.ts";
 import { todayISO } from "./dates.ts";
 import { DEMO_MODE } from "./demo.ts";
 import { uid } from "./format.ts";
@@ -15,6 +16,11 @@ type NewDocument = Omit<BusinessDocument, "id" | "createdAt" | "updatedAt">;
 
 interface StoreValue {
   ready: boolean;
+  /** Erro ao carregar os dados do servidor (somente na nuvem). */
+  loadError: string | null;
+  retryLoad(): void;
+  /** Alterações ainda não confirmadas pelo servidor. */
+  saving: boolean;
   data: LumaData;
   today: string;
   storageError: string | null;
@@ -50,32 +56,137 @@ const empty: LumaData = { version: 1, bills: [], recurring: [], documents: [], r
 
 const StoreContext = createContext<StoreValue | null>(null);
 
-export function StoreProvider({ children, repository, readOnly = DEMO_MODE }: { children: ReactNode; repository?: DataRepository; readOnly?: boolean }) {
+export function StoreProvider({
+  children,
+  repository,
+  readOnly = DEMO_MODE,
+  cloud,
+}: {
+  children: ReactNode;
+  repository?: DataRepository;
+  readOnly?: boolean;
+  /** Empresa na nuvem: dados carregados e gravados no servidor. */
+  cloud?: CloudSync;
+}) {
   // Na demonstração os dados vivem só na memória: sempre os mesmos dados fictícios, nada é gravado.
   const repo = useMemo(() => repository ?? (readOnly ? new MemoryRepository() : new LocalStorageRepository()), [repository, readOnly]);
   const [data, setData] = useState<LumaData>(empty);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [loadNonce, setLoadNonce] = useState(0);
   const [today, setToday] = useState(todayISO());
   const [blockedAt, setBlockedAt] = useState<number | null>(null);
   const loaded = useRef(false);
+  /** Último estado confirmado pelo servidor (base para enviar só o que mudou). */
+  const synced = useRef<LumaData>(empty);
+  const pushing = useRef(false);
+  const latest = useRef<LumaData>(empty);
 
   useEffect(() => {
-    const stored = repo.load();
-    setData(stored ?? createSeedData(todayISO()));
-    loaded.current = true;
-    setReady(true);
-  }, [repo]);
+    if (!cloud) {
+      setAttachmentBackend(null);
+      const stored = repo.load();
+      setData(stored ?? createSeedData(todayISO()));
+      loaded.current = true;
+      setReady(true);
+      return;
+    }
+    setAttachmentBackend(cloud);
+    let alive = true;
+    setLoadError(null);
+    cloud
+      .load()
+      .then((d) => {
+        if (!alive) return;
+        synced.current = d;
+        latest.current = d;
+        setData(d);
+        loaded.current = true;
+        setReady(true);
+      })
+      .catch((e) => alive && setLoadError(e instanceof Error ? e.message : "Não foi possível carregar os dados."));
+    return () => {
+      alive = false;
+      setAttachmentBackend(null);
+    };
+  }, [repo, cloud, loadNonce]);
+
+  /** Envia ao servidor as diferenças pendentes, uma remessa por vez. */
+  const flush = useCallback(async () => {
+    if (!cloud || pushing.current) return;
+    pushing.current = true;
+    try {
+      while (latest.current !== synced.current) {
+        const target = latest.current;
+        setSaving(true);
+        try {
+          await cloud.push(synced.current, target);
+          synced.current = target;
+          setStorageError(null);
+        } catch (e) {
+          setStorageError(`Não foi possível salvar no servidor (${e instanceof Error ? e.message : "erro"}). Tentando de novo…`);
+          await new Promise((r) => setTimeout(r, 5000));
+        }
+      }
+    } finally {
+      pushing.current = false;
+      setSaving(false);
+    }
+  }, [cloud]);
 
   useEffect(() => {
     if (!loaded.current) return;
+    if (cloud) {
+      latest.current = data;
+      void flush();
+      return;
+    }
     try {
       repo.save(data);
       setStorageError(null);
     } catch (e) {
       setStorageError(e instanceof StorageError ? e.message : "Falha ao salvar os dados.");
     }
-  }, [data, repo]);
+  }, [data, repo, cloud, flush]);
+
+  // Na nuvem: busca alterações feitas por outros usuários da empresa.
+  useEffect(() => {
+    if (!cloud) return;
+    const refresh = async () => {
+      if (!loaded.current || pushing.current || latest.current !== synced.current) return;
+      try {
+        const fresh = await cloud.load();
+        if (pushing.current || latest.current !== synced.current) return;
+        if (JSON.stringify(fresh) === JSON.stringify(synced.current)) return;
+        synced.current = fresh;
+        latest.current = fresh;
+        setData(fresh);
+      } catch {
+        /* tenta de novo no próximo ciclo */
+      }
+    };
+    const t = setInterval(refresh, 60_000);
+    const onFocus = () => void refresh();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [cloud]);
+
+  // Avisa antes de fechar a página com alterações ainda não enviadas.
+  useEffect(() => {
+    if (!cloud) return;
+    const onLeave = (e: BeforeUnloadEvent) => {
+      if (latest.current !== synced.current) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onLeave);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, [cloud]);
+
+  const retryLoad = useCallback(() => setLoadNonce((n) => n + 1), []);
 
   useEffect(() => {
     const t = setInterval(() => setToday(todayISO()), 60_000);
@@ -83,7 +194,7 @@ export function StoreProvider({ children, repository, readOnly = DEMO_MODE }: { 
   }, []);
 
   useEffect(() => {
-    if (readOnly) return;
+    if (readOnly || cloud) return;
     const onStorage = (e: StorageEvent) => {
       if (e.key && e.key.startsWith("luma:")) {
         const fresh = repo.load();
@@ -92,7 +203,7 @@ export function StoreProvider({ children, repository, readOnly = DEMO_MODE }: { 
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [repo, readOnly]);
+  }, [repo, readOnly, cloud]);
 
   /** Guarda única de escrita: toda alteração de dados passa por aqui. */
   const requireWrite = useCallback(() => {
@@ -216,10 +327,10 @@ export function StoreProvider({ children, repository, readOnly = DEMO_MODE }: { 
   }, []);
 
   const resetToSample = useCallback(async () => {
-    if (!requireWrite()) return;
+    if (cloud || !requireWrite()) return; // dados fictícios nunca entram numa empresa real
     await clearAttachments();
     setData(createSeedData(todayISO()));
-  }, [requireWrite]);
+  }, [requireWrite, cloud]);
 
   const clearAll = useCallback(async () => {
     if (!requireWrite()) return;
@@ -237,6 +348,9 @@ export function StoreProvider({ children, repository, readOnly = DEMO_MODE }: { 
 
   const value: StoreValue = {
     ready,
+    loadError,
+    retryLoad,
+    saving,
     data,
     today,
     storageError,

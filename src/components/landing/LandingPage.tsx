@@ -29,6 +29,7 @@ import { cx, Logo, LogoMark } from "../ui";
 const APP = href("/app/");
 const HOME = href("/");
 const PLANS = href("/planos/");
+const LOGIN = href("/empresa/");
 
 function CTA({ children = "Experimentar demonstração", variant = "dark", className }: { children?: React.ReactNode; variant?: "light" | "dark"; className?: string }) {
   return (
@@ -76,7 +77,10 @@ export function Header() {
             </a>
           ))}
         </nav>
-        <a href={APP} className="ml-auto hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
+        <a href={LOGIN} className="ml-auto hidden h-10 items-center rounded-full px-4 text-sm font-semibold text-ink transition-colors hover:bg-ink/5 sm:inline-flex">
+          Entrar
+        </a>
+        <a href={APP} className="hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
           Abrir demonstração
         </a>
         <button className="ml-auto grid size-10 place-items-center rounded-full text-ink md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
@@ -90,6 +94,9 @@ export function Header() {
               {l}
             </a>
           ))}
+          <a href={LOGIN} className="block rounded-2xl px-3 py-3 text-base font-semibold text-ink hover:bg-ink/5">
+            Entrar (clientes)
+          </a>
           <CTA className="mt-3 w-full" />
         </nav>
       )}

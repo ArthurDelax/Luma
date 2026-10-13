@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { LuCircleCheck, LuMailCheck, LuTriangleAlert } from "react-icons/lu";
 import { href } from "@/lib/paths";
-import { currentSession, rpc, sessionFromUrlHash, signIn, signOut, signUp, supabaseConfigured, type Session } from "@/lib/supabase";
+import { currentSession, rpc, sessionFromUrlHash, signIn, signUp, supabaseConfigured, type Session } from "@/lib/supabase";
 import { Button, Field, Input, Logo } from "../ui";
 
 interface InviteInfo {
@@ -197,11 +197,11 @@ export function InviteAccept() {
             <LuCircleCheck className="mx-auto size-10 text-paid" />
             <h1 className="mt-3 font-display text-xl font-semibold">Acesso ativado</h1>
             <p className="mt-2 text-sm text-muted">
-              Sua conta agora é a administradora da <strong className="text-ink">{orgName}</strong> na Luma. O painel da empresa está sendo preparado — avisaremos pelo e-mail cadastrado quando estiver liberado.
+              Sua conta agora é a administradora da <strong className="text-ink">{orgName}</strong> na Luma. Nas próximas vezes, use o botão <strong className="text-ink">Entrar</strong> no topo do site.
             </p>
-            <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => (window.location.href = href("/")))}>
-              Voltar ao site
-            </Button>
+            <a href={href("/empresa/")} className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-ink px-6 text-sm font-semibold text-paper hover:bg-navy-700">
+              Entrar no painel da empresa
+            </a>
           </div>
         )}
       </div>

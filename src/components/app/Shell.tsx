@@ -9,6 +9,7 @@ import {
   LuFileUp,
   LuHouse,
   LuLayoutDashboard,
+  LuLogOut,
   LuMenu,
   LuPlus,
   LuReceipt,
@@ -21,6 +22,7 @@ import { computeAlerts, ALERT_LEVEL_LABEL } from "@/lib/domain";
 import { formatDate, relativeDays } from "@/lib/dates";
 import { href } from "@/lib/paths";
 import { useStore } from "@/lib/store";
+import { initials, ROLE_LABEL, useWorkspace } from "@/lib/workspace";
 import { Button, cx, IconButton, Logo } from "../ui";
 import { useBillActions } from "./bills/BillActions";
 import { DemoBanner } from "./DemoGate";
@@ -89,14 +91,36 @@ function SideNav({ current, onNavigate, counts }: { current: RouteId; onNavigate
 }
 
 function CompanyCard() {
+  const ws = useWorkspace();
+  const cloud = ws.mode === "cloud";
+  const name = cloud ? (ws.orgName ?? "Sua empresa") : "Empresa Demonstração";
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-2.5">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-paper font-display text-[13px] font-bold text-ink">ED</span>
-      <div className="min-w-0">
-        <p className="truncate text-[13px] font-semibold text-paper">Empresa Demonstração</p>
-        <p className="truncate text-[11px] text-paper/45">Ambiente de testes</p>
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-paper font-display text-[13px] font-bold text-ink">{cloud ? initials(name) : "ED"}</span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold text-paper" title={name}>
+          {name}
+        </p>
+        <p className="truncate text-[11px] text-paper/45" title={ws.email}>
+          {cloud ? `${ws.role ? ROLE_LABEL[ws.role] : ""}${ws.email ? ` · ${ws.email}` : ""}` : "Ambiente de testes"}
+        </p>
       </div>
+      {ws.switchOrg && (
+        <button type="button" onClick={ws.switchOrg} className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold text-paper/60 hover:bg-white/10 hover:text-paper">
+          Trocar
+        </button>
+      )}
     </div>
+  );
+}
+
+function SessionNote() {
+  const ws = useWorkspace();
+  if (ws.mode !== "cloud") return <DemoNote />;
+  return (
+    <button type="button" onClick={ws.logout} className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs font-semibold text-paper/70 hover:bg-white/10 hover:text-paper">
+      <LuLogOut className="size-4" /> Sair da conta
+    </button>
   );
 }
 
@@ -197,7 +221,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
         </div>
         <SideNav current={current} counts={counts} />
         <div className="mt-auto space-y-3 pt-8">
-          <DemoNote />
+          <SessionNote />
           <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-paper/45 hover:text-paper">
             <LuHouse className="size-4" /> Voltar ao site
           </a>
@@ -220,7 +244,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
             </div>
             <SideNav current={current} counts={counts} onNavigate={() => setDrawer(false)} />
             <div className="mt-auto space-y-3 pt-8">
-              <DemoNote />
+              <SessionNote />
               <a href={href("/")} className="flex items-center gap-2 px-2 text-xs font-medium text-paper/45">
                 <LuHouse className="size-4" /> Voltar ao site
               </a>

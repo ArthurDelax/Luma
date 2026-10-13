@@ -9,6 +9,18 @@
 import { uid } from "./format.ts";
 import type { AttachmentMeta } from "./types.ts";
 
+/** Onde os anexos ficam quando o app está ligado a uma empresa na nuvem. */
+export interface AttachmentBackend {
+  saveAttachment(file: Blob, name: string): Promise<AttachmentMeta>;
+  getAttachment(id: string): Promise<Blob | undefined>;
+  deleteAttachment(id: string): Promise<void>;
+}
+
+let backend: AttachmentBackend | null = null;
+export function setAttachmentBackend(b: AttachmentBackend | null) {
+  backend = b;
+}
+
 const DB_NAME = "luma-anexos";
 const STORE = "files";
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
@@ -39,12 +51,14 @@ async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBReq
 
 export async function saveAttachment(file: Blob, name: string): Promise<AttachmentMeta> {
   if (file.size > MAX_ATTACHMENT_BYTES) throw new Error("O anexo excede 10 MB.");
+  if (backend) return backend.saveAttachment(file, name);
   const id = uid("anx_");
   await tx("readwrite", (s) => s.put(file, id));
   return { id, name, size: file.size, type: file.type || "application/pdf", addedAt: new Date().toISOString() };
 }
 
 export async function getAttachment(id: string): Promise<Blob | undefined> {
+  if (backend) return backend.getAttachment(id);
   try {
     return (await tx<Blob | undefined>("readonly", (s) => s.get(id) as IDBRequest<Blob | undefined>)) ?? undefined;
   } catch {
@@ -53,6 +67,7 @@ export async function getAttachment(id: string): Promise<Blob | undefined> {
 }
 
 export async function deleteAttachment(id: string): Promise<void> {
+  if (backend) return backend.deleteAttachment(id);
   try {
     await tx("readwrite", (s) => s.delete(id));
   } catch {
@@ -61,6 +76,7 @@ export async function deleteAttachment(id: string): Promise<void> {
 }
 
 export async function clearAttachments(): Promise<void> {
+  if (backend) return; // na nuvem, cada anexo é apagado junto com seu registro
   try {
     await tx("readwrite", (s) => s.clear());
   } catch {

@@ -285,6 +285,25 @@ export async function verifyTotp(s: Session, factorId: string, code: string): Pr
 /* Banco: funções (RPC)                                                 */
 /* ------------------------------------------------------------------ */
 
+/** Chamada autenticada com a sessão atual (renovada se necessário). */
+export async function authed<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const s = await currentSession();
+  if (!s) throw new SupabaseError("Sua sessão expirou. Entre novamente.", 401, "session_expired");
+  return request<T>(path, { ...init, token: s.access_token });
+}
+
+/** Baixa um arquivo (resposta binária) com a sessão atual. */
+export async function authedBlob(path: string): Promise<Blob | undefined> {
+  const s = await currentSession();
+  if (!s) return undefined;
+  try {
+    const res = await fetch(`${SUPABASE_URL}${path}`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${s.access_token}` } });
+    return res.ok ? await res.blob() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function rpc<T>(fn: string, args: Record<string, unknown> = {}, s?: Session | null): Promise<T> {
   return request<T>(`/rest/v1/rpc/${fn}`, { method: "POST", token: s?.access_token, body: JSON.stringify(args) });
 }

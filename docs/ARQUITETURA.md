@@ -145,9 +145,10 @@ Todas as tabelas de negócio têm `org_id` obrigatório.
 | Etapa | Conteúdo | Situação |
 |---|---|---|
 | 1 | Preços, calculadora, botões de contratação, demonstração somente leitura | **Concluída** |
-| 2 | Banco: organizações, administradores, papéis, licenças, convites, RLS e testes de segurança | **Pronto** (aguardando aplicar no Supabase) |
-| 3 | Painel administrativo, criação manual de empresas e links de ativação | **Pronto** (aguardando conectar ao Supabase) |
-| 3b | Área da empresa com dados no banco (contas, documentos, equipe e permissões) | Pendente |
+| 2 | Banco: organizações, administradores, papéis, licenças, convites, RLS e testes de segurança | **Pronto** |
+| 3 | Painel administrativo, criação manual de empresas e links de ativação | **Pronto** |
+| 3b | Área da empresa com dados no banco (contas, documentos, anexos), login do cliente e permissões por papel | **Pronto** |
+| 3c | Tela de equipe: convidar usuários, trocar papéis e desativar (empresas com 2+ licenças) | Pendente |
 | 4 | Integração Pix em **ambiente de testes (sandbox)** do provedor escolhido | Pendente — requer sua aprovação do provedor |
 | 5 | Confirmação automática, provisionamento, renovação, carência e suspensão | Pendente |
 | 6 | Revisão de segurança, LGPD, pentest e preparação para produção | Pendente |
