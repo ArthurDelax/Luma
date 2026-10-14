@@ -109,6 +109,7 @@ const ERROR_PT: Record<string, string> = {
 function translateError(raw: string): string {
   if (ERROR_PT[raw]) return ERROR_PT[raw];
   if (/^For security purposes, you can only request this after/i.test(raw)) return "Aguarde alguns segundos antes de pedir um novo link.";
+  if (/org_records_kind_check/.test(raw)) return "o servidor ainda não aceita este tipo de cadastro (categorias). Avise o suporte da Luma";
   return raw;
 }
 

@@ -88,27 +88,52 @@ export class CloudSync {
     return fromRows(rows);
   }
 
+  /**
+   * Envia as diferenças, um tipo de registro por vez: se o servidor recusar um tipo
+   * (ex.: banco sem a migração de categorias), os demais — contas, recorrentes,
+   * documentos — continuam sendo gravados. O primeiro erro é repassado no final.
+   */
   async push(prev: LumaData, next: LumaData): Promise<void> {
     const { upserts, deletes } = diff(prev, next);
-    for (let i = 0; i < upserts.length; i += 200) {
-      const chunk = upserts.slice(i, i + 200).map((r) => ({ org_id: this.orgId, kind: r.kind, id: r.id, data: r.data }));
-      await authed("/rest/v1/org_records", {
-        method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify(chunk),
+    let firstError: unknown;
+    const attempt = async (fn: () => Promise<void>) => {
+      try {
+        await fn();
+      } catch (e) {
+        firstError ??= e;
+      }
+    };
+
+    const upsertsByKind = new Map<Kind, Row[]>();
+    for (const r of upserts) upsertsByKind.set(r.kind, [...(upsertsByKind.get(r.kind) ?? []), r]);
+    for (const rows of upsertsByKind.values()) {
+      await attempt(async () => {
+        for (let i = 0; i < rows.length; i += 200) {
+          const chunk = rows.slice(i, i + 200).map((r) => ({ org_id: this.orgId, kind: r.kind, id: r.id, data: r.data }));
+          await authed("/rest/v1/org_records", {
+            method: "POST",
+            headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+            body: JSON.stringify(chunk),
+          });
+        }
       });
     }
-    const byKind = new Map<Kind, string[]>();
-    for (const r of deletes) byKind.set(r.kind, [...(byKind.get(r.kind) ?? []), r.id]);
-    for (const [kind, ids] of byKind) {
-      for (let i = 0; i < ids.length; i += 100) {
-        const list = ids.slice(i, i + 100).map(q).join(",");
-        await authed(`/rest/v1/org_records?org_id=eq.${this.orgId}&kind=eq.${kind}&id=in.(${encodeURIComponent(list)})`, {
-          method: "DELETE",
-          headers: { Prefer: "return=minimal" },
-        });
-      }
+
+    const deletesByKind = new Map<Kind, string[]>();
+    for (const r of deletes) deletesByKind.set(r.kind, [...(deletesByKind.get(r.kind) ?? []), r.id]);
+    for (const [kind, ids] of deletesByKind) {
+      await attempt(async () => {
+        for (let i = 0; i < ids.length; i += 100) {
+          const list = ids.slice(i, i + 100).map(q).join(",");
+          await authed(`/rest/v1/org_records?org_id=eq.${this.orgId}&kind=eq.${kind}&id=in.(${encodeURIComponent(list)})`, {
+            method: "DELETE",
+            headers: { Prefer: "return=minimal" },
+          });
+        }
+      });
     }
+
+    if (firstError !== undefined) throw firstError;
   }
 
   /* ---------------- anexos (Supabase Storage, bucket privado) ---------------- */
