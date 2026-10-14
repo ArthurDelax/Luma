@@ -84,11 +84,21 @@ export interface BusinessDocument {
   updatedAt: string;
 }
 
+/** Categoria criada pela empresa, além das categorias padrão. */
+export interface CustomCategory {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LumaData {
   version: 1;
   bills: Bill[];
   recurring: RecurringExpense[];
   documents: BusinessDocument[];
+  /** Categorias próprias da empresa (as padrão ficam em CATEGORIES). */
+  categories?: CustomCategory[];
   /** IDs de alertas já lidos (o ID inclui o nível, então um novo nível volta a aparecer). */
   readAlerts: string[];
   /** Data em que os dados de exemplo foram gerados. */

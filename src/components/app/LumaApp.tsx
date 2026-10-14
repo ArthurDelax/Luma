@@ -10,6 +10,7 @@ import { DemoBlockedDialog } from "./DemoGate";
 import { AlertsPage } from "./pages/AlertsPage";
 import { BillsPage } from "./pages/BillsPage";
 import { CalendarPage } from "./pages/CalendarPage";
+import { CategoriesPage } from "./pages/CategoriesPage";
 import { Dashboard } from "./pages/Dashboard";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { RecurringPage } from "./pages/RecurringPage";
@@ -58,6 +59,7 @@ function Screen() {
           {route.id === "painel" && <Dashboard />}
           {route.id === "contas" && <BillsPage route={route} />}
           {route.id === "recorrentes" && <RecurringPage />}
+          {route.id === "categorias" && <CategoriesPage />}
           {route.id === "documentos" && <DocumentsPage />}
           {route.id === "alertas" && <AlertsPage />}
           {route.id === "calendario" && <CalendarPage />}

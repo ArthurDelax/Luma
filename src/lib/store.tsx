@@ -8,7 +8,7 @@ import { DEMO_MODE } from "./demo.ts";
 import { uid } from "./format.ts";
 import { createSeedData } from "./seed.ts";
 import { LocalStorageRepository, MemoryRepository, StorageError, type DataRepository } from "./storage.ts";
-import type { Bill, BusinessDocument, LumaData, RecurringExpense } from "./types.ts";
+import type { Bill, BusinessDocument, CustomCategory, LumaData, RecurringExpense } from "./types.ts";
 
 type NewBill = Omit<Bill, "id" | "createdAt" | "updatedAt">;
 type NewRecurring = Omit<RecurringExpense, "id" | "createdAt" | "updatedAt">;
@@ -45,6 +45,10 @@ interface StoreValue {
   addDocument(d: NewDocument): BusinessDocument | null;
   updateDocument(id: string, patch: Partial<BusinessDocument>): void;
   deleteDocument(id: string): void;
+  addCategory(name: string): CustomCategory | null;
+  /** Renomeia a categoria e atualiza as contas e recorrentes que a usam. */
+  renameCategory(id: string, name: string): void;
+  deleteCategory(id: string): void;
   /** Marcar alertas como lidos é permitido na demonstração (fica só na memória da página). */
   markAlertsRead(ids: string[]): void;
   resetToSample(): Promise<void>;
@@ -322,6 +326,43 @@ export function StoreProvider({
     [requireWrite],
   );
 
+  const addCategory = useCallback(
+    (name: string) => {
+      if (!requireWrite()) return null;
+      const cat: CustomCategory = { id: uid("cat_"), name: name.trim(), createdAt: stamp(), updatedAt: stamp() };
+      setData((d) => ({ ...d, categories: [...(d.categories ?? []), cat] }));
+      return cat;
+    },
+    [requireWrite],
+  );
+
+  const renameCategory = useCallback(
+    (id: string, name: string) => {
+      if (!requireWrite()) return;
+      const next = name.trim();
+      setData((d) => {
+        const old = d.categories?.find((c) => c.id === id);
+        if (!old || old.name === next) return d;
+        const now = stamp();
+        return {
+          ...d,
+          categories: (d.categories ?? []).map((c) => (c.id === id ? { ...c, name: next, updatedAt: now } : c)),
+          bills: d.bills.map((b) => (b.category === old.name ? { ...b, category: next, updatedAt: now } : b)),
+          recurring: d.recurring.map((r) => (r.category === old.name ? { ...r, category: next, updatedAt: now } : r)),
+        };
+      });
+    },
+    [requireWrite],
+  );
+
+  const deleteCategory = useCallback(
+    (id: string) => {
+      if (!requireWrite()) return;
+      setData((d) => ({ ...d, categories: (d.categories ?? []).filter((c) => c.id !== id) }));
+    },
+    [requireWrite],
+  );
+
   const markAlertsRead = useCallback((ids: string[]) => {
     setData((d) => ({ ...d, readAlerts: Array.from(new Set([...d.readAlerts, ...ids])).slice(-500) }));
   }, []);
@@ -369,6 +410,9 @@ export function StoreProvider({
     addDocument,
     updateDocument,
     deleteDocument,
+    addCategory,
+    renameCategory,
+    deleteCategory,
     markAlertsRead,
     resetToSample,
     clearAll,

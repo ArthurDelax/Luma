@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LuArrowDown, LuArrowUp, LuCircleCheck, LuDownload, LuFileUp, LuFilterX, LuPaperclip, LuPencil, LuPlus, LuRotateCcw, LuSearch, LuTrash2, LuReceipt } from "react-icons/lu";
 import { toCSV, downloadText } from "@/lib/csv";
 import { addDays, endOfMonth, formatDate, addMonthsClamped, startOfMonth } from "@/lib/dates";
-import { CATEGORIES, STATUS_LABEL } from "@/lib/domain";
+import { allCategories, STATUS_LABEL } from "@/lib/domain";
 import { formatBRL, normalizeText, onlyDigits } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { BillStatus } from "@/lib/types";
@@ -18,7 +18,7 @@ type Period = "todos" | "mes" | "proximo" | "30dias" | "personalizado";
 type SortKey = "dueDate" | "amount";
 
 export function BillsPage({ route }: { route: Route }) {
-  const { today } = useStore();
+  const { data, today } = useStore();
   const { withStatus } = useDerived();
   const actions = useBillActions();
   const toast = useToast();
@@ -140,7 +140,7 @@ export function BillsPage({ route }: { route: Route }) {
           <div className="grid grid-cols-2 gap-2 sm:flex">
             <Select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Filtrar por categoria" className="sm:w-52">
               <option value="">Todas as categorias</option>
-              {CATEGORIES.map((c) => (
+              {allCategories(data.categories).map((c) => (
                 <option key={c}>{c}</option>
               ))}
             </Select>

@@ -7,7 +7,7 @@
 import { addDays, addMonthsClamped, diffDays, isValidISO, parseISO, toISO } from "./dates.ts";
 import { parsePixPayload } from "./boleto/pix.ts";
 import { normalizeText, onlyDigits } from "./format.ts";
-import type { Bill, BillStatus, BusinessDocument, Frequency, ISODate, RecurringExpense } from "./types.ts";
+import type { Bill, BillStatus, BusinessDocument, CustomCategory, Frequency, ISODate, RecurringExpense } from "./types.ts";
 
 export const CATEGORIES = [
   "Aluguel e condomínio",
@@ -24,6 +24,34 @@ export const CATEGORIES = [
   "Seguros",
   "Outros",
 ] as const;
+
+/** Categorias padrão seguidas das categorias próprias da empresa (em ordem alfabética). */
+export function allCategories(custom: CustomCategory[] = []): string[] {
+  const own = custom.map((c) => c.name).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  return [...CATEGORIES, ...own.filter((n) => !isDefaultCategory(n))];
+}
+
+/** Opções do campo categoria: inclui a categoria atual mesmo que ela tenha sido excluída. */
+export function categoryOptions(custom: CustomCategory[] = [], current?: string): string[] {
+  const list = allCategories(custom);
+  return current && !list.includes(current) ? [...list, current] : list;
+}
+
+export function isDefaultCategory(name: string): boolean {
+  const n = normalizeText(name);
+  return CATEGORIES.some((c) => normalizeText(c) === n);
+}
+
+/** Valida o nome de uma nova categoria (ou renomeada); retorna a mensagem de erro, se houver. */
+export function categoryNameError(name: string, custom: CustomCategory[], ignoreId?: string): string | undefined {
+  const clean = name.trim();
+  if (clean.length < 2) return "Use pelo menos 2 caracteres.";
+  if (clean.length > 60) return "Use no máximo 60 caracteres.";
+  if (isDefaultCategory(clean)) return "Já existe uma categoria padrão com esse nome.";
+  const n = normalizeText(clean);
+  if (custom.some((c) => c.id !== ignoreId && normalizeText(c.name) === n)) return "Já existe uma categoria com esse nome.";
+  return undefined;
+}
 
 export const DOCUMENT_TYPES: Record<BusinessDocument["kind"], string[]> = {
   contrato: ["Contrato com fornecedor", "Contrato de prestação de serviços", "Contrato de locação", "Seguro empresarial", "Outro contrato"],

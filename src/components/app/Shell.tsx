@@ -16,6 +16,7 @@ import {
   LuRepeat,
   LuSearch,
   LuSettings,
+  LuTags,
   LuX,
 } from "react-icons/lu";
 import { computeAlerts, ALERT_LEVEL_LABEL } from "@/lib/domain";
@@ -32,6 +33,7 @@ export const NAV: { id: RouteId; label: string; icon: ReactNode }[] = [
   { id: "painel", label: "Painel", icon: <LuLayoutDashboard /> },
   { id: "contas", label: "Contas a pagar", icon: <LuReceipt /> },
   { id: "recorrentes", label: "Despesas recorrentes", icon: <LuRepeat /> },
+  { id: "categorias", label: "Categorias", icon: <LuTags /> },
   { id: "documentos", label: "Contratos e documentos", icon: <LuFileText /> },
   { id: "calendario", label: "Calendário", icon: <LuCalendarDays /> },
   { id: "alertas", label: "Central de alertas", icon: <LuBell /> },
@@ -49,7 +51,7 @@ export function useUnreadAlerts() {
 }
 
 const GROUPS: { title: string; ids: RouteId[] }[] = [
-  { title: "Financeiro", ids: ["painel", "contas", "recorrentes", "relatorios"] },
+  { title: "Financeiro", ids: ["painel", "contas", "recorrentes", "categorias", "relatorios"] },
   { title: "Gestão", ids: ["documentos", "calendario", "alertas"] },
   { title: "Sistema", ids: ["ajustes"] },
 ];

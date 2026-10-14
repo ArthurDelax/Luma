@@ -8,7 +8,7 @@ import { formatLinha, isParseError, parseLinhaDigitavel } from "@/lib/boleto/lin
 import { bankName } from "@/lib/boleto/banks";
 import { classifyPixKey, formatPixKey, namesLookRelated, parsePixPayload, PIX_KEY_TYPE_LABEL } from "@/lib/boleto/pix";
 import { formatDate, isValidISO } from "@/lib/dates";
-import { CATEGORIES, findDuplicates, type DuplicateMatch } from "@/lib/domain";
+import { categoryOptions, findDuplicates, type DuplicateMatch } from "@/lib/domain";
 import { amountToInput, formatBRL, formatCNPJ, formatFileSize, isValidCNPJ, onlyDigits, parseBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useWorkspace } from "@/lib/workspace";
@@ -343,7 +343,7 @@ export function BillEditor({
           <Field label="Categoria" htmlFor="b-cat" required error={errors.category}>
             <Select id="b-cat" value={f.category} onChange={(e) => set("category", e.target.value)} invalid={!!errors.category}>
               <option value="">Selecione…</option>
-              {CATEGORIES.map((c) => (
+              {categoryOptions(data.categories, f.category).map((c) => (
                 <option key={c}>{c}</option>
               ))}
             </Select>

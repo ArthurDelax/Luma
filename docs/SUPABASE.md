@@ -24,6 +24,12 @@ Repita o mesmo procedimento com [`supabase/migrations/0002_dados_empresa.sql`](.
 Ele cria a tabela onde ficam as contas, recorrentes, contratos e documentos de cada empresa
 (isolados por empresa no próprio banco) e a pasta privada `anexos` para os PDFs.
 
+### 1c. Categorias próprias das empresas
+
+Repita o procedimento com [`supabase/migrations/0003_categorias.sql`](../supabase/migrations/0003_categorias.sql).
+Ele libera o tipo de registro `category` usado pela tela **Categorias** do painel da empresa.
+**Rode antes de publicar a versão do site que tem essa tela** — sem ele, o servidor recusa as categorias.
+
 ## 2. Configurar os endereços de login
 
 Supabase → **Authentication** → **URL Configuration**:

@@ -3,7 +3,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { LuCalendarPlus, LuCircleCheck, LuPause, LuPencil, LuPlay, LuPlus, LuRepeat, LuTrash2 } from "react-icons/lu";
 import { addDays, endOfMonth, formatDate, isValidISO, relativeDays, diffDays, monthLabel } from "@/lib/dates";
-import { CATEGORIES, FREQUENCY_LABEL, monthlyEquivalent, nextOccurrence, occurrencesInRange } from "@/lib/domain";
+import { categoryOptions, FREQUENCY_LABEL, monthlyEquivalent, nextOccurrence, occurrencesInRange } from "@/lib/domain";
 import { amountToInput, formatBRL, parseBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Frequency, RecurringExpense } from "@/lib/types";
@@ -24,7 +24,7 @@ interface Form {
 }
 
 function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense>; onClose: () => void }) {
-  const { today, addRecurring, updateRecurring, requireWrite } = useStore();
+  const { data, today, addRecurring, updateRecurring, requireWrite } = useStore();
   const toast = useToast();
   const [f, setF] = useState<Form>({
     description: initial.description ?? "",
@@ -111,7 +111,7 @@ function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense
         <Field label="Categoria" htmlFor="r-cat" required error={errors.category}>
           <Select id="r-cat" value={f.category} onChange={(e) => set("category", e.target.value)} invalid={!!errors.category}>
             <option value="">Selecione…</option>
-            {CATEGORIES.map((c) => (
+            {categoryOptions(data.categories, f.category).map((c) => (
               <option key={c}>{c}</option>
             ))}
           </Select>

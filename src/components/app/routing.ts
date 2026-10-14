@@ -7,9 +7,9 @@ import { useEffect, useState } from "react";
  * Funciona em hospedagem estática como o GitHub Pages sem configurar
  * redirecionamentos, e recarregar a página mantém a tela atual.
  */
-export type RouteId = "painel" | "contas" | "recorrentes" | "documentos" | "alertas" | "calendario" | "relatorios" | "ajustes";
+export type RouteId = "painel" | "contas" | "recorrentes" | "categorias" | "documentos" | "alertas" | "calendario" | "relatorios" | "ajustes";
 
-export const ROUTES: RouteId[] = ["painel", "contas", "recorrentes", "documentos", "alertas", "calendario", "relatorios", "ajustes"];
+export const ROUTES: RouteId[] = ["painel", "contas", "recorrentes", "categorias", "documentos", "alertas", "calendario", "relatorios", "ajustes"];
 
 export interface Route {
   id: RouteId;
