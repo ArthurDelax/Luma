@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { LuBuilding2, LuChevronRight, LuCircleCheck, LuLock, LuMailCheck, LuMessageCircle, LuTriangleAlert } from "react-icons/lu";
 import { CloudSync, type OrgInfo } from "@/lib/cloud";
-import { whatsappLink } from "@/lib/contact";
+import { whatsappLink, whatsappPaymentLink } from "@/lib/contact";
 import { href } from "@/lib/paths";
 import {
   currentSession,
@@ -23,7 +23,7 @@ import { LumaApp } from "./LumaApp";
 const LAST_ORG_KEY = "luma:last-org";
 const PENDING_INVITE_KEY = "luma:pending-invite";
 
-type Stage = "loading" | "unconfigured" | "login" | "forgot" | "reset" | "reset-invalid" | "choose" | "no-org" | "error" | "app";
+type Stage = "loading" | "unconfigured" | "login" | "forgot" | "reset" | "reset-invalid" | "choose" | "no-org" | "error" | "blocked" | "app";
 
 const MIN_PASSWORD = 10;
 
@@ -41,7 +41,7 @@ function recoveryHash(): "recovery" | "error" | null {
 const STATUS_LABEL: Record<OrgInfo["status"], string> = {
   ativa: "Ativa",
   inadimplente: "Pagamento pendente",
-  suspensa: "Suspensa",
+  suspensa: "Acesso suspenso",
   cancelada: "Cancelada",
 };
 
@@ -66,7 +66,8 @@ export function CompanyApp() {
   const open = useCallback((o: OrgInfo) => {
     remember(o.org_id);
     setOrg(o);
-    setStage("app");
+    // Empresa suspensa pelo administrador (inadimplência): mostra o aviso em vez do painel.
+    setStage(o.status === "suspensa" ? "blocked" : "app");
   }, []);
 
   const afterLogin = useCallback(
@@ -137,10 +138,36 @@ export function CompanyApp() {
     window.location.hash = "";
   }, []);
 
-  const cloud = useMemo(() => (org ? new CloudSync(org.org_id) : undefined), [org]);
+  // Com o painel aberto, confere de tempos em tempos se o administrador suspendeu a empresa.
+  const orgId = org?.org_id;
+  useEffect(() => {
+    if (stage !== "app" || !orgId) return;
+    const check = async () => {
+      const s = await currentSession();
+      if (!s) return;
+      try {
+        const fresh = (await rpc<OrgInfo[]>("my_organizations", {}, s)).find((o) => o.org_id === orgId);
+        if (fresh?.status === "suspensa") {
+          setOrg(fresh);
+          setStage("blocked");
+        }
+      } catch {
+        /* tenta de novo no próximo ciclo */
+      }
+    };
+    const t = setInterval(check, 5 * 60_000);
+    const onFocus = () => void check();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [stage, orgId]);
+
+  const cloud = useMemo(() => (orgId ? new CloudSync(orgId) : undefined), [orgId]);
 
   if (stage === "app" && org && cloud) {
-    const readOnlyReason = org.status === "suspensa" ? "suspensa" : org.role === "consulta" ? "consulta" : undefined;
+    const readOnlyReason = org.role === "consulta" ? "consulta" : undefined;
     const workspace: Workspace = {
       mode: "cloud",
       orgName: org.name,
@@ -218,6 +245,42 @@ export function CompanyApp() {
             <Button variant="secondary" className="mt-5 w-full" onClick={logout}>
               Sair
             </Button>
+          </div>
+        )}
+
+        {stage === "blocked" && org && (
+          <div className="text-center">
+            <span className="mx-auto grid size-14 place-items-center rounded-full bg-overdue-soft">
+              <LuLock className="size-7 text-overdue" />
+            </span>
+            <h1 className="mt-4 font-display text-xl font-semibold">Acesso suspenso por pendência de pagamento</h1>
+            <p className="mt-3 text-sm text-muted">
+              O acesso da <strong className="text-ink">{org.name}</strong> à Luma está temporariamente suspenso porque identificamos mensalidades em aberto na sua assinatura.
+            </p>
+            <p className="mt-3 text-sm text-muted">
+              <strong className="text-ink">Seus dados estão guardados com segurança e nada foi apagado.</strong> Assim que o pagamento for regularizado, o acesso é liberado e tudo volta a funcionar normalmente.
+            </p>
+            {whatsappPaymentLink(org.name) ? (
+              <a
+                href={whatsappPaymentLink(org.name)!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-semibold text-paper hover:bg-navy-700"
+              >
+                <LuMessageCircle className="size-4" /> Regularizar pelo WhatsApp
+              </a>
+            ) : (
+              <p className="mt-6 text-sm font-semibold text-ink">Entre em contato com a Luma para regularizar o pagamento.</p>
+            )}
+            {orgs.length > 1 && (
+              <Button variant="secondary" className="mt-2 w-full" onClick={() => setStage("choose")}>
+                Escolher outra empresa
+              </Button>
+            )}
+            <Button variant="secondary" className="mt-2 w-full" onClick={logout}>
+              Sair
+            </Button>
+            <p className="mt-4 text-xs text-muted">Se você já pagou, envie o comprovante pelo WhatsApp para agilizar a liberação.</p>
           </div>
         )}
 

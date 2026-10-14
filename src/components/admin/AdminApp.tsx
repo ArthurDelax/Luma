@@ -8,6 +8,8 @@ import {
   LuHistory,
   LuKeyRound,
   LuLink,
+  LuLock,
+  LuLockOpen,
   LuLogOut,
   LuMail,
   LuPencil,
@@ -399,6 +401,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Org | null>(null);
   const [link, setLink] = useState<{ org: string; email: string; url: string } | null>(null);
+  const [blocking, setBlocking] = useState<Org | null>(null);
   const [loading, setLoading] = useState(true);
 
   const call = useCallback(
@@ -561,6 +564,17 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
                                 <LuLink className="size-4" />
                               </IconButton>
                             )}
+                            {o.status === "suspensa" ? (
+                              <IconButton label="Liberar acesso" onClick={() => setBlocking(o)} className="text-paid hover:bg-paid-soft hover:text-paid">
+                                <LuLockOpen className="size-4" />
+                              </IconButton>
+                            ) : (
+                              o.status !== "cancelada" && (
+                                <IconButton label="Bloquear acesso por inadimplência" onClick={() => setBlocking(o)} className="hover:bg-overdue-soft hover:text-overdue">
+                                  <LuLock className="size-4" />
+                                </IconButton>
+                              )
+                            )}
                             <IconButton label="Editar assinatura" onClick={() => setEditing(o)}>
                               <LuPencil className="size-4" />
                             </IconButton>
@@ -616,6 +630,18 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
           onSaved={() => {
             setEditing(null);
             toast("success", "Assinatura atualizada.");
+            void reload();
+          }}
+        />
+      )}
+      {blocking && (
+        <BlockOrgModal
+          org={blocking}
+          call={call}
+          onClose={() => setBlocking(null)}
+          onDone={(blocked) => {
+            setBlocking(null);
+            toast("success", blocked ? "Acesso bloqueado." : "Acesso liberado.");
             void reload();
           }}
         />
@@ -838,7 +864,7 @@ function EditOrgModal({ org, call, onClose, onSaved }: { org: Org; call: Caller;
           <Textarea id="e-notes" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
         </Field>
         <p className="text-xs text-muted sm:col-span-2">
-          Suspender não apaga nenhum dado: a empresa pode ser reativada a qualquer momento. Responsável: {org.responsible_name} ({org.responsible_email}).
+          Suspensa = acesso bloqueado com aviso de pagamento pendente. Nenhum dado é apagado: a empresa pode ser reativada a qualquer momento. Responsável: {org.responsible_name} ({org.responsible_email}).
         </p>
         {error && (
           <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 text-sm font-medium text-overdue sm:col-span-2">
@@ -846,6 +872,70 @@ function EditOrgModal({ org, call, onClose, onSaved }: { org: Org; call: Caller;
           </p>
         )}
       </form>
+    </Modal>
+  );
+}
+
+/** Bloqueia (situação "suspensa") ou libera (volta para "ativa") o acesso da empresa. */
+function BlockOrgModal({ org, call, onClose, onDone }: { org: Org; call: Caller; onClose: () => void; onDone: (blocked: boolean) => void }) {
+  const blocking = org.status !== "suspensa";
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const confirm = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      await call("admin_update_organization", {
+        p_org: org.id,
+        p_licenses: org.licenses,
+        p_monthly_price_cents: org.monthly_price_cents,
+        p_next_due_date: org.next_due_date,
+        p_status: blocking ? "suspensa" : "ativa",
+        p_admin_notes: org.admin_notes ?? "",
+      });
+      onDone(blocking);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível alterar o acesso.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={blocking ? `Bloquear acesso da ${org.name}?` : `Liberar acesso da ${org.name}?`}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant={blocking ? "danger" : "primary"} onClick={confirm} disabled={busy}>
+            {busy ? "Salvando…" : blocking ? "Bloquear acesso" : "Liberar acesso"}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3 text-sm text-muted">
+        {blocking ? (
+          <>
+            <p>
+              Os usuários da empresa deixam de acessar o painel e, ao entrar, veem o aviso de <strong className="text-ink">pagamento pendente</strong> com o botão para falar com você no WhatsApp.
+            </p>
+            <p>Nenhum dado é apagado. Quando o cliente pagar, é só clicar em liberar acesso.</p>
+          </>
+        ) : (
+          <p>
+            A empresa volta para a situação <strong className="text-ink">Ativa</strong> e os usuários acessam o painel normalmente no próximo login.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 font-medium text-overdue">
+            {error}
+          </p>
+        )}
+      </div>
     </Modal>
   );
 }

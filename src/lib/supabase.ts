@@ -99,7 +99,9 @@ const ERROR_PT: Record<string, string> = {
   "Invalid TOTP code entered": "Código inválido. Confira o código no aplicativo autenticador.",
   "Unexpected failure, please check server logs for more information": "Falha temporária no servidor de login. Clique em Sair, entre de novo e tente outra vez.",
   "New password should be different from the old password.": "A nova senha deve ser diferente da anterior.",
-  "Email rate limit exceeded": "Limite de envio de e-mails atingido. Tente novamente em alguns minutos.",
+  "Error sending recovery email": "Não foi possível enviar o e-mail agora. Tente novamente em alguns minutos.",
+  "Error sending confirmation email": "Não foi possível enviar o e-mail de confirmação agora. Tente novamente em alguns minutos.",
+  "Email rate limit exceeded":"Limite de envio de e-mails atingido. Tente novamente em alguns minutos.",
   "email rate limit exceeded": "Limite de envio de e-mails atingido. Tente novamente em alguns minutos.",
   "AAL2 session is required to update email or password when MFA is enabled.": "Sua conta usa verificação em duas etapas. Fale com a Luma para redefinir a senha.",
 };

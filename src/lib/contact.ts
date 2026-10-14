@@ -13,3 +13,10 @@ export function whatsappLink(users?: number, total?: number): string | null {
   const text = `Olá! Tenho interesse em contratar a Luma${plan}. Pode me ajudar?`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
+
+/** Contato para regularizar a assinatura de uma empresa com acesso suspenso. */
+export function whatsappPaymentLink(orgName: string): string | null {
+  if (!/^55\d{10,11}$/.test(WHATSAPP_NUMBER)) return null;
+  const text = `Olá! Quero regularizar o pagamento da assinatura da Luma da empresa ${orgName} para liberar o acesso.`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+}

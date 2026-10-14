@@ -60,6 +60,12 @@ on conflict do nothing;
 3. Envie o link ao cliente (WhatsApp ou e-mail). Ele cria a própria senha — você nunca vê nem envia senhas.
 4. O painel mostra "Convite pendente" até o cliente ativar, depois "Acesso ativado".
 
+## Bloquear um cliente inadimplente
+
+Na lista de empresas, o **cadeado** ao lado do lápis bloqueia o acesso (situação "Suspensa"). Ao entrar, os usuários
+da empresa veem o aviso de pagamento pendente com o botão para falar no WhatsApp; quem já estava com o painel
+aberto é levado ao aviso em até 5 minutos. Nada é apagado. Depois do pagamento, o **cadeado aberto** libera o acesso.
+
 ## Como o cliente entra na própria base
 
 1. Depois de ativar o convite, o cliente usa o botão **Entrar** no topo do site (`/empresa/`).
@@ -73,7 +79,7 @@ Permissões dentro da empresa:
 |---|---|---|
 | Administrador / Financeiro, empresa ativa ou inadimplente | Sim | Sim |
 | Somente consulta | Sim | Não (só marcar alertas como lidos) |
-| Empresa **suspensa** | Sim | Não |
+| Empresa **suspensa** (bloqueada pelo administrador por inadimplência) | Não — vê o aviso de pagamento pendente com o botão do WhatsApp | Não |
 | Empresa **cancelada** ou usuário desativado | Não | Não |
 
 O dono da plataforma **não** vê os dados financeiros dos clientes.
