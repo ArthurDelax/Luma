@@ -32,6 +32,7 @@ Supabase → **Authentication** → **URL Configuration**:
 - **Redirect URLs:** adicionar
   - `<endereço do site>/convite/`
   - `<endereço do site>/admin/`
+  - `<endereço do site>/empresa/` (retorno do link de "Esqueceu a senha?")
 
 ## 3. Criar o usuário administrador (você)
 
@@ -64,6 +65,7 @@ on conflict do nothing;
 1. Depois de ativar o convite, o cliente usa o botão **Entrar** no topo do site (`/empresa/`).
 2. E-mail + senha → abre direto o painel da empresa dele (se tiver mais de uma, escolhe qual).
 3. Tudo o que ele cadastra fica no servidor e aparece em qualquer computador ou celular.
+4. Esqueceu a senha: na tela de login, **Esqueceu a senha?** → informa o e-mail → recebe um link → cria a nova senha em `/empresa/`. O texto desse e-mail fica em **Authentication** → **Email Templates** → **Reset Password**.
 
 Permissões dentro da empresa:
 

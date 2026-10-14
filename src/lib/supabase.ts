@@ -98,7 +98,17 @@ const ERROR_PT: Record<string, string> = {
   "User already registered": "Este e-mail já tem uma conta. Use a opção de entrar.",
   "Invalid TOTP code entered": "Código inválido. Confira o código no aplicativo autenticador.",
   "Unexpected failure, please check server logs for more information": "Falha temporária no servidor de login. Clique em Sair, entre de novo e tente outra vez.",
+  "New password should be different from the old password.": "A nova senha deve ser diferente da anterior.",
+  "Email rate limit exceeded": "Limite de envio de e-mails atingido. Tente novamente em alguns minutos.",
+  "email rate limit exceeded": "Limite de envio de e-mails atingido. Tente novamente em alguns minutos.",
+  "AAL2 session is required to update email or password when MFA is enabled.": "Sua conta usa verificação em duas etapas. Fale com a Luma para redefinir a senha.",
 };
+
+function translateError(raw: string): string {
+  if (ERROR_PT[raw]) return ERROR_PT[raw];
+  if (/^For security purposes, you can only request this after/i.test(raw)) return "Aguarde alguns segundos antes de pedir um novo link.";
+  return raw;
+}
 
 async function request<T>(path: string, init: RequestInit & { token?: string } = {}): Promise<T> {
   if (!supabaseConfigured()) throw new SupabaseError("O painel ainda não está conectado ao banco de dados.", 0);
@@ -120,7 +130,7 @@ async function request<T>(path: string, init: RequestInit & { token?: string } =
   if (!res.ok) {
     const b = (body ?? {}) as Record<string, string>;
     const raw = b.msg || b.message || b.error_description || b.error || `Erro ${res.status}`;
-    throw new SupabaseError(ERROR_PT[raw] ?? raw, res.status, b.code || b.error_code);
+    throw new SupabaseError(translateError(raw), res.status, b.code || b.error_code);
   }
   return body as T;
 }
@@ -203,6 +213,22 @@ export async function signOut(): Promise<void> {
       /* a sessão local já foi apagada */
     }
   }
+}
+
+/**
+ * Envia o e-mail de redefinição de senha. O Supabase responde da mesma forma
+ * exista ou não uma conta com o e-mail, então a tela não revela quem é cliente.
+ */
+export async function requestPasswordReset(email: string, redirectTo: string): Promise<void> {
+  await request(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+/** Define a nova senha usando a sessão recebida pelo link de redefinição. */
+export async function updatePassword(s: Session, password: string): Promise<void> {
+  await request("/auth/v1/user", { method: "PUT", token: s.access_token, body: JSON.stringify({ password }) });
 }
 
 export async function getUser(s: Session): Promise<AuthUser> {

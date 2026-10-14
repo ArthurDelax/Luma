@@ -1,11 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { LuBuilding2, LuChevronRight, LuLock, LuMessageCircle } from "react-icons/lu";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { LuBuilding2, LuChevronRight, LuCircleCheck, LuLock, LuMailCheck, LuMessageCircle, LuTriangleAlert } from "react-icons/lu";
 import { CloudSync, type OrgInfo } from "@/lib/cloud";
 import { whatsappLink } from "@/lib/contact";
 import { href } from "@/lib/paths";
-import { currentSession, rpc, signIn, signOut, supabaseConfigured, type Session } from "@/lib/supabase";
+import {
+  currentSession,
+  requestPasswordReset,
+  rpc,
+  sessionFromUrlHash,
+  signIn,
+  signOut,
+  supabaseConfigured,
+  updatePassword,
+  type Session,
+} from "@/lib/supabase";
 import { ROLE_LABEL, type Workspace } from "@/lib/workspace";
 import { Button, Field, Input, Logo } from "../ui";
 import { LumaApp } from "./LumaApp";
@@ -13,7 +23,20 @@ import { LumaApp } from "./LumaApp";
 const LAST_ORG_KEY = "luma:last-org";
 const PENDING_INVITE_KEY = "luma:pending-invite";
 
-type Stage = "loading" | "unconfigured" | "login" | "choose" | "no-org" | "error" | "app";
+type Stage = "loading" | "unconfigured" | "login" | "forgot" | "reset" | "reset-invalid" | "choose" | "no-org" | "error" | "app";
+
+const MIN_PASSWORD = 10;
+
+/** Lê o retorno do link de redefinição de senha (#access_token=…&type=recovery ou #error=…). */
+function recoveryHash(): "recovery" | "error" | null {
+  const p = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  if (p.get("type") === "recovery" && p.get("access_token")) return "recovery";
+  if (p.get("error_code") || p.get("error_description")) {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    return "error";
+  }
+  return null;
+}
 
 const STATUS_LABEL: Record<OrgInfo["status"], string> = {
   ativa: "Ativa",
@@ -36,6 +59,9 @@ export function CompanyApp() {
   const [orgs, setOrgs] = useState<OrgInfo[]>([]);
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [error, setError] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  /** Retorno do link de redefinição, lido uma única vez (o endereço é limpo logo em seguida). */
+  const recovery = useRef<{ kind: "error" } | { kind: "recovery"; session: Promise<Session | null> } | null | undefined>(undefined);
 
   const open = useCallback((o: OrgInfo) => {
     remember(o.org_id);
@@ -77,6 +103,25 @@ export function CompanyApp() {
   useEffect(() => {
     if (!supabaseConfigured()) {
       setStage("unconfigured");
+      return;
+    }
+    if (recovery.current === undefined) {
+      const kind = recoveryHash();
+      recovery.current = kind === "recovery" ? { kind, session: sessionFromUrlHash() } : kind === "error" ? { kind } : null;
+    }
+    const r = recovery.current;
+    if (r?.kind === "error") {
+      setStage("reset-invalid");
+      return;
+    }
+    if (r?.kind === "recovery") {
+      r.session
+        .then((s) => {
+          if (!s) return setStage("reset-invalid");
+          setSession(s);
+          setStage("reset");
+        })
+        .catch(() => setStage("reset-invalid"));
       return;
     }
     currentSession()
@@ -121,7 +166,32 @@ export function CompanyApp() {
 
         {stage === "unconfigured" && <p className="text-center text-sm text-muted">O acesso de clientes ainda não está disponível.</p>}
 
-        {stage === "login" && <ClientLogin onDone={afterLogin} />}
+        {stage === "login" && (
+          <ClientLogin
+            email={loginEmail}
+            onEmailChange={setLoginEmail}
+            onDone={afterLogin}
+            onForgot={() => setStage("forgot")}
+          />
+        )}
+
+        {stage === "forgot" && <ForgotPassword initialEmail={loginEmail} onBack={() => setStage("login")} />}
+
+        {stage === "reset" && session && <ResetPassword session={session} onDone={() => afterLogin(session)} />}
+
+        {stage === "reset-invalid" && (
+          <div className="text-center">
+            <LuTriangleAlert className="mx-auto size-10 text-soon" />
+            <h1 className="mt-3 font-display text-xl font-semibold">Link inválido ou expirado</h1>
+            <p className="mt-2 text-sm text-muted">O link de redefinição de senha já foi usado ou expirou. Peça um novo.</p>
+            <Button className="mt-6 w-full" onClick={() => setStage("forgot")}>
+              Pedir novo link
+            </Button>
+            <Button variant="secondary" className="mt-2 w-full" onClick={() => setStage("login")}>
+              Voltar para o login
+            </Button>
+          </div>
+        )}
 
         {stage === "choose" && (
           <div>
@@ -199,7 +269,7 @@ export function CompanyApp() {
           </p>
           {wa && (
             <p className="mt-2">
-              Esqueceu a senha?{" "}
+              Precisa de ajuda?{" "}
               <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-ink underline-offset-2 hover:underline">
                 <LuMessageCircle className="size-3.5" /> Fale com a Luma
               </a>
@@ -219,8 +289,17 @@ function hasPendingInvite(): boolean {
   }
 }
 
-function ClientLogin({ onDone }: { onDone: (s: Session) => void }) {
-  const [email, setEmail] = useState("");
+function ClientLogin({
+  email,
+  onEmailChange: setEmail,
+  onDone,
+  onForgot,
+}: {
+  email: string;
+  onEmailChange: (email: string) => void;
+  onDone: (s: Session) => void;
+  onForgot: () => void;
+}) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -248,6 +327,11 @@ function ClientLogin({ onDone }: { onDone: (s: Session) => void }) {
       <Field label="Senha" htmlFor="cli-pass">
         <Input id="cli-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </Field>
+      <div className="-mt-2 text-right">
+        <button type="button" onClick={onForgot} className="text-sm font-semibold text-ink underline-offset-4 hover:underline">
+          Esqueceu a senha?
+        </button>
+      </div>
       {error && (
         <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 text-sm font-medium text-overdue">
           {error}
@@ -259,6 +343,127 @@ function ClientLogin({ onDone }: { onDone: (s: Session) => void }) {
       <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
         <LuLock className="size-3.5" /> Conexão segura · dados exclusivos da sua empresa
       </p>
+    </form>
+  );
+}
+
+function ErrorMessage({ children }: { children: string }) {
+  if (!children) return null;
+  return (
+    <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 text-sm font-medium text-overdue">
+      {children}
+    </p>
+  );
+}
+
+function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack: () => void }) {
+  const [email, setEmail] = useState(initialEmail);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sentTo, setSentTo] = useState("");
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const to = email.trim();
+      await requestPasswordReset(to, `${window.location.origin}${href("/empresa/")}`);
+      setSentTo(to);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível enviar o link.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (sentTo) {
+    return (
+      <div className="text-center">
+        <LuMailCheck className="mx-auto size-10" />
+        <h1 className="mt-3 font-display text-xl font-semibold">Confira seu e-mail</h1>
+        <p className="mt-2 text-sm text-muted">
+          Se houver uma conta Luma com <strong className="text-ink">{sentTo}</strong>, você vai receber um link para criar uma nova senha. Verifique também a caixa de spam.
+        </p>
+        <Button variant="secondary" className="mt-6 w-full" onClick={onBack}>
+          Voltar para o login
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <h1 className="font-display text-xl font-semibold">Esqueceu a senha?</h1>
+        <p className="mt-1 text-sm text-muted">Informe o e-mail da sua conta e enviaremos um link para você criar uma nova senha.</p>
+      </div>
+      <Field label="E-mail" htmlFor="forgot-email">
+        <Input id="forgot-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required data-autofocus />
+      </Field>
+      <ErrorMessage>{error}</ErrorMessage>
+      <Button type="submit" className="w-full" disabled={busy}>
+        {busy ? "Enviando…" : "Enviar link"}
+      </Button>
+      <button type="button" onClick={onBack} className="w-full text-center text-sm font-semibold text-ink underline-offset-4 hover:underline">
+        Voltar para o login
+      </button>
+    </form>
+  );
+}
+
+function ResetPassword({ session, onDone }: { session: Session; onDone: () => void }) {
+  const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (password.length < MIN_PASSWORD) return setError(`A senha deve ter pelo menos ${MIN_PASSWORD} caracteres.`);
+    if (password !== password2) return setError("As senhas não conferem.");
+    setBusy(true);
+    try {
+      await updatePassword(session, password);
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível alterar a senha.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (saved) {
+    return (
+      <div className="text-center">
+        <LuCircleCheck className="mx-auto size-10 text-paid" />
+        <h1 className="mt-3 font-display text-xl font-semibold">Senha alterada</h1>
+        <p className="mt-2 text-sm text-muted">Sua nova senha já está valendo. Use-a nos próximos acessos.</p>
+        <Button className="mt-6 w-full" onClick={onDone}>
+          Entrar no painel
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <h1 className="font-display text-xl font-semibold">Crie uma nova senha</h1>
+        <p className="mt-1 text-sm text-muted">
+          Conta: <strong className="text-ink">{session.user.email}</strong>
+        </p>
+      </div>
+      <Field label="Nova senha" htmlFor="reset-pass" hint={`Mínimo de ${MIN_PASSWORD} caracteres.`}>
+        <Input id="reset-pass" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required data-autofocus />
+      </Field>
+      <Field label="Confirme a nova senha" htmlFor="reset-pass2">
+        <Input id="reset-pass2" type="password" autoComplete="new-password" value={password2} onChange={(e) => setPassword2(e.target.value)} required />
+      </Field>
+      <ErrorMessage>{error}</ErrorMessage>
+      <Button type="submit" className="w-full" disabled={busy}>
+        {busy ? "Salvando…" : "Salvar nova senha"}
+      </Button>
     </form>
   );
 }
