@@ -154,33 +154,48 @@
 :root {
   --ease-out-app: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-in-app: cubic-bezier(0.4, 0, 1, 1);
+  /* para o que esmaece junto com o movimento: cresce de forma gradual */
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 /* fundo escurecido atrás de janelas e menus */
-.anim-fade[data-state="open"] { animation: luma-fade-in 0.24s ease-out both; }
-.anim-fade[data-state="closed"] { animation: luma-fade-out 0.2s ease-in both; pointer-events: none; }
+.anim-fade[data-state="open"] { animation: luma-fade-in 0.32s var(--ease-soft) both; }
+.anim-fade[data-state="closed"] { animation: luma-fade-out 0.22s ease both; pointer-events: none; }
 
-/* janelas: no celular sobem de baixo (como app); no computador aparecem no centro */
-.anim-modal[data-state="open"] { animation: luma-sheet-in 0.38s var(--ease-out-app) both; }
-.anim-modal[data-state="closed"] { animation: luma-sheet-out 0.24s var(--ease-in-app) both; pointer-events: none; }
+/* Movimento e esmaecimento separados: o movimento desacelera no fim (como app) e a
+   opacidade cresce de forma gradual — assim a abertura não fica "seca". */
+@keyframes luma-move-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes luma-move-down { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes luma-move-pop-in { from { transform: translateY(14px) scale(0.96); } to { transform: none; } }
+@keyframes luma-move-pop-out { from { transform: none; } to { transform: translateY(8px) scale(0.98); } }
+@keyframes luma-move-from-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes luma-move-to-left { from { transform: none; } to { transform: translateX(-100%); } }
+@keyframes luma-move-drop-in { from { transform: translateY(-8px) scale(0.96); } to { transform: none; } }
+@keyframes luma-move-drop-out { from { transform: none; } to { transform: translateY(-4px) scale(0.98); } }
+@keyframes luma-move-rise-in { from { transform: translateY(10px) scale(0.94); } to { transform: none; } }
+@keyframes luma-move-rise-out { from { transform: none; } to { transform: translateY(6px) scale(0.97); } }
+
+/* janelas: no celular sobem de baixo (como app); no computador surgem no centro */
+.anim-modal[data-state="open"] { animation: luma-move-up 0.42s var(--ease-out-app) both, luma-fade-in 0.22s ease both; }
+.anim-modal[data-state="closed"] { animation: luma-move-down 0.26s var(--ease-in-app) both, luma-fade-out 0.26s ease-in both; pointer-events: none; }
 @media (min-width: 640px) {
-  .anim-modal[data-state="open"] { animation: luma-pop-in 0.26s var(--ease-out-app) both; }
-  .anim-modal[data-state="closed"] { animation: luma-pop-out 0.16s var(--ease-in-app) both; }
+  .anim-modal[data-state="open"] { animation: luma-move-pop-in 0.38s var(--ease-out-app) both, luma-fade-in 0.26s ease both; }
+  .anim-modal[data-state="closed"] { animation: luma-move-pop-out 0.2s var(--ease-in-app) both, luma-fade-out 0.2s ease both; }
 }
 
 /* menu lateral */
-.anim-drawer[data-state="open"] { animation: luma-drawer-in 0.36s var(--ease-out-app) both; }
-.anim-drawer[data-state="closed"] { animation: luma-drawer-out 0.24s var(--ease-in-app) both; pointer-events: none; }
+.anim-drawer[data-state="open"] { animation: luma-move-from-left 0.4s var(--ease-out-app) both; }
+.anim-drawer[data-state="closed"] { animation: luma-move-to-left 0.26s var(--ease-in-app) both; pointer-events: none; }
 
 /* menus que descem (notificações, menu do site) */
 .anim-drop { transform-origin: top right; }
-.anim-drop[data-state="open"] { animation: luma-drop-in 0.22s var(--ease-out-app) both; }
-.anim-drop[data-state="closed"] { animation: luma-drop-out 0.15s var(--ease-in-app) both; pointer-events: none; }
+.anim-drop[data-state="open"] { animation: luma-move-drop-in 0.3s var(--ease-out-app) both, luma-fade-in 0.2s ease both; }
+.anim-drop[data-state="closed"] { animation: luma-move-drop-out 0.18s var(--ease-in-app) both, luma-fade-out 0.18s ease both; pointer-events: none; }
 
 /* menus que sobem (botão + da barra de baixo) */
 .anim-rise { transform-origin: bottom center; }
-.anim-rise[data-state="open"] { animation: luma-rise-in 0.24s var(--ease-out-app) both; }
-.anim-rise[data-state="closed"] { animation: luma-rise-out 0.15s var(--ease-in-app) both; pointer-events: none; }
+.anim-rise[data-state="open"] { animation: luma-move-rise-in 0.32s var(--ease-out-app) both, luma-fade-in 0.2s ease both; }
+.anim-rise[data-state="closed"] { animation: luma-move-rise-out 0.18s var(--ease-in-app) both, luma-fade-out 0.18s ease both; pointer-events: none; }
 
 /* avisos (toasts) saindo */
 @keyframes luma-toast-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(8px) scale(0.97); } }
@@ -196,7 +211,7 @@
 @keyframes luma-page-out-right { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(28px); } }
 
 /* Sem transição nativa: a tela nova entra deslizando do lado certo. */
-.page-enter { animation: luma-page-in-right 0.34s var(--ease-out-app) both; }
+.page-enter { animation: luma-page-in-right 0.4s var(--ease-soft) both; }
 html[data-nav-dir="back"] .page-enter { animation-name: luma-page-in-left; }
 
 /* Com transição nativa (Chrome/Android, Safari 18+): a tela atual sai enquanto a nova entra,
@@ -204,8 +219,8 @@ html[data-nav-dir="back"] .page-enter { animation-name: luma-page-in-left; }
 html.vt .page-enter { animation: none; }
 .page-view { view-transition-name: luma-page; }
 ::view-transition-group(luma-page) { animation-duration: 0.36s; animation-timing-function: var(--ease-out-app); }
-::view-transition-old(luma-page) { animation: luma-page-out-left 0.2s var(--ease-in-app) both; }
-::view-transition-new(luma-page) { animation: luma-page-in-right 0.36s var(--ease-out-app) 0.04s both; }
+::view-transition-old(luma-page) { animation: luma-page-out-left 0.24s ease-in both; }
+::view-transition-new(luma-page) { animation: luma-page-in-right 0.42s var(--ease-soft) 0.06s both; }
 html[data-nav-dir="back"]::view-transition-old(luma-page) { animation-name: luma-page-out-right; }
 html[data-nav-dir="back"]::view-transition-new(luma-page) { animation-name: luma-page-in-left; }
 /* o resto da tela não pisca durante a troca */
@@ -214,7 +229,7 @@ html[data-nav-dir="back"]::view-transition-new(luma-page) { animation-name: luma
 
 /* Entrada em cascata: os blocos da tela aparecem um depois do outro */
 @keyframes luma-rise-soft { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.page-enter > * > :is(section, .card, div):nth-child(-n + 8) { animation: luma-rise-soft 0.42s var(--ease-out-app) both; }
+.page-enter > * > :is(section, .card, div):nth-child(-n + 8) { animation: luma-rise-soft 0.5s var(--ease-soft) both; }
 .page-enter > * > :nth-child(1) { animation-delay: 0.02s; }
 .page-enter > * > :nth-child(2) { animation-delay: 0.06s; }
 .page-enter > * > :nth-child(3) { animation-delay: 0.1s; }
@@ -236,16 +251,18 @@ html {
    transições suaves, mas sem movimento: só aparece e some esmaecendo. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  @keyframes luma-pop-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes luma-pop-out { from { opacity: 1; } to { opacity: 0; } }
-  @keyframes luma-sheet-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes luma-sheet-out { from { opacity: 1; } to { opacity: 0; } }
-  @keyframes luma-drawer-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes luma-drawer-out { from { opacity: 1; } to { opacity: 0; } }
-  @keyframes luma-drop-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes luma-drop-out { from { opacity: 1; } to { opacity: 0; } }
-  @keyframes luma-rise-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes luma-rise-out { from { opacity: 1; } to { opacity: 0; } }
+  /* sem deslocamento: as janelas e menus só esmaecem */
+  @keyframes luma-move-up { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-down { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-pop-in { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-pop-out { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-drop-in { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-drop-out { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-rise-in { from { transform: none; } to { transform: none; } }
+  @keyframes luma-move-rise-out { from { transform: none; } to { transform: none; } }
+  .anim-drawer[data-state="open"] { animation: luma-fade-in 0.28s ease both; }
+  .anim-drawer[data-state="closed"] { animation: luma-fade-out 0.22s ease both; }
+  .anim-modal[data-state="open"] { animation-duration: 0.3s, 0.3s; }
   @keyframes luma-page-in-right { from { opacity: 0; } to { opacity: 1; } }
   @keyframes luma-page-in-left { from { opacity: 0; } to { opacity: 1; } }
   @keyframes luma-page-out-left { from { opacity: 1; } to { opacity: 0; } }
@@ -255,6 +272,7 @@ html {
   @keyframes toast-in { from { opacity: 0; } to { opacity: 1; } }
   .animate-pulse, .animate-ping, .animate-spin { animation: none; }
 }
+
 
 @media print {
   .no-print { display: none !important; }
