@@ -27,7 +27,13 @@ function parse(hash: string): Route {
 /** Ordem das abas (igual à barra de baixo e ao menu): define se a tela entra pela direita ou pela esquerda. */
 const TAB_ORDER: RouteId[] = ["painel", "contas", "recorrentes", "categorias", "documentos", "calendario", "alertas", "relatorios", "ajustes"];
 
-type ViewTransitionDoc = Document & { startViewTransition?: (cb: () => void) => unknown };
+type StartViewTransition = (cb: () => void) => unknown;
+
+/** Transição nativa entre telas, quando o navegador tem (Chrome/Android, Safari 18+). */
+function viewTransition(): StartViewTransition | undefined {
+  const fn = (document as unknown as { startViewTransition?: unknown }).startViewTransition;
+  return typeof fn === "function" ? (fn.bind(document) as StartViewTransition) : undefined;
+}
 
 function reducedMotion() {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -37,9 +43,7 @@ export function useHashRoute(): Route {
   const [route, setRoute] = useState<Route>({ id: "painel", params: new URLSearchParams() });
   const current = useRef<RouteId>("painel");
   useEffect(() => {
-    const doc = document as ViewTransitionDoc;
-    // navegadores com transição nativa entre telas (Chrome/Android, Safari 18+)
-    if (doc.startViewTransition && !reducedMotion()) document.documentElement.classList.add("vt");
+    if (viewTransition() && !reducedMotion()) document.documentElement.classList.add("vt");
 
     const apply = (next: Route) => {
       current.current = next.id;
@@ -52,8 +56,9 @@ export function useHashRoute(): Route {
       if (first || next.id === from) return apply(next);
       // direção: aba "depois" entra pela direita, aba "antes" entra pela esquerda
       document.documentElement.dataset.navDir = TAB_ORDER.indexOf(next.id) >= TAB_ORDER.indexOf(from) ? "forward" : "back";
-      if (doc.startViewTransition && !reducedMotion()) {
-        doc.startViewTransition(() => flushSync(() => apply(next)));
+      const start = viewTransition();
+      if (start && !reducedMotion()) {
+        start(() => flushSync(() => apply(next)));
       } else {
         apply(next);
       }
