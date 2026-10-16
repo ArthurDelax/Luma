@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { LuLock, LuCircleAlert, LuCircleCheck, LuFileText, LuPaperclip, LuScanText, LuTrash2, LuTriangleAlert } from "react-icons/lu";
+import { LuArrowUpRight, LuLock, LuCircleAlert, LuCircleCheck, LuFileText, LuPaperclip, LuScanText, LuTrash2, LuTriangleAlert } from "react-icons/lu";
 import { MAX_ATTACHMENT_BYTES, saveAttachment, deleteAttachment } from "@/lib/attachments";
 import { FIELD_LABELS, type ExtractedBoleto, type FieldKey } from "@/lib/boleto/extract";
 import { formatLinha, isParseError, parseLinhaDigitavel } from "@/lib/boleto/linha";
@@ -10,6 +10,7 @@ import { classifyPixKey, formatPixKey, namesLookRelated, parsePixPayload, PIX_KE
 import { formatDate, isValidISO } from "@/lib/dates";
 import { categoryOptions, findDuplicates, type DuplicateMatch } from "@/lib/domain";
 import { amountToInput, formatBRL, formatCNPJ, formatFileSize, isValidCNPJ, onlyDigits, parseBRL } from "@/lib/format";
+import { amountJump, percentText, riskSignals } from "@/lib/insights";
 import { useStore } from "@/lib/store";
 import { useWorkspace } from "@/lib/workspace";
 import type { AttachmentMeta, Bill } from "@/lib/types";
@@ -77,6 +78,8 @@ export function BillEditor({
   const [f, setF] = useState<FormState>(() => toForm(initial, today));
   const [errors, setErrors] = useState<Errors>({});
   const [dupes, setDupes] = useState<DuplicateMatch[] | null>(null);
+  /** O aviso de boleto suspeito já foi mostrado ao tentar salvar (próximo clique confirma). */
+  const [riskAck, setRiskAck] = useState(false);
   const [attachment, setAttachment] = useState<AttachmentMeta | undefined>(initial.attachment);
   const [newFile, setNewFile] = useState<File | undefined>(pendingFile);
   const [keepPdf, setKeepPdf] = useState(true);
@@ -87,6 +90,7 @@ export function BillEditor({
       setF(toForm(initial, today));
       setErrors({});
       setDupes(null);
+      setRiskAck(false);
       setAttachment(initial.attachment);
       setNewFile(pendingFile);
       setKeepPdf(true);
@@ -98,6 +102,7 @@ export function BillEditor({
     setF((s) => ({ ...s, [k]: v }));
     setErrors((e) => ({ ...e, [k]: undefined }));
     setDupes(null);
+    setRiskAck(false);
   };
 
   const linha = useMemo(() => {
@@ -108,6 +113,25 @@ export function BillEditor({
 
   const pix = useMemo(() => (f.pixCopiaECola.trim() ? parsePixPayload(f.pixCopiaECola) : undefined), [f.pixCopiaECola]);
   const keyInfo = useMemo(() => (f.pixKey.trim() ? classifyPixKey(f.pixKey) : undefined), [f.pixKey]);
+
+  // Checagens com o histórico da empresa (boleto suspeito e conta que subiu).
+  const candidate = useMemo<Partial<Bill>>(
+    () => ({
+      id: initial.id,
+      supplier: f.supplier,
+      supplierCnpj: onlyDigits(f.supplierCnpj),
+      bank: f.bank,
+      digitableLine: onlyDigits(f.digitableLine),
+      pixKey: f.pixKey.trim() ? classifyPixKey(f.pixKey)?.key : undefined,
+      pixCopiaECola: f.pixCopiaECola.trim() || undefined,
+      amount: parseBRL(f.amount),
+      dueDate: isValidISO(f.dueDate) ? f.dueDate : undefined,
+      recurringId: initial.recurringId,
+    }),
+    [f.supplier, f.supplierCnpj, f.bank, f.digitableLine, f.pixKey, f.pixCopiaECola, f.amount, f.dueDate, initial.id, initial.recurringId],
+  );
+  const risks = useMemo(() => (f.paid ? [] : riskSignals(candidate, data.bills)), [candidate, data.bills, f.paid]);
+  const jump = useMemo(() => amountJump(candidate, data.bills), [candidate, data.bills]);
 
   const fromPdf = (k: FieldKey) => (extraction?.found[k] ? <Badge tone="info" className="!py-0 !text-[11px]">lido do PDF</Badge> : undefined);
 
@@ -170,6 +194,12 @@ export function BillEditor({
       setDupes(matches);
       return;
     }
+    // boleto com sinais de adulteração: pede uma confirmação a mais antes de salvar
+    if (risks.length && !force && !riskAck) {
+      setRiskAck(true);
+      toast("error", "Confira o aviso de segurança antes de salvar.");
+      return;
+    }
     setSaving(true);
     let att = attachment;
     try {
@@ -223,7 +253,7 @@ export function BillEditor({
           <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          {dupes && !strong ? (
+          {(dupes && !strong) || riskAck ? (
             <Button variant="danger" onClick={(e) => submit(e as unknown as FormEvent, true)} disabled={saving}>
               Salvar mesmo assim
             </Button>
@@ -297,6 +327,36 @@ export function BillEditor({
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {risks.length > 0 && (
+          <div role="alert" className={cx("rounded-xl border p-4 text-sm", riskAck ? "border-overdue/50 bg-overdue-soft ring-2 ring-overdue/20" : "border-overdue/30 bg-overdue-soft")}>
+            <p className="flex items-center gap-2 font-semibold text-overdue">
+              <LuTriangleAlert className="size-4" />
+              Atenção: este boleto pode ter sido alterado
+            </p>
+            <ul className="mt-2 space-y-1 text-slate-700">
+              {risks.map((r) => (
+                <li key={r.kind}>• {r.message}</li>
+              ))}
+            </ul>
+            <p className="mt-2 text-slate-700">
+              Golpistas costumam trocar o boleto verdadeiro por um parecido que cai em outra conta. Antes de pagar, confirme os dados com o fornecedor por um telefone que você já conhece, e não pelo contato que veio junto do boleto.
+            </p>
+            <p className="mt-1.5 text-xs text-muted">Este é um sinal de alerta com base nas contas anteriores, não uma confirmação de golpe. Se o fornecedor de fato mudou de banco, pode salvar normalmente.</p>
+          </div>
+        )}
+
+        {jump && (
+          <div className="rounded-xl border border-soon/30 bg-soon-soft p-4 text-sm">
+            <p className="flex items-center gap-2 font-semibold">
+              <LuArrowUpRight className="size-4 text-soon" />
+              Valor {percentText(jump.increase)} acima da média
+            </p>
+            <p className="mt-1.5 text-slate-700">
+              As últimas {jump.basedOn} contas {f.supplier.trim() ? <>de <span className="font-medium">{f.supplier.trim()}</span> </> : null}ficaram em média em {formatBRL(jump.average)}. Vale conferir se não houve cobrança errada, reajuste ou consumo fora do normal.
+            </p>
           </div>
         )}
 

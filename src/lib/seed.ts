@@ -26,12 +26,12 @@ export function createSeedData(today: string): LumaData {
   ].map((r) => ({ ...r, createdAt: now, updatedAt: now })) as RecurringExpense[];
 
   const bills: Bill[] = [];
-  const add = (b: Omit<Bill, "id" | "createdAt" | "updatedAt" | "source"> & { withLine?: boolean }) => {
-    const { withLine, ...rest } = b;
+  const add = (b: Omit<Bill, "id" | "createdAt" | "updatedAt" | "source"> & { withLine?: boolean; bankCode?: "341" | "237" }) => {
+    const { withLine, bankCode = "341", ...rest } = b;
     const bill: Bill = { ...rest, id: id("cta"), source: "exemplo", createdAt: now, updatedAt: now };
     if (withLine) {
-      bill.digitableLine = buildBancarioLinha("341", bill.dueDate, bill.amount, String(1_000_000 + n * 7919));
-      bill.bank = "341 – Itaú Unibanco";
+      bill.digitableLine = buildBancarioLinha(bankCode, bill.dueDate, bill.amount, String(1_000_000 + n * 7919));
+      bill.bank = bankCode === "341" ? "341 – Itaú Unibanco" : "237 – Bradesco";
     }
     bills.push(bill);
   };
@@ -69,10 +69,10 @@ export function createSeedData(today: string): LumaData {
   add({ description: "Energia elétrica", supplier: "Distribuidora Luz Norte (fictícia)", amount: 821.75, dueDate: addDays(today, 4), category: "Energia" });
   add({ description: "Água e esgoto", supplier: "Saneamento Vale Azul (fictícia)", amount: 168.2, dueDate: m(-2, 22), category: "Água e saneamento", paidAt: m(-2, 21) });
   add({ description: "Água e esgoto", supplier: "Saneamento Vale Azul (fictícia)", amount: 181.9, dueDate: m(-1, 22), category: "Água e saneamento", paidAt: m(-1, 22) });
-  add({ description: "Água e esgoto", supplier: "Saneamento Vale Azul (fictícia)", amount: 174.55, dueDate: addDays(today, 9), category: "Água e saneamento" });
+  add({ description: "Água e esgoto", supplier: "Saneamento Vale Azul (fictícia)", amount: 236.4, dueDate: addDays(today, 9), category: "Água e saneamento" }); // acima da média: demonstra o aviso de conta que subiu
   add({ description: "Compra de materiais de escritório", supplier: "Papelaria Central (fictícia)", amount: 1236.8, dueDate: m(-3, 8), category: "Fornecedores", documentNumber: "NF 18.204", paidAt: m(-3, 8), withLine: true });
   add({ description: "Lote de embalagens personalizadas", supplier: "EmbalaMais Indústria (fictícia)", amount: 5420, dueDate: m(-1, 27), category: "Fornecedores", documentNumber: "NF 3.981", paidAt: m(-1, 26), withLine: true });
-  add({ description: "Lote de embalagens personalizadas — 2ª parcela", supplier: "EmbalaMais Indústria (fictícia)", amount: 5420, dueDate: addDays(today, 2), category: "Fornecedores", documentNumber: "NF 3.981/2", withLine: true });
+  add({ description: "Lote de embalagens personalizadas — 2ª parcela", supplier: "EmbalaMais Indústria (fictícia)", amount: 5420, dueDate: addDays(today, 2), category: "Fornecedores", documentNumber: "NF 3.981/2", withLine: true, bankCode: "237" }); // outro banco: demonstra o alerta de boleto suspeito
   add({ description: "Campanha de anúncios on-line", supplier: "Agência Pulso Digital (fictícia)", amount: 2300, dueDate: m(-2, 5), category: "Marketing", paidAt: m(-2, 5) });
   add({ description: "Campanha de anúncios on-line", supplier: "Agência Pulso Digital (fictícia)", amount: 2650, dueDate: addDays(today, -6), category: "Marketing", notes: "Aguardando aprovação do financeiro." });
   add({ description: "DAS — Simples Nacional", supplier: "Receita Federal", amount: 3187.44, dueDate: m(-1, 20), category: "Impostos e taxas", paidAt: m(-1, 19) });

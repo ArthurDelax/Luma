@@ -11,6 +11,7 @@ import type { BillStatus } from "@/lib/types";
 import { CategoryBars, StackedBars } from "../../charts/Charts";
 import { Button, cx, Input, PageHeader, Segmented, Select, useToast } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
+import { AccountantPackageButton } from "../reports/AccountantPackage";
 import { StatusBadge } from "../shared";
 
 type Preset = "mes" | "mes_anterior" | "trimestre" | "6meses" | "ano" | "personalizado";
@@ -116,6 +117,7 @@ export function ReportsPage() {
         description={<>Despesas pelo mês de vencimento. Período: <strong className="text-ink">{rows.length ? periodLabel : "sem contas no período"}</strong></>}
         actions={
           <>
+            <AccountantPackageButton />
             <Button variant="secondary" icon={<LuPrinter className="size-4" />} onClick={() => window.print()}>
               Imprimir
             </Button>

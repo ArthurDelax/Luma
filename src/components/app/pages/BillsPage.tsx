@@ -10,6 +10,7 @@ import { useStore } from "@/lib/store";
 import type { BillStatus } from "@/lib/types";
 import { Button, cx, EmptyState, IconButton, Input, PageHeader, Segmented, Select, useToast } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
+import { InsightTags, insightFor, type BillInsight } from "../bills/BillInsights";
 import type { Route } from "../routing";
 import { DueText, StatusBadge, sumAmount, useDerived } from "../shared";
 
@@ -59,6 +60,17 @@ export function BillsPage({ route }: { route: Route }) {
         return s === status;
     }
   };
+
+  // avisos (boleto suspeito / valor acima da média) das contas em aberto
+  const insights = useMemo(() => {
+    const m = new Map<string, BillInsight>();
+    for (const b of data.bills) {
+      if (b.paidAt) continue;
+      const i = insightFor(b, data.bills);
+      if (i.risks.length || i.jump) m.set(b.id, i);
+    }
+    return m;
+  }, [data.bills]);
 
   const filtered = useMemo(() => {
     const nq = normalizeText(q);
@@ -239,6 +251,7 @@ export function BillsPage({ route }: { route: Route }) {
                           {bill.attachment && <LuPaperclip className="size-3.5 shrink-0 text-muted" aria-label="Com anexo" />}
                         </p>
                         <p className="truncate text-xs text-muted">{bill.supplier}</p>
+                        {insights.has(bill.id) && <InsightTags insight={insights.get(bill.id)!} />}
                       </td>
                       <td className="px-3 py-3 text-[13px] text-slate-600">{bill.category}</td>
                       <td className="px-3 py-3">
@@ -280,6 +293,7 @@ export function BillsPage({ route }: { route: Route }) {
                   <button className="min-w-0 flex-1 text-left" onClick={() => actions.viewBill(bill.id)}>
                     <p className="truncate text-sm font-semibold">{bill.description}</p>
                     <p className="truncate text-xs text-muted">{bill.supplier}</p>
+                    {insights.has(bill.id) && <InsightTags insight={insights.get(bill.id)!} />}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <StatusBadge bill={bill} today={today} />
                       <span className="text-xs text-muted tabular">{formatDate(bill.dueDate)}</span>

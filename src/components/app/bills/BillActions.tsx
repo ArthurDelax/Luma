@@ -13,6 +13,7 @@ import { useStore } from "@/lib/store";
 import type { Bill } from "@/lib/types";
 import { Badge, Button, Input, Modal, useConfirm, useToast } from "../../ui";
 import { StatusBadge } from "../shared";
+import { InsightPanels, insightFor } from "./BillInsights";
 import { BillEditor, type BillDraft } from "./BillEditor";
 import { ImportBoleto } from "./ImportBoleto";
 
@@ -238,7 +239,9 @@ function CopyButton({ text, label, done }: { text: string; label: string; done: 
 
 function BillDetail({ bill, today, onClose, actions, recurringName }: { bill: Bill; today: string; onClose: () => void; actions: BillActions; recurringName?: { description: string; frequency: keyof typeof FREQUENCY_LABEL } }) {
   const toast = useToast();
+  const { data } = useStore();
   const status = billStatus(bill, today);
+  const insight = useMemo(() => insightFor(bill, data.bills), [bill, data.bills]);
   const linha = bill.digitableLine ? parseLinhaDigitavel(bill.digitableLine, today) : null;
   return (
     <Modal
@@ -272,6 +275,7 @@ function BillDetail({ bill, today, onClose, actions, recurringName }: { bill: Bi
         {bill.source === "boleto" && <Badge tone="info">Importada de PDF</Badge>}
         {bill.recurringId && <Badge tone="contract">Recorrente</Badge>}
       </div>
+      <InsightPanels insight={insight} supplier={bill.supplier} />
       <dl>
         <Row label="Vencimento">{formatDate(bill.dueDate)}</Row>
         {bill.paidAt && <Row label="Pago em">{formatDate(bill.paidAt)}</Row>}
