@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LuDownload, LuFileText } from "react-icons/lu";
 import { planAccountantPackage } from "@/lib/accountant";
 import { getAttachment } from "@/lib/attachments";
@@ -14,6 +14,10 @@ import { Button, Field, Modal, Select, useToast } from "../../ui";
 /** Botão + janela "Pacote do contador": fechamento do mês num único .zip. */
 export function AccountantPackageButton() {
   const [open, setOpen] = useState(false);
+  // atalho do painel: #/relatorios?pacote=1 abre direto
+  useEffect(() => {
+    if (/[?&]pacote=1/.test(window.location.hash)) setOpen(true);
+  }, []);
   return (
     <>
       <Button variant="secondary" icon={<LuFileText className="size-4" />} onClick={() => setOpen(true)}>

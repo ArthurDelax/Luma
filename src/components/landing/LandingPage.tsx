@@ -17,6 +17,10 @@ import {
   LuChevronDown,
   LuMonitorSmartphone,
   LuArrowRight,
+  LuArrowUpRight,
+  LuFileText,
+  LuSparkles,
+  LuTriangleAlert,
 } from "react-icons/lu";
 import { addDays, todayISO } from "@/lib/dates";
 import { whatsappLink } from "@/lib/contact";
@@ -60,6 +64,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   const links = [
+    [`${HOME}#diferenciais`, "Diferenciais"],
     [`${HOME}#funcionalidades`, "Funcionalidades"],
     [`${HOME}#boletos`, "Boletos e Pix"],
     [PLANS, "Planos"],
@@ -155,7 +160,7 @@ function Hero() {
           </div>
           <div className="lg:pb-3">
             <p className="max-w-md text-lg leading-relaxed text-ink/70">
-              Contas a pagar, boletos com Pix, despesas recorrentes, contratos e documentos em um só painel — com aviso antes de cada vencimento.
+              Contas a pagar, boletos com Pix, despesas recorrentes, contratos e documentos em um só painel — com aviso antes de cada vencimento e conferência de cada boleto antes de você pagar.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CTA />
@@ -189,6 +194,95 @@ function Hero() {
           <div className="relative">
             <Ribbon today={today} events={events} tone="dark" />
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Diferenciais: o que a Luma confere por você                          */
+/* ------------------------------------------------------------------ */
+
+function Differentials() {
+  return (
+    <section id="diferenciais" className="scroll-mt-20 bg-paper pb-20 sm:pb-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-semibold text-paper">
+            <LuSparkles className="size-3.5" /> Diferenciais da Luma
+          </span>
+          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">A Luma confere as contas antes de você pagar</h2>
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
+            Ela compara cada cobrança com o histórico da sua empresa e avisa quando algo foge do normal.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 lg:grid-cols-3">
+          {/* 1. boleto suspeito */}
+          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
+            <span className="grid size-11 place-items-center rounded-2xl bg-overdue-soft text-overdue">
+              <LuTriangleAlert className="size-5" />
+            </span>
+            <h3 className="mt-5 font-display text-xl font-semibold">Alerta de boleto suspeito</h3>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              Se um fornecedor passa a cobrar por outro banco, outro CNPJ ou outra chave Pix, a Luma avisa antes do pagamento. É o sinal mais comum de boleto adulterado.
+            </p>
+            <div className="mt-6 rounded-2xl border border-overdue/25 bg-overdue-soft/70 p-4 text-[13px]" aria-hidden>
+              <p className="flex items-center gap-1.5 font-semibold text-overdue">
+                <LuTriangleAlert className="size-3.5" /> Confira antes de pagar
+              </p>
+              <p className="mt-1.5 leading-relaxed text-ink/75">
+                EmbalaMais sempre cobrou pelo <strong className="font-semibold text-ink">Itaú</strong>, e este boleto é do <strong className="font-semibold text-ink">Bradesco</strong>.
+              </p>
+            </div>
+          </article>
+
+          {/* 2. conta que subiu */}
+          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
+            <span className="grid size-11 place-items-center rounded-2xl bg-soon-soft text-soon">
+              <LuArrowUpRight className="size-5" />
+            </span>
+            <h3 className="mt-5 font-display text-xl font-semibold">Aviso de conta que subiu</h3>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              Energia, água, internet ou fornecedor: quando o valor vem bem acima da média das últimas contas, você fica sabendo antes de pagar.
+            </p>
+            <div className="mt-6 rounded-2xl border border-line bg-paper/70 p-4 text-[13px]" aria-hidden>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Água e esgoto</p>
+                  <p className="text-muted">Média das últimas contas: R$ 175,05</p>
+                </div>
+                <p className="font-display text-base font-semibold tabular">R$ 236,40</p>
+              </div>
+              <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-soon-soft px-2 py-0.5 text-[11px] font-semibold text-soon">
+                <LuArrowUpRight className="size-3" /> 35% acima da média
+              </span>
+            </div>
+          </article>
+
+          {/* 3. pacote do contador */}
+          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
+            <span className="grid size-11 place-items-center rounded-2xl bg-paid-soft text-paid">
+              <LuFileText className="size-5" />
+            </span>
+            <h3 className="mt-5 font-display text-xl font-semibold">Pacote do contador</h3>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">
+              Em um clique, o fechamento do mês num único arquivo: contas pagas, resumo por categoria, contas em aberto e os boletos em PDF.
+            </p>
+            <div className="mt-6 rounded-2xl border border-line bg-paper/70 p-4 font-mono text-[12px] leading-6 text-ink/80" aria-hidden>
+              <p className="font-sans text-[13px] font-semibold text-ink">luma-contador-setembro.zip</p>
+              <p>├ 1-contas-pagas.csv</p>
+              <p>├ 2-resumo-por-categoria.csv</p>
+              <p>├ 3-contas-em-aberto.csv</p>
+              <p>└ boletos/ (PDFs)</p>
+            </div>
+          </article>
+        </div>
+
+        <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+          <CTA>Ver na demonstração</CTA>
+          <p className="text-sm text-muted">A demonstração já mostra um boleto suspeito e uma conta acima da média.</p>
         </div>
       </div>
     </section>
@@ -558,6 +652,7 @@ export function LandingPage() {
       <Header />
       <main>
         <Hero />
+        <Differentials />
         <Features />
         <Boletos />
         <Benefits />

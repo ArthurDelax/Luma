@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { LuArrowUpRight, LuCircleCheck, LuClock, LuFileText, LuReceipt, LuTriangleAlert } from "react-icons/lu";
+import { LuArrowUpRight, LuCircleCheck, LuClock, LuFileText, LuReceipt, LuShieldCheck, LuTriangleAlert } from "react-icons/lu";
 import { addDays, addMonthsClamped, diffDays, formatDate, formatDateLong, monthKey, monthLabel, relativeDays, startOfMonth } from "@/lib/dates";
 import { docSituation, ALERT_LEVEL_LABEL } from "@/lib/domain";
 import { formatBRL } from "@/lib/format";
@@ -10,6 +10,8 @@ import { useWorkspace } from "@/lib/workspace";
 import { CategoryBars, StackedBars } from "../../charts/Charts";
 import { Badge, Button, cx, EmptyState, LogoMark } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
+import { insightFor } from "../bills/BillInsights";
+import { percentText } from "@/lib/insights";
 import { Ribbon, type RibbonEvent } from "../Ribbon";
 import { MiniCalendar } from "./CalendarPage";
 import { navigate } from "../routing";
@@ -99,6 +101,17 @@ export function Dashboard() {
 
   const upcoming = [...open].sort((a, b) => a.bill.dueDate.localeCompare(b.bill.dueDate)).slice(0, 7);
 
+  // Conferência inteligente: contas em aberto com boleto suspeito ou valor acima da média
+  const flagged = useMemo(
+    () =>
+      open
+        .map(({ bill }) => ({ bill, insight: insightFor(bill, data.bills) }))
+        .filter(({ insight }) => insight.risks.length || insight.jump)
+        .sort((a, b) => b.insight.risks.length - a.insight.risks.length || a.bill.dueDate.localeCompare(b.bill.dueDate))
+        .slice(0, 4),
+    [open, data.bills],
+  );
+
   const header = (
     <div>
       <p className="text-sm text-muted">{formatDateLong(today)}</p>
@@ -152,6 +165,48 @@ export function Dashboard() {
           </a>
         )}
       </div>
+
+      {/* Conferência inteligente */}
+      <section aria-label="Conferência da Luma" className="card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className={cx("grid size-8 place-items-center rounded-full", flagged.length ? "bg-overdue-soft text-overdue" : "bg-paid-soft text-paid")}>
+              {flagged.length ? <LuTriangleAlert className="size-4" /> : <LuShieldCheck className="size-4" />}
+            </span>
+            <div>
+              <h2 className="font-display text-base font-semibold">Conferência da Luma</h2>
+              <p className="text-xs text-muted">{flagged.length ? "Contas que fogem do padrão do fornecedor. Confira antes de pagar." : "Nenhuma conta em aberto fora do padrão."}</p>
+            </div>
+          </div>
+          <Button size="sm" variant="secondary" icon={<LuFileText className="size-4" />} onClick={() => navigate("relatorios", { pacote: "1" })}>
+            Pacote do contador
+          </Button>
+        </div>
+        {flagged.length > 0 && (
+          <ul className="divide-y divide-line">
+            {flagged.map(({ bill, insight }) => (
+              <li key={bill.id}>
+                <button type="button" onClick={() => actions.viewBill(bill.id)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-sky-50/60 sm:px-6">
+                  <span className={cx("mt-0.5 grid size-7 shrink-0 place-items-center rounded-full", insight.risks.length ? "bg-overdue-soft text-overdue" : "bg-soon-soft text-soon")}>
+                    {insight.risks.length ? <LuTriangleAlert className="size-3.5" /> : <LuArrowUpRight className="size-3.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className="truncate text-sm font-semibold">{bill.description}</span>
+                      <span className="shrink-0 text-sm font-semibold tabular">{formatBRL(bill.amount)}</span>
+                    </span>
+                    <span className="mt-0.5 block text-[13px] text-slate-600">
+                      {insight.risks.length
+                        ? insight.risks[0].message
+                        : `${percentText(insight.jump!.increase)} acima da média das últimas contas (${formatBRL(insight.jump!.average)}).`}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Faixa de vencimentos */}
       <section className="dot-grid-light relative overflow-hidden rounded-[28px] bg-ink p-5 text-paper shadow-[var(--shadow-pop)] sm:p-7">
