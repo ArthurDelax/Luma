@@ -12,6 +12,7 @@ import { DEMO_MODE } from "./demo.ts";
  */
 export interface Workspace {
   mode: "demo" | "local" | "cloud";
+  orgId?: string;
   orgName?: string;
   role?: OrgRole;
   status?: OrgStatus;

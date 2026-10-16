@@ -170,6 +170,7 @@ export function CompanyApp() {
     const readOnlyReason = org.role === "consulta" ? "consulta" : undefined;
     const workspace: Workspace = {
       mode: "cloud",
+      orgId: org.org_id,
       orgName: org.name,
       role: org.role,
       status: org.status,

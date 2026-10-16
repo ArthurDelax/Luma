@@ -26,6 +26,7 @@ import { useStore } from "@/lib/store";
 import { initials, ROLE_LABEL, useWorkspace } from "@/lib/workspace";
 import { Button, cx, IconButton, Logo } from "../ui";
 import { useBillActions } from "./bills/BillActions";
+import { HelpButton } from "../support/HelpCenter";
 import { DemoBanner } from "./DemoGate";
 import { navigate, type RouteId } from "./routing";
 
@@ -277,6 +278,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
                 Nova conta
               </Button>
             </div>
+            <HelpButton />
             <NotificationsButton />
           </div>
         </div>

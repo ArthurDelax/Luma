@@ -24,6 +24,7 @@ import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
 import { Ribbon, type RibbonEvent } from "../app/Ribbon";
 import { PricingCalculator } from "../pricing/Pricing";
+import { HelpButton } from "../support/HelpCenter";
 import { cx, Logo, LogoMark } from "../ui";
 
 const APP = href("/app/");
@@ -537,11 +538,15 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 flex max-w-6xl items-center justify-between gap-4 border-t border-white/10 px-4 pt-6 text-xs text-white/40 sm:px-6">
+      <div className="mx-auto mt-10 flex max-w-6xl items-center gap-4 border-t border-white/10 px-4 pb-16 pt-6 text-xs text-white/40 sm:px-6">
         <span>© {new Date().getFullYear()} Luma.</span>
         <a href={href("/admin/")} className="text-white/25 transition-colors hover:text-white/60" rel="nofollow">
           Acesso restrito
         </a>
+      </div>
+      {/* Ajuda sempre à mão: WhatsApp do suporte e acesso para clientes */}
+      <div className="fixed bottom-5 right-5 z-40 print:hidden">
+        <HelpButton variant="pill" />
       </div>
     </footer>
   );

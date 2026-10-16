@@ -30,6 +30,13 @@ Repita o procedimento com [`supabase/migrations/0003_categorias.sql`](../supabas
 Ele libera o tipo de registro `category` usado pela tela **Categorias** do painel da empresa.
 **Rode antes de publicar a versão do site que tem essa tela** — sem ele, o servidor recusa as categorias.
 
+### 1d. Suporte ao cliente
+
+Repita com [`supabase/migrations/0004_suporte.sql`](../supabase/migrations/0004_suporte.sql).
+Ele cria os chamados de suporte: o cliente pede ajuda pelo botão **Ajuda** (ícone de boia) dentro do
+painel da empresa, e você responde na aba **Suporte** do painel restrito. Cada empresa só vê os
+próprios chamados; só o dono da plataforma (com 2 etapas) vê todos.
+
 ## 2. Configurar os endereços de login
 
 Supabase → **Authentication** → **URL Configuration**:
@@ -96,7 +103,7 @@ O dono da plataforma **não** vê os dados financeiros dos clientes.
 - Painel exige estar em `platform_admins` **e** sessão com 2 etapas (`aal2`) — verificado no banco, não só na tela.
 - Convites: token aleatório de 32 bytes, só o hash fica salvo, uso único, e-mail precisa coincidir.
 - Sessão do painel encerra após 30 minutos sem uso.
-- Testes: `supabase/tests/security_test.py` (32 verificações) e `supabase/tests/dados_test.py` (31 verificações de isolamento dos dados e anexos), em PostgreSQL local.
+- Testes: `supabase/tests/security_test.py` (32 verificações) `supabase/tests/dados_test.py` (31 verificações de isolamento dos dados e anexos) e `supabase/tests/suporte_test.py` (27 verificações do suporte), em PostgreSQL local.
 
 ## Limites do plano grátis
 

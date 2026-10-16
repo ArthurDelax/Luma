@@ -37,6 +37,7 @@ import {
   type TotpEnrollment,
 } from "@/lib/supabase";
 import { Badge, Button, cx, EmptyState, Field, IconButton, Input, Logo, Modal, Segmented, Select, Textarea, ToastProvider, useToast, type Tone } from "../ui";
+import { AdminSupport } from "./AdminSupport";
 
 /* ------------------------------------------------------------------ */
 /* Tipos                                                                */
@@ -395,7 +396,8 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
   const [stats, setStats] = useState<Stats | null>(null);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [audit, setAudit] = useState<AuditRow[]>([]);
-  const [tab, setTab] = useState<"empresas" | "historico">("empresas");
+  const [tab, setTab] = useState<"empresas" | "suporte" | "historico">("empresas");
+  const [supportUnread, setSupportUnread] = useState(0);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"todas" | Org["status"]>("todas");
   const [creating, setCreating] = useState(false);
@@ -424,6 +426,10 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
       setStats(st);
       setOrgs(list);
       setAudit(hist);
+      // chamados de suporte (não bloqueia o painel se o script 0003 ainda não foi aplicado)
+      call<{ unread: boolean }[]>("admin_support_list", { p_status: null })
+        .then((l) => setSupportUnread(l.filter((t) => t.unread).length))
+        .catch(() => {});
     } catch (e) {
       toast("error", e instanceof Error ? e.message : "Não foi possível carregar os dados.");
     } finally {
@@ -493,6 +499,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
             onChange={setTab}
             options={[
               { value: "empresas", label: "Empresas", count: orgs.length },
+              { value: "suporte", label: "Suporte", count: supportUnread || undefined },
               { value: "historico", label: "Histórico" },
             ]}
           />
@@ -514,7 +521,9 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
           )}
         </div>
 
-        {tab === "empresas" ? (
+        {tab === "suporte" ? (
+          <AdminSupport call={call} onUnread={setSupportUnread} />
+        ) : tab === "empresas" ? (
           <div className="card overflow-hidden">
             {filtered.length === 0 ? (
               <EmptyState icon={<LuBuilding2 className="size-6" />} title={orgs.length ? "Nenhuma empresa encontrada" : "Nenhuma empresa criada ainda"} action={!orgs.length && <Button onClick={() => setCreating(true)}>Criar primeira empresa</Button>}>

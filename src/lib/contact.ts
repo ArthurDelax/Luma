@@ -20,3 +20,16 @@ export function whatsappPaymentLink(orgName: string): string | null {
   const text = `Olá! Quero regularizar o pagamento da assinatura da Luma da empresa ${orgName} para liberar o acesso.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
+
+/** Link do WhatsApp do suporte (mesmo número), com mensagem pronta. */
+export function supportWhatsappLink(orgName?: string): string | null {
+  if (!/^55\d{10,11}$/.test(WHATSAPP_NUMBER)) return null;
+  const text = orgName ? `Olá! Sou cliente da Luma (empresa ${orgName}) e preciso de ajuda.` : "Olá! Preciso de ajuda com a Luma.";
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+}
+
+/** Número formatado para exibição, ex.: (62) 99304-7680. */
+export function whatsappDisplay(): string {
+  const n = WHATSAPP_NUMBER.replace(/^55/, "");
+  return n.length === 11 ? `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}` : n;
+}
