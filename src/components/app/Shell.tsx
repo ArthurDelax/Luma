@@ -294,6 +294,19 @@ export function Shell({ current, children }: { current: RouteId; children: React
 
       {/* Navegação inferior (celular) */}
       <nav aria-label="Atalhos" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
+        {/* indicador que desliza até a aba atual */}
+        {(() => {
+          const slot = ({ painel: 0, contas: 1, calendario: 3, alertas: 4 } as Partial<Record<RouteId, number>>)[current];
+          return (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-0 flex w-1/5 justify-center transition-[transform,opacity] duration-500 [transition-timing-function:var(--ease-out-app)]"
+              style={{ transform: `translateX(${(slot ?? 0) * 100}%)`, opacity: slot === undefined ? 0 : 1 }}
+            >
+              <span className="h-[3px] w-8 rounded-b-full bg-ink" />
+            </span>
+          );
+        })()}
         <div className="grid grid-cols-5">
           {([
             ["painel", "Painel", <LuLayoutDashboard key="i" />],

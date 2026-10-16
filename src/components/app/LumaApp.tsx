@@ -55,7 +55,7 @@ function Screen() {
   return (
     <BillActionsProvider>
       <Shell current={route.id}>
-        <div key={route.id} className="page-enter">
+        <div key={route.id} className="page-enter page-view">
           {route.id === "painel" && <Dashboard />}
           {route.id === "contas" && <BillsPage route={route} />}
           {route.id === "recorrentes" && <RecurringPage />}
