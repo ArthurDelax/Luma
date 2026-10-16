@@ -8,7 +8,7 @@ import { docSituation, DOCUMENT_TYPES, type DocSituation } from "@/lib/domain";
 import { formatFileSize, normalizeText } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { BusinessDocument, DocKind, DocStatus } from "@/lib/types";
-import { Badge, Button, cx, EmptyState, Field, IconButton, Input, Modal, PageHeader, Segmented, Select, Textarea, useConfirm, useToast, type Tone } from "../../ui";
+import { ModalCloseButton, Badge, Button, cx, EmptyState, Field, IconButton, Input, Modal, PageHeader, Segmented, Select, Textarea, useConfirm, useToast, type Tone } from "../../ui";
 
 const STATUS_LABEL: Record<DocStatus, string> = { ativo: "Ativo", em_renovacao: "Em renovação", encerrado: "Encerrado" };
 
@@ -81,9 +81,9 @@ function DocForm({ initial, onClose }: { initial: Partial<BusinessDocument>; onC
       title={initial.id ? "Editar registro" : "Novo contrato ou documento"}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button type="submit" form="doc-form">
             {initial.id ? "Salvar alterações" : "Cadastrar"}
           </Button>

@@ -9,7 +9,7 @@ import { formatBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useWorkspace } from "@/lib/workspace";
 import { buildZip, type ZipEntry } from "@/lib/zip";
-import { Button, Field, Modal, Select, useToast } from "../../ui";
+import { ModalCloseButton, Button, Field, Modal, Select, useToast } from "../../ui";
 
 /** Botão + janela "Pacote do contador": fechamento do mês num único .zip. */
 export function AccountantPackageButton() {
@@ -23,12 +23,12 @@ export function AccountantPackageButton() {
       <Button variant="secondary" icon={<LuFileText className="size-4" />} onClick={() => setOpen(true)}>
         Pacote do contador
       </Button>
-      {open && <AccountantPackageModal onClose={() => setOpen(false)} />}
+      <AccountantPackageModal open={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
-function AccountantPackageModal({ onClose }: { onClose: () => void }) {
+function AccountantPackageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data, today } = useStore();
   const ws = useWorkspace();
   const toast = useToast();
@@ -73,15 +73,15 @@ function AccountantPackageModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
-      open
+      open={open}
       onClose={onClose}
       title="Pacote do contador"
       description="O fechamento do mês num único arquivo .zip, pronto para enviar à contabilidade."
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button icon={<LuDownload className="size-4" />} onClick={download} disabled={busy || (!plan.paid.length && !plan.open.length)}>
             {busy ? "Gerando…" : "Baixar pacote (.zip)"}
           </Button>

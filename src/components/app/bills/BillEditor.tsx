@@ -14,7 +14,7 @@ import { amountJump, percentText, riskSignals } from "@/lib/insights";
 import { useStore } from "@/lib/store";
 import { useWorkspace } from "@/lib/workspace";
 import type { AttachmentMeta, Bill } from "@/lib/types";
-import { Badge, Button, cx, Field, Input, Modal, Select, Textarea, useToast } from "../../ui";
+import { ModalCloseButton, Badge, Button, cx, Field, Input, Modal, Select, Textarea, useToast } from "../../ui";
 
 export interface BillDraft extends Partial<Bill> {}
 
@@ -250,9 +250,9 @@ export function BillEditor({
       description={extraction ? "Revise e corrija o que for preciso. Nada é salvo até você confirmar." : "Campos com * são obrigatórios."}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           {(dupes && !strong) || riskAck ? (
             <Button variant="danger" onClick={(e) => submit(e as unknown as FormEvent, true)} disabled={saving}>
               Salvar mesmo assim

@@ -29,7 +29,7 @@ import { href } from "@/lib/paths";
 import { Ribbon, type RibbonEvent } from "../app/Ribbon";
 import { PricingCalculator } from "../pricing/Pricing";
 import { HelpButton } from "../support/HelpCenter";
-import { cx, Logo, LogoMark } from "../ui";
+import { cx, Logo, LogoMark, usePresence } from "../ui";
 
 const APP = href("/app/");
 const HOME = href("/");
@@ -56,6 +56,7 @@ function CTA({ children = "Experimentar demonstração", variant = "dark", class
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const menu = usePresence(open, 200);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 24);
@@ -71,7 +72,7 @@ export function Header() {
     [`${HOME}#perguntas`, "Perguntas"],
   ];
   return (
-    <header className={cx("fixed inset-x-0 top-0 z-40 transition-all", scrolled || open ? "border-b border-line/70 bg-paper/85 backdrop-blur-xl" : "border-b border-transparent")}>
+    <header className={cx("fixed inset-x-0 top-0 z-40 transition-[background-color,border-color] duration-300", scrolled || open ? "border-b border-line/70 bg-paper/95 md:bg-paper/85 md:backdrop-blur-xl" : "border-b border-transparent")}>
       <div className="mx-auto flex h-[72px] max-w-6xl items-center gap-6 px-4 sm:px-6">
         <a href={HOME} aria-label="Luma — início">
           <Logo />
@@ -89,12 +90,13 @@ export function Header() {
         <a href={APP} className="hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
           Abrir demonstração
         </a>
-        <button className="ml-auto grid size-10 place-items-center rounded-full text-ink md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          {open ? <LuX className="size-6" /> : <LuMenu className="size-6" />}
+        <button className="relative ml-auto grid size-10 place-items-center rounded-full text-ink transition-transform active:scale-90 md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <LuMenu className={cx("absolute size-6 transition-all duration-300", open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100")} />
+          <LuX className={cx("absolute size-6 transition-all duration-300", open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0")} />
         </button>
       </div>
-      {open && (
-        <nav className="border-t border-line px-4 pb-5 pt-2 md:hidden">
+      {menu.render && (
+        <nav data-state={menu.state} className="anim-drop border-t border-line px-4 pb-5 pt-2 [transform-origin:top_center] md:hidden">
           {links.map(([h, l]) => (
             <a key={h} href={h} onClick={() => setOpen(false)} className="block rounded-2xl px-3 py-3 text-base font-medium text-ink hover:bg-ink/5">
               {l}

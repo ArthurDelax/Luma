@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { LuCircleCheck, LuCopy, LuFileText, LuPencil, LuRotateCcw, LuTrash2 } from "react-icons/lu";
 import { openAttachment } from "@/lib/attachments";
 import type { ExtractedBoleto } from "@/lib/boleto/extract";
@@ -40,9 +40,31 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
   const { data, today, markPaid, reopenBill, deleteBill, addBill, requireWrite } = useStore();
   const toast = useToast();
   const confirm = useConfirm();
-  const [editor, setEditor] = useState<{ draft: BillDraft; extraction?: ExtractedBoleto; file?: File; key: number } | null>(null);
+  const [editor, setEditorState] = useState<{ draft: BillDraft; extraction?: ExtractedBoleto; file?: File; key: number; closing?: boolean } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailId, setDetailIdState] = useState<string | null>(null);
+  const [detailClosing, setDetailClosing] = useState(false);
+  // fechar com animação: marca "saindo" e só desmonta depois que a janela terminar de sair
+  const editorTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const detailTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const setEditor = useCallback((v: { draft: BillDraft; extraction?: ExtractedBoleto; file?: File; key: number } | null) => {
+    clearTimeout(editorTimer.current);
+    if (v) return setEditorState(v);
+    setEditorState((e) => (e ? { ...e, closing: true } : e));
+    editorTimer.current = setTimeout(() => setEditorState(null), 280);
+  }, []);
+  const setDetailId = useCallback((id: string | null) => {
+    clearTimeout(detailTimer.current);
+    if (id) {
+      setDetailClosing(false);
+      return setDetailIdState(id);
+    }
+    setDetailClosing(true);
+    detailTimer.current = setTimeout(() => {
+      setDetailIdState(null);
+      setDetailClosing(false);
+    }, 280);
+  }, []);
   const [paying, setPaying] = useState<Bill | null>(null);
   const [payDate, setPayDate] = useState(todayISO());
 
@@ -168,9 +190,9 @@ export function BillActionsProvider({ children }: { children: ReactNode }) {
         }}
       />
 
-      {editor && <BillEditor key={editor.key} open onClose={() => setEditor(null)} initial={editor.draft} extraction={editor.extraction} pendingFile={editor.file} />}
+      {editor && <BillEditor key={editor.key} open={!editor.closing} onClose={() => setEditor(null)} initial={editor.draft} extraction={editor.extraction} pendingFile={editor.file} />}
 
-      {detail && <BillDetail bill={detail} today={today} onClose={() => setDetailId(null)} actions={actions} recurringName={data.recurring.find((r) => r.id === detail.recurringId)} />}
+      {detail && <BillDetail open={!detailClosing} bill={detail} today={today} onClose={() => setDetailId(null)} actions={actions} recurringName={data.recurring.find((r) => r.id === detail.recurringId)} />}
 
       <Modal
         open={!!paying}
@@ -237,7 +259,7 @@ function CopyButton({ text, label, done }: { text: string; label: string; done: 
   );
 }
 
-function BillDetail({ bill, today, onClose, actions, recurringName }: { bill: Bill; today: string; onClose: () => void; actions: BillActions; recurringName?: { description: string; frequency: keyof typeof FREQUENCY_LABEL } }) {
+function BillDetail({ open, bill, today, onClose, actions, recurringName }: { open: boolean; bill: Bill; today: string; onClose: () => void; actions: BillActions; recurringName?: { description: string; frequency: keyof typeof FREQUENCY_LABEL } }) {
   const toast = useToast();
   const { data } = useStore();
   const status = billStatus(bill, today);
@@ -245,7 +267,7 @@ function BillDetail({ bill, today, onClose, actions, recurringName }: { bill: Bi
   const linha = bill.digitableLine ? parseLinhaDigitavel(bill.digitableLine, today) : null;
   return (
     <Modal
-      open
+      open={open}
       onClose={onClose}
       title={bill.description}
       description={bill.supplier}

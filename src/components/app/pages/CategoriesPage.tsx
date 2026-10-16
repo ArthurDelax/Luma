@@ -5,7 +5,7 @@ import { LuPencil, LuPlus, LuTags, LuTrash2 } from "react-icons/lu";
 import { CATEGORIES, categoryNameError } from "@/lib/domain";
 import { useStore } from "@/lib/store";
 import type { CustomCategory } from "@/lib/types";
-import { Badge, Button, EmptyState, Field, IconButton, Input, Modal, PageHeader, useConfirm, useToast } from "../../ui";
+import { ModalCloseButton, Badge, Button, EmptyState, Field, IconButton, Input, Modal, PageHeader, useConfirm, useToast } from "../../ui";
 
 function CategoryForm({ initial, onClose }: { initial: Partial<CustomCategory>; onClose: () => void }) {
   const { data, addCategory, renameCategory, requireWrite } = useStore();
@@ -37,9 +37,9 @@ function CategoryForm({ initial, onClose }: { initial: Partial<CustomCategory>; 
       title={initial.id ? "Editar categoria" : "Nova categoria"}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button type="submit" form="cat-form">
             {initial.id ? "Salvar alterações" : "Cadastrar categoria"}
           </Button>

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-display: "Poppins", "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: var(--font-poppins), "Poppins", var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
 
   /* Paleta Luma: tinta preta sobre papel off-white. */
   --color-ink: #111111;
@@ -44,7 +44,7 @@
   --animate-fade-in: fade-in 0.18s ease-out;
   --animate-pop-in: pop-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
   --animate-slide-in: slide-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
-  --animate-toast-in: toast-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-toast-in: toast-in 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -130,6 +130,71 @@
   &::placeholder {
     color: #94a3b8;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Animações de abrir e fechar (data-state="open" | "closed")           */
+/* ------------------------------------------------------------------ */
+
+@keyframes luma-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes luma-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes luma-pop-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes luma-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+@keyframes luma-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes luma-sheet-out { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes luma-drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes luma-drawer-out { from { transform: none; } to { transform: translateX(-100%); } }
+@keyframes luma-drop-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes luma-drop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+@keyframes luma-rise-in { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes luma-rise-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(0.97); } }
+@keyframes luma-page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* curva "de app": sai rápido e assenta devagar */
+:root {
+  --ease-out-app: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-app: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* fundo escurecido atrás de janelas e menus */
+.anim-fade[data-state="open"] { animation: luma-fade-in 0.24s ease-out both; }
+.anim-fade[data-state="closed"] { animation: luma-fade-out 0.2s ease-in both; pointer-events: none; }
+
+/* janelas: no celular sobem de baixo (como app); no computador aparecem no centro */
+.anim-modal[data-state="open"] { animation: luma-sheet-in 0.38s var(--ease-out-app) both; }
+.anim-modal[data-state="closed"] { animation: luma-sheet-out 0.24s var(--ease-in-app) both; pointer-events: none; }
+@media (min-width: 640px) {
+  .anim-modal[data-state="open"] { animation: luma-pop-in 0.26s var(--ease-out-app) both; }
+  .anim-modal[data-state="closed"] { animation: luma-pop-out 0.16s var(--ease-in-app) both; }
+}
+
+/* menu lateral */
+.anim-drawer[data-state="open"] { animation: luma-drawer-in 0.36s var(--ease-out-app) both; }
+.anim-drawer[data-state="closed"] { animation: luma-drawer-out 0.24s var(--ease-in-app) both; pointer-events: none; }
+
+/* menus que descem (notificações, menu do site) */
+.anim-drop { transform-origin: top right; }
+.anim-drop[data-state="open"] { animation: luma-drop-in 0.22s var(--ease-out-app) both; }
+.anim-drop[data-state="closed"] { animation: luma-drop-out 0.15s var(--ease-in-app) both; pointer-events: none; }
+
+/* menus que sobem (botão + da barra de baixo) */
+.anim-rise { transform-origin: bottom center; }
+.anim-rise[data-state="open"] { animation: luma-rise-in 0.24s var(--ease-out-app) both; }
+.anim-rise[data-state="closed"] { animation: luma-rise-out 0.15s var(--ease-in-app) both; pointer-events: none; }
+
+/* avisos (toasts) saindo */
+@keyframes luma-toast-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(8px) scale(0.97); } }
+.toast-out { animation: luma-toast-out 0.2s var(--ease-in-app) both; }
+
+/* troca de tela */
+.page-enter { animation: luma-page-in 0.3s var(--ease-out-app) both; }
+
+/* toque: resposta imediata, sem atraso de 300 ms */
+a, button, [role="button"], label, input, select, textarea {
+  touch-action: manipulation;
+}
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

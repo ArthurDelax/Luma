@@ -24,7 +24,7 @@ import { formatDate, relativeDays } from "@/lib/dates";
 import { href } from "@/lib/paths";
 import { useStore } from "@/lib/store";
 import { initials, ROLE_LABEL, useWorkspace } from "@/lib/workspace";
-import { Button, cx, IconButton, Logo } from "../ui";
+import { Button, cx, IconButton, Logo, usePresence } from "../ui";
 import { useBillActions } from "./bills/BillActions";
 import { HelpButton } from "../support/HelpCenter";
 import { DemoBanner } from "./DemoGate";
@@ -143,6 +143,7 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
   const { today, markAlertsRead } = useStore();
   const { unread } = useUnreadAlerts();
   const [open, setOpen] = useState(false);
+  const pop = usePresence(open, 180);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -163,8 +164,8 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
         <LuBell className="size-5" />
         {unread.length > 0 && <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-overdue px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-paper">{unread.length > 99 ? "99+" : unread.length}</span>}
       </IconButton>
-      {open && (
-        <div className="absolute right-0 top-11 z-40 w-[min(22rem,calc(100vw-2rem))] animate-pop-in overflow-hidden rounded-2xl border border-line bg-white text-ink shadow-[var(--shadow-pop)]">
+      {pop.render && (
+        <div data-state={pop.state} className="anim-drop absolute right-0 top-11 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-white text-ink shadow-[var(--shadow-pop)]">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <p className="font-display font-semibold">Notificações</p>
             {unread.length > 0 && (
@@ -202,6 +203,8 @@ function NotificationsButton({ dark = false }: { dark?: boolean }) {
 export function Shell({ current, children }: { current: RouteId; children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
   const [fab, setFab] = useState(false);
+  const drawerP = usePresence(drawer, 260);
+  const fabP = usePresence(fab, 180);
   const actions = useBillActions();
   const { unread } = useUnreadAlerts();
   const { storageError } = useStore();
@@ -232,10 +235,10 @@ export function Shell({ current, children }: { current: RouteId; children: React
       </aside>
 
       {/* Gaveta (celular) */}
-      {drawer && (
+      {drawerP.render && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 animate-fade-in bg-navy-950/50" onClick={() => setDrawer(false)} />
-          <aside className="relative flex h-full w-[82%] max-w-[300px] animate-slide-in flex-col overflow-y-auto bg-ink px-4 py-5">
+          <div data-state={drawerP.state} className="anim-fade absolute inset-0 bg-navy-950/50" onClick={() => setDrawer(false)} />
+          <aside data-state={drawerP.state} className="anim-drawer relative flex h-full w-[82%] max-w-[300px] flex-col overflow-y-auto overscroll-contain bg-ink px-4 py-5 shadow-[var(--shadow-pop)]">
             <div className="mb-6 flex items-center justify-between px-2">
               <Logo tone="light" />
               <IconButton label="Fechar menu" onClick={() => setDrawer(false)} className="text-white/70 hover:bg-white/10 hover:text-white">
@@ -257,7 +260,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
       )}
 
       {/* Topo */}
-      <header className="no-print sticky top-0 z-20 border-b border-line/70 bg-paper/80 backdrop-blur-xl">
+      <header className="no-print sticky top-0 z-20 border-b border-line/70 bg-paper/95 sm:bg-paper/80 sm:backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-2 px-4 sm:px-6 lg:px-8">
           <IconButton label="Abrir menu" className="lg:hidden" onClick={() => setDrawer(true)}>
             <LuMenu className="size-5" />
@@ -290,7 +293,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
       <main className="mx-auto max-w-[1240px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">{children}</main>
 
       {/* Navegação inferior (celular) */}
-      <nav aria-label="Atalhos" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden">
+      <nav aria-label="Atalhos" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
         <div className="grid grid-cols-5">
           {([
             ["painel", "Painel", <LuLayoutDashboard key="i" />],
@@ -301,11 +304,12 @@ export function Shell({ current, children }: { current: RouteId; children: React
           ] as const).map((item) =>
             item === null ? (
               <div key="fab" className="relative flex justify-center">
-                <button aria-label="Adicionar" aria-expanded={fab} onClick={() => setFab((f) => !f)} className={cx("-mt-5 grid size-14 place-items-center rounded-full bg-ink text-paper shadow-lg ring-4 ring-paper transition-transform", fab && "rotate-45")}>
+                <button aria-label="Adicionar" aria-expanded={fab} onClick={() => setFab((f) => !f)} className={cx("-mt-5 grid size-14 place-items-center rounded-full bg-ink text-paper shadow-lg ring-4 ring-paper transition-transform duration-300 [transition-timing-function:var(--ease-out-app)] active:scale-90", fab && "rotate-45")}>
                   <LuPlus className="size-6" />
                 </button>
-                {fab && (
-                  <div className="absolute bottom-16 left-1/2 w-56 -translate-x-1/2 animate-pop-in overflow-hidden rounded-2xl border border-line bg-white shadow-[var(--shadow-pop)]">
+                {fabP.render && (
+                  <div className="absolute bottom-16 left-1/2 w-56 -translate-x-1/2">
+                  <div data-state={fabP.state} className="anim-rise overflow-hidden rounded-2xl border border-line bg-white shadow-[var(--shadow-pop)]">
                     <button className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold hover:bg-sky-100" onClick={() => { setFab(false); actions.importBoleto(); }}>
                       <LuFileUp className="size-5" /> Importar boleto
                     </button>
@@ -313,10 +317,11 @@ export function Shell({ current, children }: { current: RouteId; children: React
                       <LuPlus className="size-5" /> Nova conta
                     </button>
                   </div>
+                  </div>
                 )}
               </div>
             ) : (
-              <a key={item[0]} href={`#/${item[0]}`} aria-current={current === item[0] ? "page" : undefined} className={cx("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold [&>svg]:size-5", current === item[0] ? "text-ink" : "text-muted")}>
+              <a key={item[0]} href={`#/${item[0]}`} aria-current={current === item[0] ? "page" : undefined} className={cx("relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-[color,transform] duration-150 active:scale-90 [&>svg]:size-5", current === item[0] ? "text-ink" : "text-muted")}>
                 {item[2]}
                 {item[1]}
                 {item[0] === "alertas" && unread.length > 0 && <span className="absolute right-[calc(50%-18px)] top-1.5 size-2 rounded-full bg-overdue" />}

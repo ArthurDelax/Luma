@@ -55,7 +55,7 @@ function Screen() {
   return (
     <BillActionsProvider>
       <Shell current={route.id}>
-        <div key={route.id} className="animate-fade-in">
+        <div key={route.id} className="page-enter">
           {route.id === "painel" && <Dashboard />}
           {route.id === "contas" && <BillsPage route={route} />}
           {route.id === "recorrentes" && <RecurringPage />}

@@ -36,7 +36,7 @@ import {
   type Session,
   type TotpEnrollment,
 } from "@/lib/supabase";
-import { Badge, Button, cx, EmptyState, Field, IconButton, Input, Logo, Modal, Segmented, Select, Textarea, ToastProvider, useToast, type Tone } from "../ui";
+import { ModalCloseButton, Badge, Button, cx, EmptyState, Field, IconButton, Input, Logo, Modal, Segmented, Select, Textarea, ToastProvider, useToast, type Tone } from "../ui";
 import { usePolling } from "@/lib/usePolling";
 import { AdminSupport } from "./AdminSupport";
 
@@ -749,9 +749,9 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
       description="O ambiente é criado vazio e o responsável recebe um link para ativar o acesso."
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button type="submit" form="org-form" disabled={busy}>
             {busy ? "Criando…" : "Criar empresa"}
           </Button>
@@ -852,9 +852,9 @@ function EditOrgModal({ org, call, onClose, onSaved }: { org: Org; call: Caller;
       description={`Criada em ${new Date(org.created_at).toLocaleDateString("pt-BR")} · ${org.sale_origin}${org.cnpj ? ` · CNPJ ${formatCNPJ(org.cnpj)}` : ""}`}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button type="submit" form="edit-org" disabled={busy}>
             {busy ? "Salvando…" : "Salvar alterações"}
           </Button>
@@ -928,9 +928,9 @@ function BlockOrgModal({ org, call, onClose, onDone }: { org: Org; call: Caller;
       title={blocking ? `Bloquear acesso da ${org.name}?` : `Liberar acesso da ${org.name}?`}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button variant={blocking ? "danger" : "primary"} onClick={confirm} disabled={busy}>
             {busy ? "Salvando…" : blocking ? "Bloquear acesso" : "Liberar acesso"}
           </Button>

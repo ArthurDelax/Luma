@@ -17,6 +17,23 @@ import {
 import { createPortal } from "react-dom";
 import { LuCircleAlert, LuCircleCheck, LuInfo, LuX } from "react-icons/lu";
 
+/**
+ * Mantém um elemento na tela enquanto a animação de saída roda.
+ * Retorna se deve renderizar e o estado para o atributo data-state.
+ */
+export function usePresence(open: boolean, exitMs = 240): { render: boolean; state: "open" | "closed" } {
+  const [render, setRender] = useState(open);
+  useEffect(() => {
+    if (open) {
+      setRender(true);
+      return;
+    }
+    const t = setTimeout(() => setRender(false), exitMs);
+    return () => clearTimeout(t);
+  }, [open, exitMs]);
+  return { render: open || render, state: open ? "open" : "closed" };
+}
+
 export function cx(...parts: (string | false | null | undefined)[]): string {
   return parts.filter(Boolean).join(" ");
 }
@@ -73,7 +90,7 @@ export function Button({
       type="button"
       {...rest}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all active:scale-[0.98] disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 active:scale-[0.97] disabled:opacity-50",
         size === "sm" ? "h-8 px-3.5 text-[13px]" : "h-10 px-5 text-sm",
         variants[variant],
         className,
@@ -92,7 +109,7 @@ export function IconButton({ label, className, children, ...rest }: ButtonHTMLAt
       aria-label={label}
       title={label}
       {...rest}
-      className={cx("inline-grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-sky-100 hover:text-ink disabled:opacity-40", className)}
+      className={cx("inline-grid size-9 place-items-center rounded-full text-muted transition-[color,background-color,transform] duration-150 hover:bg-sky-100 hover:text-ink active:scale-90 disabled:opacity-40", className)}
     >
       {children}
     </button>
@@ -188,6 +205,19 @@ export function Select({ className, children, invalid, ...rest }: SelectHTMLAttr
 /* Modal                                                                */
 /* ------------------------------------------------------------------ */
 
+/** Dentro de uma janela: fecha com a animação de saída. */
+const ModalDismissContext = createContext<(() => void) | null>(null);
+
+/** Botão "Cancelar/Fechar" que fecha a janela com animação. */
+export function ModalCloseButton({ children = "Cancelar", ...rest }: Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> & { variant?: Variant }) {
+  const dismiss = useContext(ModalDismissContext);
+  return (
+    <Button variant="secondary" {...rest} onClick={() => dismiss?.()}>
+      {children}
+    </Button>
+  );
+}
+
 export function Modal({
   open,
   onClose,
@@ -209,12 +239,41 @@ export function Modal({
   const panel = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // fechar pelo X, pelo fundo ou pelo Esc: anima a saída e só depois avisa quem abriu
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    if (open) setLeaving(false);
+  }, [open]);
+  const closingRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    if (open) closingRef.current = false;
+  }, [open]);
+  const requestClose = useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setLeaving(true);
+    setTimeout(() => {
+      onCloseRef.current();
+      // se quem abriu não fechou (ex.: algo em andamento), a janela volta a aparecer
+      setTimeout(() => {
+        closingRef.current = false;
+        setLeaving(false);
+      }, 320);
+    }, 200);
+  }, []);
+  const shown = open && !leaving;
+  const { render, state } = usePresence(shown, 260);
+  // durante a saída, continua mostrando o último conteúdo (quem abriu pode já ter limpado os dados)
+  const last = useRef({ title, description, children, footer });
+  if (open) last.current = { title, description, children, footer };
 
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") requestClose();
       if (e.key === "Tab" && panel.current) {
         const f = panel.current.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
         if (!f.length) return;
@@ -241,35 +300,40 @@ export function Modal({
       clearTimeout(t);
       prev?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, requestClose]);
 
-  if (!open || !mounted) return null;
+  if (!render || !mounted) return null;
+  const view = last.current;
   const widths = { sm: "sm:max-w-md", md: "sm:max-w-2xl", lg: "sm:max-w-4xl" };
   return createPortal(
+    <ModalDismissContext.Provider value={requestClose}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
-      <div className="absolute inset-0 animate-fade-in bg-navy-950/40 backdrop-blur-[3px]" onClick={onClose} />
+      <div data-state={state} className="anim-fade absolute inset-0 bg-navy-950/45 sm:backdrop-blur-[3px]" onClick={requestClose} />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={cx("relative flex max-h-[92dvh] w-full animate-pop-in flex-col rounded-t-[24px] bg-white shadow-[var(--shadow-pop)] sm:rounded-[24px]", widths[size])}
+        data-state={state}
+        className={cx("anim-modal relative flex max-h-[92dvh] w-full flex-col rounded-t-[24px] bg-white shadow-[var(--shadow-pop)] sm:rounded-[24px]", widths[size])}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
+        <div aria-hidden className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-line sm:hidden" />
+        <div className="flex items-start justify-between gap-4 border-b border-line px-5 pb-4 pt-2.5 sm:px-6 sm:pt-4">
           <div>
             <h2 id={titleId} className="font-display text-lg font-semibold">
-              {title}
+              {view.title}
             </h2>
-            {description && <div className="mt-0.5 text-sm text-muted">{description}</div>}
+            {view.description && <div className="mt-0.5 text-sm text-muted">{view.description}</div>}
           </div>
-          <IconButton label="Fechar" onClick={onClose} data-close>
+          <IconButton label="Fechar" onClick={requestClose} data-close>
             <LuX className="size-5" />
           </IconButton>
         </div>
-        <div className="overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
-        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-paper/60 px-5 py-3.5 sm:rounded-b-[24px] sm:px-6">{footer}</div>}
+        <div className="overscroll-contain overflow-y-auto px-5 py-5 sm:px-6">{view.children}</div>
+        {view.footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-paper/60 px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] sm:rounded-b-[24px] sm:px-6 sm:pb-3.5">{view.footer}</div>}
       </div>
-    </div>,
+    </div>
+    </ModalDismissContext.Provider>,
     document.body,
   );
 }
@@ -331,6 +395,7 @@ interface Toast {
   kind: ToastKind;
   message: string;
   action?: { label: string; onClick: () => void };
+  leaving?: boolean;
 }
 
 const ToastContext = createContext<(kind: ToastKind, message: string, action?: Toast["action"]) => void>(() => {});
@@ -338,11 +403,19 @@ const ToastContext = createContext<(kind: ToastKind, message: string, action?: T
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const seq = useRef(0);
-  const push = useCallback((kind: ToastKind, message: string, action?: Toast["action"]) => {
-    const id = ++seq.current;
-    setToasts((t) => [...t.slice(-3), { id, kind, message, action }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), action ? 7000 : 4200);
+  // some com animação: marca "saindo" e remove depois
+  const dismissToast = useCallback((id: number) => {
+    setToasts((t) => t.map((x) => (x.id === id ? { ...x, leaving: true } : x)));
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 200);
   }, []);
+  const push = useCallback(
+    (kind: ToastKind, message: string, action?: Toast["action"]) => {
+      const id = ++seq.current;
+      setToasts((t) => [...t.slice(-3), { id, kind, message, action }]);
+      setTimeout(() => dismissToast(id), action ? 7000 : 4200);
+    },
+    [dismissToast],
+  );
   const icons = {
     success: <LuCircleCheck className="size-5 shrink-0 text-[#6fd3a0]" />,
     error: <LuCircleAlert className="size-5 shrink-0 text-[#ff8a8a]" />,
@@ -353,7 +426,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="no-print pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:items-end lg:px-6" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} role="status" className="pointer-events-auto flex w-full max-w-sm animate-toast-in items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm text-paper shadow-[var(--shadow-pop)]">
+          <div key={t.id} role="status" className={cx("pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm text-paper shadow-[var(--shadow-pop)]", t.leaving ? "toast-out" : "animate-toast-in")}>
             {icons[t.kind]}
             <span className="flex-1">{t.message}</span>
             {t.action && (
@@ -361,7 +434,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className="rounded-full px-2.5 py-1 font-semibold text-paper underline-offset-2 hover:bg-white/10"
                 onClick={() => {
                   t.action?.onClick();
-                  setToasts((x) => x.filter((y) => y.id !== t.id));
+                  dismissToast(t.id);
                 }}
               >
                 {t.action.label}

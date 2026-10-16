@@ -7,7 +7,7 @@ import { categoryOptions, FREQUENCY_LABEL, monthlyEquivalent, nextOccurrence, oc
 import { amountToInput, formatBRL, parseBRL } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Frequency, RecurringExpense } from "@/lib/types";
-import { Badge, Button, cx, EmptyState, Field, IconButton, Input, Modal, PageHeader, Select, Textarea, useConfirm, useToast } from "../../ui";
+import { ModalCloseButton, Badge, Button, cx, EmptyState, Field, IconButton, Input, Modal, PageHeader, Select, Textarea, useConfirm, useToast } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
 
 interface Form {
@@ -89,9 +89,9 @@ function RecurringForm({ initial, onClose }: { initial: Partial<RecurringExpense
       description="Os próximos vencimentos são calculados automaticamente."
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <ModalCloseButton>
             Cancelar
-          </Button>
+          </ModalCloseButton>
           <Button type="submit" form="rec-form">
             {initial.id ? "Salvar alterações" : "Cadastrar despesa"}
           </Button>
