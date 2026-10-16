@@ -37,6 +37,7 @@ import {
   type TotpEnrollment,
 } from "@/lib/supabase";
 import { Badge, Button, cx, EmptyState, Field, IconButton, Input, Logo, Modal, Segmented, Select, Textarea, ToastProvider, useToast, type Tone } from "../ui";
+import { usePolling } from "@/lib/usePolling";
 import { AdminSupport } from "./AdminSupport";
 
 /* ------------------------------------------------------------------ */
@@ -440,6 +441,16 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // contador da aba Suporte ao vivo (na própria aba, quem atualiza é a lista)
+  usePolling(
+    () =>
+      call<{ unread: boolean }[]>("admin_support_list", { p_status: null })
+        .then((l) => setSupportUnread(l.filter((t) => t.unread).length))
+        .catch(() => {}),
+    15_000,
+    tab !== "suporte",
+  );
 
   const filtered = useMemo(() => {
     const nq = normalizeText(q);

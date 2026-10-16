@@ -5,6 +5,7 @@ import { LuArrowLeft, LuChevronRight, LuHeadset, LuLifeBuoy, LuLogIn, LuMessageC
 import { supportWhatsappLink, whatsappDisplay } from "@/lib/contact";
 import { href } from "@/lib/paths";
 import { STATUS_TEXT, supportApi, timeAgo, type Ticket } from "@/lib/support";
+import { usePolling } from "@/lib/usePolling";
 import { useWorkspace } from "@/lib/workspace";
 import { Button, cx, Field, Input, Modal, Textarea } from "../ui";
 import { SupportThread } from "./SupportThread";
@@ -21,14 +22,19 @@ export function useSupportUnread(): number {
     if (ws.mode !== "cloud" || !ws.orgId) return;
     const orgId = ws.orgId;
     const check = () => supportApi.list(orgId).then((l) => setN(l.filter((t) => t.unread).length)).catch(() => {});
-    void check();
-    const t = setInterval(check, 60_000);
     window.addEventListener("luma:support-changed", check);
-    return () => {
-      clearInterval(t);
-      window.removeEventListener("luma:support-changed", check);
-    };
+    return () => window.removeEventListener("luma:support-changed", check);
   }, [ws.mode, ws.orgId]);
+  // aviso de resposta nova no ícone de ajuda, ao vivo
+  usePolling(
+    () => {
+      const orgId = ws.orgId;
+      if (!orgId) return;
+      return supportApi.list(orgId).then((l) => setN(l.filter((t) => t.unread).length)).catch(() => {});
+    },
+    15_000,
+    ws.mode === "cloud" && !!ws.orgId,
+  );
   return n;
 }
 
@@ -44,15 +50,16 @@ export function HelpCenter({ open, onClose }: { open: boolean; onClose: () => vo
     try {
       setTickets(await supportApi.list(ws.orgId));
     } catch {
-      setTickets([]);
+      setTickets((t) => t ?? []); // falha passageira não apaga a lista
     }
   }, [cloud, ws.orgId]);
 
   useEffect(() => {
-    if (!open) return;
-    setView({ name: "home" });
-    void reload();
-  }, [open, reload]);
+    if (open) setView({ name: "home" });
+  }, [open]);
+
+  // lista de chamados ao vivo enquanto a central está aberta
+  usePolling(reload, 5_000, open && cloud && view.name === "home");
 
   const changed = () => {
     void reload();
@@ -173,7 +180,7 @@ export function HelpCenter({ open, onClose }: { open: boolean; onClose: () => vo
               </button>
             )}
           </div>
-          <SupportThread ticketId={view.ticket.id} viewer="cliente" load={supportApi.thread} send={supportApi.send} closed={view.ticket.status === "fechado"} onChanged={changed} />
+          <SupportThread key={view.ticket.id} ticketId={view.ticket.id} viewer="cliente" load={supportApi.thread} send={supportApi.send} closed={view.ticket.status === "fechado"} onChanged={changed} />
         </div>
       )}
     </Modal>

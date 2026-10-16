@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { LuArrowLeft, LuCircleCheck, LuInbox, LuRotateCcw } from "react-icons/lu";
 import { STATUS_TEXT, timeAgo, type AdminTicket, type Message, type TicketStatus } from "@/lib/support";
+import { usePolling } from "@/lib/usePolling";
 import { SupportThread } from "../support/SupportThread";
 import { Badge, Button, cx, EmptyState, Segmented, useToast } from "../ui";
 
@@ -16,22 +17,23 @@ export function AdminSupport({ call, onUnread }: { call: Call; onUnread?: (n: nu
   const [filter, setFilter] = useState<Filter>("abertos");
   const [selected, setSelected] = useState<string | null>(null);
 
+  const failed = useRef(false);
   const reload = useCallback(async () => {
     try {
       const list = await call<AdminTicket[]>("admin_support_list", { p_status: null });
+      failed.current = false;
       setTickets(list);
       onUnread?.(list.filter((t) => t.unread).length);
     } catch (e) {
       setTickets((t) => t ?? []);
-      toast("error", e instanceof Error ? e.message : "Não foi possível carregar o suporte.");
+      // avisa uma vez só, não a cada nova tentativa
+      if (!failed.current) toast("error", e instanceof Error ? e.message : "Não foi possível carregar o suporte.");
+      failed.current = true;
     }
   }, [call, onUnread, toast]);
 
-  useEffect(() => {
-    void reload();
-    const t = setInterval(() => void reload(), 30_000);
-    return () => clearInterval(t);
-  }, [reload]);
+  // lista ao vivo: chamados novos e respostas aparecem sem recarregar
+  usePolling(reload, 5_000);
 
   const shown = useMemo(() => {
     const l = tickets ?? [];
@@ -135,7 +137,7 @@ export function AdminSupport({ call, onUnread }: { call: Call; onUnread?: (n: nu
                   )}
                 </div>
               </div>
-              <SupportThread key={current.id} ticketId={current.id} viewer="suporte" load={load} send={send} closed={current.status === "fechado"} onChanged={reload} pollMs={15_000} />
+              <SupportThread key={current.id} ticketId={current.id} viewer="suporte" load={load} send={send} closed={current.status === "fechado"} onChanged={reload} />
               <p className="mt-2 text-[11px] text-muted">O cliente vê sua resposta na central de ajuda da Luma. Nunca peça senhas.</p>
             </>
           )}

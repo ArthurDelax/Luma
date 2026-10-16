@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { LuSendHorizontal } from "react-icons/lu";
 import type { Message } from "@/lib/support";
+import { usePolling } from "@/lib/usePolling";
 import { cx } from "../ui";
 
-/** Conversa de um chamado (usada pelo cliente e pelo painel restrito). Atualiza sozinha. */
+/** Conversa de um chamado (usada pelo cliente e pelo painel restrito). Atualiza sozinha a cada poucos segundos. */
 export function SupportThread({
   ticketId,
   viewer,
@@ -13,7 +14,7 @@ export function SupportThread({
   send,
   closed,
   onChanged,
-  pollMs = 10_000,
+  pollMs = 3_000,
 }: {
   ticketId: string;
   viewer: "cliente" | "suporte";
@@ -28,30 +29,47 @@ export function SupportThread({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   const lastId = useRef(0);
+  const current = useRef(ticketId);
+  const onChangedRef = useRef(onChanged);
+  onChangedRef.current = onChanged;
+
+  // troca de chamado: limpa a tela e recomeça
+  useEffect(() => {
+    current.current = ticketId;
+    lastId.current = 0;
+    setMessages(null);
+    setError("");
+  }, [ticketId]);
 
   const refresh = useCallback(async () => {
+    const id = ticketId;
     try {
-      const m = await load(ticketId);
-      setMessages(m);
+      const m = await load(id);
+      if (current.current !== id) return; // resposta de um chamado antigo
       const last = m[m.length - 1]?.id ?? 0;
-      if (last !== lastId.current) {
+      const first = lastId.current === 0;
+      if (first || last !== lastId.current) {
+        const el = box.current;
+        const nearBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+        const mineLast = m[m.length - 1]?.author_role === viewer;
+        const grew = !first && last > lastId.current;
         lastId.current = last;
-        requestAnimationFrame(() => end.current?.scrollIntoView({ block: "end" }));
+        setMessages(m);
+        if (first || nearBottom || mineLast) requestAnimationFrame(() => end.current?.scrollIntoView({ block: "end" }));
+        // mensagem nova da outra pessoa: avisa listas e contadores
+        if (grew && !mineLast) onChangedRef.current?.();
+      } else {
+        setMessages((prev) => prev ?? m);
       }
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível carregar a conversa.");
+      if (current.current === id) setError(e instanceof Error ? e.message : "Não foi possível carregar a conversa.");
     }
-  }, [load, ticketId]);
+  }, [load, ticketId, viewer]);
 
-  useEffect(() => {
-    lastId.current = 0;
-    setMessages(null);
-    void refresh();
-    const t = setInterval(() => void refresh(), pollMs);
-    return () => clearInterval(t);
-  }, [refresh, pollMs]);
+  usePolling(refresh, pollMs);
 
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -79,7 +97,7 @@ export function SupportThread({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-paper/70 p-3 sm:p-4" aria-live="polite">
+      <div ref={box} className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-paper/70 p-3 sm:p-4" aria-live="polite">
         {messages === null && <p className="py-8 text-center text-sm text-muted">Carregando conversa…</p>}
         {messages?.map((m) => {
           const mine = m.author_role === viewer;
