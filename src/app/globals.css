@@ -232,12 +232,28 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Quem desligou as animações no sistema (Windows, Android, iPhone) continua com
+   transições suaves, mas sem movimento: só aparece e some esmaecendo. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  html { scroll-behavior: auto; }
+  @keyframes luma-pop-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-pop-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-sheet-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-sheet-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-drawer-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-drawer-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-drop-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-drop-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-rise-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-rise-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-page-in-right { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-page-in-left { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-page-out-left { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-page-out-right { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes luma-rise-soft { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes luma-toast-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes toast-in { from { opacity: 0; } to { opacity: 1; } }
+  .animate-pulse, .animate-ping, .animate-spin { animation: none; }
 }
 
 @media print {

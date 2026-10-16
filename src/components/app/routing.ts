@@ -35,15 +35,11 @@ function viewTransition(): StartViewTransition | undefined {
   return typeof fn === "function" ? (fn.bind(document) as StartViewTransition) : undefined;
 }
 
-function reducedMotion() {
-  return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function useHashRoute(): Route {
   const [route, setRoute] = useState<Route>({ id: "painel", params: new URLSearchParams() });
   const current = useRef<RouteId>("painel");
   useEffect(() => {
-    if (viewTransition() && !reducedMotion()) document.documentElement.classList.add("vt");
+    if (viewTransition()) document.documentElement.classList.add("vt");
 
     const apply = (next: Route) => {
       current.current = next.id;
@@ -57,7 +53,7 @@ export function useHashRoute(): Route {
       // direção: aba "depois" entra pela direita, aba "antes" entra pela esquerda
       document.documentElement.dataset.navDir = TAB_ORDER.indexOf(next.id) >= TAB_ORDER.indexOf(from) ? "forward" : "back";
       const start = viewTransition();
-      if (start && !reducedMotion()) {
+      if (start) {
         start(() => flushSync(() => apply(next)));
       } else {
         apply(next);
