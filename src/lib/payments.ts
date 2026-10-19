@@ -16,11 +16,11 @@ export const ONLINE_MAX_USERS = 6;
 
 /** Planos com link próprio (1 e 2 usuários têm o mesmo preço e usam o mesmo link). */
 export const PAYMENT_LINKS: Record<2 | 3 | 4 | 5 | 6, string> = {
-  2: "https://www.asaas.com/000/c/z3lcttd9nogoaufe", // até 2 usuários — R$ 99,90/mês
-  3: "https://www.asaas.com/000/c/mvlskbnbxq7dx5g9", // 3 usuários — R$ 129,80/mês
-  4: "https://www.asaas.com/000/c/5glclpvu6yvzr9mx", // 4 usuários — R$ 159,70/mês
-  5: "https://www.asaas.com/000/c/adn9piozfq0igm0n", // 5 usuários — R$ 189,60/mês
-  6: "https://www.asaas.com/000/c/rq2dh5vbtt0puh4o", // 6 usuários — R$ 219,50/mês
+  2: "", // até 2 usuários — R$ 99,90/mês
+  3: "", // 3 usuários — R$ 129,80/mês
+  4: "", // 4 usuários — R$ 159,70/mês
+  5: "", // 5 usuários — R$ 189,60/mês
+  6: "", // 6 usuários — R$ 219,50/mês
 };
 
 /** Só aceita links do próprio Asaas (evita que um link trocado por engano mande o cliente para outro site). */
