@@ -165,7 +165,7 @@ export function ImportSheet({ open, onClose, target }: { open: boolean; onClose:
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.slice(0, 8).map((r) => (
-                  <tr key={r.line} className={cx(r.errors.length && "bg-overdue-soft/40")}>
+                  <tr key={r.line} className={cx(r.errors.length > 0 && "bg-overdue-soft/40")}>
                     <td className="px-3 py-2 text-muted tabular">{r.line}</td>
                     <td className="max-w-[220px] truncate px-3 py-2">
                       <span className="font-medium">{r.name || "—"}</span>
