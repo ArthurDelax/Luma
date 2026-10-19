@@ -86,7 +86,7 @@ test("celular para o WhatsApp", () => {
 test("mensagem de cobrança atrasada e a vencer", () => {
   const r = rcb({ customer: "João Silva", description: "Serviço de setembro", amount: 1500, dueDate: "2026-10-10", customerPhone: "62999990000" });
   const m = chargeMessage(r, T, "Empresa X", "contato@empresa.com");
-  assert.match(m, /Olá, João!/);
+  assert.match(m, /Olá, João Silva!/);
   assert.match(m, /venceu em 10\/10\/2026/);
   assert.match(m, /Pix na chave: contato@empresa.com/);
   assert.match(m, /— Empresa X/);

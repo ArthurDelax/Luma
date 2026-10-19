@@ -19,7 +19,7 @@ export function waPhone(raw: string | undefined): string | null {
 export function chargeMessage(r: Receivable, today: ISODate, company?: string, pixKey?: string): string {
   const late = !r.receivedAt && r.dueDate < today;
   const lines = [
-    `Olá, ${r.customer.split(" ")[0]}! Tudo bem?`,
+    `Olá, ${r.customer.trim()}! Tudo bem?`,
     late
       ? `Passando para lembrar que o pagamento de ${formatBRL(r.amount)} referente a "${r.description}" venceu em ${formatDate(r.dueDate)}.`
       : `Passando para lembrar do pagamento de ${formatBRL(r.amount)} referente a "${r.description}", com vencimento em ${formatDate(r.dueDate)}.`,

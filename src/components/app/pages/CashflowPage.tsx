@@ -36,14 +36,14 @@ export function CashflowPage() {
 
       {/* Saldo atual */}
       <section className="dot-grid-light relative mb-5 overflow-hidden rounded-[28px] bg-ink p-5 text-paper sm:p-7">
-        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-sm text-paper/55">{p.hasBalance ? `Saldo em caixa informado em ${formatDate(data.cash!.balanceDate)}` : "Saldo em caixa"}</p>
             <p className="mt-1 font-display text-[2.4rem] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[3rem]">{p.hasBalance ? formatBRL(p.start) : "—"}</p>
             {p.stale && <p className="mt-2 text-sm text-[#ffcf86]">Saldo informado há mais de 7 dias. Atualize para a previsão ficar certa.</p>}
             {!p.hasBalance && <p className="mt-2 text-sm text-paper/60">Informe quanto a empresa tem hoje nas contas para a Luma prever o caixa.</p>}
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid w-full grid-cols-3 gap-2 sm:gap-3 xl:w-auto xl:min-w-[480px]">
             <Mini label="Entradas" value={formatBRL(p.totalIn)} className="text-[#7fdcab]" />
             <Mini label="Saídas" value={formatBRL(p.totalOut)} className="text-[#ff8f86]" />
             <Mini label={`Saldo em ${horizon} dias`} value={formatBRL(p.end)} className={p.end < 0 ? "text-[#ff8f86]" : "text-paper"} />
@@ -124,8 +124,8 @@ export function CashflowPage() {
 function Mini({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 sm:px-4">
-      <p className="text-[11px] text-paper/50 sm:text-xs">{label}</p>
-      <p className={cx("font-display text-sm font-semibold tabular sm:text-lg", className)}>{value}</p>
+      <p className="truncate text-[11px] text-paper/50 sm:text-xs">{label}</p>
+      <p className={cx("whitespace-nowrap font-display text-[13px] font-semibold tabular sm:text-lg", className)}>{value}</p>
     </div>
   );
 }

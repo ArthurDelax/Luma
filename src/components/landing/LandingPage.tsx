@@ -162,7 +162,7 @@ function Hero() {
           </div>
           <div className="lg:pb-3">
             <p className="max-w-md text-lg leading-relaxed text-ink/70">
-              Contas a pagar, boletos com Pix, despesas recorrentes, contratos e documentos em um só painel — com aviso antes de cada vencimento e conferência de cada boleto antes de você pagar.
+              Contas a pagar e a receber, fluxo de caixa, boletos com Pix, contratos e documentos em um só painel — com aviso antes de cada vencimento e antes de faltar dinheiro.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CTA />
@@ -214,13 +214,43 @@ function Differentials() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-semibold text-paper">
             <LuSparkles className="size-3.5" /> Diferenciais da Luma
           </span>
-          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">A Luma confere as contas antes de você pagar</h2>
+          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">A Luma avisa antes do problema acontecer</h2>
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
             Ela compara cada cobrança com o histórico da sua empresa e avisa quando algo foge do normal.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-4 lg:grid-cols-3">
+        {/* destaque: previsão de caixa */}
+        <article className="dot-grid-light mt-12 grid gap-6 overflow-hidden rounded-[28px] bg-ink p-6 text-paper sm:p-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-overdue px-3 py-1 text-[12px] font-semibold text-white">Novo</span>
+            <h3 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">Aviso de falta de dinheiro</h3>
+            <p className="mt-3 text-[15px] leading-relaxed text-paper/70">
+              A Luma junta o saldo da empresa, as contas a pagar e o que seus clientes vão pagar, e prevê o caixa dos próximos 30, 60 e 90 dias. Se em algum dia o dinheiro não for dar, você fica sabendo semanas antes, com sugestões do que fazer: cobrar quem está atrasado, antecipar um recebimento ou negociar uma data.
+            </p>
+            <p className="mt-3 text-[15px] leading-relaxed text-paper/70">E para cobrar um cliente atrasado, é um toque: o WhatsApp abre com a mensagem pronta.</p>
+          </div>
+          <div className="rounded-2xl bg-overdue-soft p-5 text-ink" aria-hidden>
+            <p className="flex items-center gap-2 font-display text-lg font-semibold text-overdue">
+              <LuTriangleAlert className="size-5" /> Em 18 dias o caixa fica negativo em R$ 459,95
+            </p>
+            <p className="mt-1 text-sm text-ink/70">Vencem nesse dia: folha de pagamento e aluguel.</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {[
+                ["Cobrar 1 cliente em atraso", "R$ 3.200,00"],
+                ["Antecipar recebimentos", "R$ 4.500,00"],
+                ["Negociar novas datas", "R$ 5.420,00"],
+              ].map(([t, v]) => (
+                <div key={t} className="rounded-xl bg-white/80 p-3">
+                  <p className="text-xs font-semibold">{t}</p>
+                  <p className="mt-0.5 font-display text-base font-semibold tabular">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
           {/* 1. boleto suspeito */}
           <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
             <span className="grid size-11 place-items-center rounded-2xl bg-overdue-soft text-overdue">
@@ -366,12 +396,14 @@ function ProductPreview() {
 
 const FEATURES = [
   { icon: <LuReceipt />, title: "Contas a pagar", text: "Cadastre, edite, filtre e marque como paga. Contas vencidas são identificadas automaticamente, e cadastros duplicados são bloqueados.", wide: true },
+  { icon: <LuChartColumn />, title: "Fluxo de caixa e contas a receber", text: "Saldo previsto dia a dia, contas a receber com cobrança pelo WhatsApp e aviso antes de faltar dinheiro.", wide: true },
   { icon: <LuFileUp />, title: "Importação de boletos", text: "Selecione o PDF e a Luma preenche beneficiário, CNPJ, valor, vencimento, linha digitável, chave Pix e Pix Copia e Cola para você conferir." },
   { icon: <LuRepeat />, title: "Despesas recorrentes", text: "Aluguel, internet, contabilidade e assinaturas com frequência mensal, trimestral ou anual." },
   { icon: <LuFilePenLine />, title: "Contratos e documentos", text: "Validade de contratos, certificados digitais, licenças, alvarás e seguros em um só lugar." },
   { icon: <LuBell />, title: "Central de alertas", text: "Avisos 30, 15, 7 e 3 dias antes, no dia e depois do vencimento." },
   { icon: <LuCalendarDays />, title: "Calendário financeiro", text: "Contas, recorrências, contratos e documentos no mês, com cores por tipo." },
   { icon: <LuChartColumn />, title: "Relatórios", text: "Despesas por período e categoria, contas pagas, pendentes e vencidas, evolução mensal. Exporte em CSV ou imprima." },
+  { icon: <LuRepeat />, title: "Importe extrato e planilha", text: "Traga suas contas de uma planilha e dê baixa automática com o extrato do banco (OFX)." },
 ];
 
 function Features() {

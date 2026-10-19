@@ -108,14 +108,14 @@ export function createSeedData(today: string): LumaData {
     ...extra,
   });
   const receivables: Receivable[] = [
-    rc("Projeto de identidade visual — 2ª parcela", "Café Aurora (fictício)", 3200, addDays(today, -5), { customerPhone: "62900000000" }),
+    rc("Projeto de identidade visual — 2ª parcela", "Café Aurora (fictício)", 3200, addDays(today, -5)),
     rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, 3), { category: "Mensalidades de clientes" }),
     rc("Venda de lote de embalagens", "Mercado Bom Preço (fictício)", 4100, addDays(today, 9), { category: "Vendas" }),
     rc("Consultoria de processos", "Transportadora Rota Sul (fictícia)", 5800, addDays(today, 15)),
     rc("Implantação de sistema de pedidos", "Distribuidora Vale Verde (fictícia)", 4500, addDays(today, 24)),
     rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, 33), { category: "Mensalidades de clientes" }),
     rc("Pedido recorrente de embalagens", "Mercado Bom Preço (fictício)", 3900, addDays(today, 38), { category: "Vendas" }),
-    rc("Treinamento da equipe", "Escola Saber Mais (fictícia)", 1800, addDays(today, -20), { receivedAt: addDays(today, -19) }),
+    rc("Treinamento da equipe", "Escola Saber Mais (fictícia)", 1800, addDays(today, -4), { receivedAt: addDays(today, -3) }),
     rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, -27), { receivedAt: addDays(today, -27), category: "Mensalidades de clientes" }),
   ];
 
