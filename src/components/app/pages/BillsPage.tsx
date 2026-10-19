@@ -11,6 +11,8 @@ import type { BillStatus } from "@/lib/types";
 import { Button, cx, EmptyState, IconButton, Input, PageHeader, Segmented, Select, useToast } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
 import { InsightTags, insightFor, type BillInsight } from "../bills/BillInsights";
+import { ImportSheet } from "../imports/ImportSheet";
+import { StatementImportButton } from "../imports/StatementImport";
 import type { Route } from "../routing";
 import { DueText, StatusBadge, sumAmount, useDerived } from "../shared";
 
@@ -19,8 +21,9 @@ type Period = "todos" | "mes" | "proximo" | "30dias" | "personalizado";
 type SortKey = "dueDate" | "amount";
 
 export function BillsPage({ route }: { route: Route }) {
-  const { data, today } = useStore();
+  const { data, today, requireWrite } = useStore();
   const { withStatus } = useDerived();
+  const [sheetOpen, setSheetOpen] = useState(false);
   const actions = useBillActions();
   const toast = useToast();
 
@@ -133,6 +136,10 @@ export function BillsPage({ route }: { route: Route }) {
         description="Cadastre, acompanhe e registre pagamentos. As contas vencidas são identificadas automaticamente."
         actions={
           <>
+            <StatementImportButton />
+            <Button variant="secondary" icon={<LuFileUp className="size-4" />} onClick={() => requireWrite() && setSheetOpen(true)}>
+              Importar planilha
+            </Button>
             <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={exportCsv} disabled={!filtered.length}>
               Exportar CSV
             </Button>
@@ -326,6 +333,7 @@ export function BillsPage({ route }: { route: Route }) {
           </>
         )}
       </div>
+    <ImportSheet open={sheetOpen} onClose={() => setSheetOpen(false)} target="pagar" />
     </div>
   );
 }

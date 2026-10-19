@@ -6,7 +6,7 @@
 
 import { buildBancarioLinha } from "./boleto/linha.ts";
 import { addDays, addMonthsClamped, startOfMonth } from "./dates.ts";
-import type { Bill, BusinessDocument, LumaData, RecurringExpense } from "./types.ts";
+import type { Bill, BusinessDocument, LumaData, Receivable, RecurringExpense } from "./types.ts";
 
 export function createSeedData(today: string): LumaData {
   const now = new Date().toISOString();
@@ -94,5 +94,39 @@ export function createSeedData(today: string): LumaData {
     { id: id("doc"), name: "Certidão negativa de débitos federais", kind: "documento", type: "Certidão", party: "Receita Federal", startDate: addDays(today, -160), endDate: addDays(today, 20), status: "ativo" },
   ].map((d) => ({ ...d, createdAt: now, updatedAt: now })) as BusinessDocument[];
 
-  return { version: 1, bills, recurring, documents, readAlerts: [], seededAt: now };
+  // Contas a receber (clientes fictícios). Uma atrasada para demonstrar a cobrança.
+  const rc = (description: string, customer: string, amount: number, dueDate: string, extra: Partial<Receivable> = {}): Receivable => ({
+    id: id("rcb"),
+    description,
+    customer,
+    amount,
+    dueDate,
+    category: "Serviços",
+    source: "exemplo",
+    createdAt: now,
+    updatedAt: now,
+    ...extra,
+  });
+  const receivables: Receivable[] = [
+    rc("Projeto de identidade visual — 2ª parcela", "Café Aurora (fictício)", 3200, addDays(today, -5), { customerPhone: "62900000000" }),
+    rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, 3), { category: "Mensalidades de clientes" }),
+    rc("Venda de lote de embalagens", "Mercado Bom Preço (fictício)", 4100, addDays(today, 9), { category: "Vendas" }),
+    rc("Consultoria de processos", "Transportadora Rota Sul (fictícia)", 5800, addDays(today, 15)),
+    rc("Implantação de sistema de pedidos", "Distribuidora Vale Verde (fictícia)", 4500, addDays(today, 24)),
+    rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, 33), { category: "Mensalidades de clientes" }),
+    rc("Pedido recorrente de embalagens", "Mercado Bom Preço (fictício)", 3900, addDays(today, 38), { category: "Vendas" }),
+    rc("Treinamento da equipe", "Escola Saber Mais (fictícia)", 1800, addDays(today, -20), { receivedAt: addDays(today, -19) }),
+    rc("Manutenção mensal de sistemas", "Clínica Bem Viver (fictícia)", 2400, addDays(today, -27), { receivedAt: addDays(today, -27), category: "Mensalidades de clientes" }),
+  ];
+
+  return {
+    version: 1,
+    bills,
+    recurring,
+    documents,
+    receivables,
+    cash: { balance: 17400, balanceDate: today, pixKey: "financeiro@empresademo.com.br", updatedAt: now },
+    readAlerts: [],
+    seededAt: now,
+  };
 }

@@ -9,6 +9,8 @@ import { BillActionsProvider } from "./bills/BillActions";
 import { DemoBlockedDialog } from "./DemoGate";
 import { AlertsPage } from "./pages/AlertsPage";
 import { BillsPage } from "./pages/BillsPage";
+import { CashflowPage } from "./pages/CashflowPage";
+import { ReceivablesPage } from "./pages/ReceivablesPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { Dashboard } from "./pages/Dashboard";
@@ -57,7 +59,9 @@ function Screen() {
       <Shell current={route.id}>
         <div key={route.id} className="page-enter page-view">
           {route.id === "painel" && <Dashboard />}
+          {route.id === "caixa" && <CashflowPage />}
           {route.id === "contas" && <BillsPage route={route} />}
+          {route.id === "receber" && <ReceivablesPage />}
           {route.id === "recorrentes" && <RecurringPage />}
           {route.id === "categorias" && <CategoriesPage />}
           {route.id === "documentos" && <DocumentsPage />}

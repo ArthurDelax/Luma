@@ -8,9 +8,9 @@ import { flushSync } from "react-dom";
  * Funciona em hospedagem estática como o GitHub Pages sem configurar
  * redirecionamentos, e recarregar a página mantém a tela atual.
  */
-export type RouteId = "painel" | "contas" | "recorrentes" | "categorias" | "documentos" | "alertas" | "calendario" | "relatorios" | "ajustes";
+export type RouteId = "painel" | "caixa" | "contas" | "receber" | "recorrentes" | "categorias" | "documentos" | "alertas" | "calendario" | "relatorios" | "ajustes";
 
-export const ROUTES: RouteId[] = ["painel", "contas", "recorrentes", "categorias", "documentos", "alertas", "calendario", "relatorios", "ajustes"];
+export const ROUTES: RouteId[] = ["painel", "caixa", "contas", "receber", "recorrentes", "categorias", "documentos", "alertas", "calendario", "relatorios", "ajustes"];
 
 export interface Route {
   id: RouteId;
@@ -25,7 +25,7 @@ function parse(hash: string): Route {
 }
 
 /** Ordem das abas (igual à barra de baixo e ao menu): define se a tela entra pela direita ou pela esquerda. */
-const TAB_ORDER: RouteId[] = ["painel", "contas", "recorrentes", "categorias", "documentos", "calendario", "alertas", "relatorios", "ajustes"];
+const TAB_ORDER: RouteId[] = ["painel", "caixa", "contas", "receber", "recorrentes", "categorias", "documentos", "calendario", "alertas", "relatorios", "ajustes"];
 
 type StartViewTransition = (cb: () => void) => unknown;
 

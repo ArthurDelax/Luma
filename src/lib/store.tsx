@@ -8,11 +8,12 @@ import { DEMO_MODE } from "./demo.ts";
 import { uid } from "./format.ts";
 import { createSeedData } from "./seed.ts";
 import { LocalStorageRepository, MemoryRepository, StorageError, type DataRepository } from "./storage.ts";
-import type { Bill, BusinessDocument, CustomCategory, LumaData, RecurringExpense } from "./types.ts";
+import type { Bill, BusinessDocument, CashSettings, CustomCategory, LumaData, Receivable, RecurringExpense } from "./types.ts";
 
 type NewBill = Omit<Bill, "id" | "createdAt" | "updatedAt">;
 type NewRecurring = Omit<RecurringExpense, "id" | "createdAt" | "updatedAt">;
 type NewDocument = Omit<BusinessDocument, "id" | "createdAt" | "updatedAt">;
+export type NewReceivable = Omit<Receivable, "id" | "createdAt" | "updatedAt">;
 
 interface StoreValue {
   ready: boolean;
@@ -49,6 +50,13 @@ interface StoreValue {
   /** Renomeia a categoria e atualiza as contas e recorrentes que a usam. */
   renameCategory(id: string, name: string): void;
   deleteCategory(id: string): void;
+  addReceivable(r: NewReceivable): Receivable | null;
+  updateReceivable(id: string, patch: Partial<Receivable>): void;
+  deleteReceivable(id: string): void;
+  markReceived(id: string, receivedAt?: string): void;
+  reopenReceivable(id: string): void;
+  /** Saldo em caixa e chave Pix da empresa. */
+  setCash(patch: Partial<Omit<CashSettings, "updatedAt">>): void;
   /** Marcar alertas como lidos é permitido na demonstração (fica só na memória da página). */
   markAlertsRead(ids: string[]): void;
   resetToSample(): Promise<void>;
@@ -363,6 +371,59 @@ export function StoreProvider({
     [requireWrite],
   );
 
+  const addReceivable = useCallback(
+    (r: NewReceivable) => {
+      if (!requireWrite()) return null;
+      const item: Receivable = { ...r, id: uid("rcb_"), createdAt: stamp(), updatedAt: stamp() };
+      setData((d) => ({ ...d, receivables: [...(d.receivables ?? []), item] }));
+      return item;
+    },
+    [requireWrite],
+  );
+
+  const updateReceivable = useCallback(
+    (id: string, patch: Partial<Receivable>) => {
+      if (!requireWrite()) return;
+      setData((d) => ({ ...d, receivables: (d.receivables ?? []).map((r) => (r.id === id ? { ...r, ...patch, id, updatedAt: stamp() } : r)) }));
+    },
+    [requireWrite],
+  );
+
+  const deleteReceivable = useCallback(
+    (id: string) => {
+      if (!requireWrite()) return;
+      setData((d) => ({ ...d, receivables: (d.receivables ?? []).filter((r) => r.id !== id) }));
+    },
+    [requireWrite],
+  );
+
+  const markReceived = useCallback(
+    (id: string, receivedAt?: string) => {
+      if (!requireWrite()) return;
+      setData((d) => ({ ...d, receivables: (d.receivables ?? []).map((r) => (r.id === id ? { ...r, receivedAt: receivedAt ?? todayISO(), updatedAt: stamp() } : r)) }));
+    },
+    [requireWrite],
+  );
+
+  const reopenReceivable = useCallback(
+    (id: string) => {
+      if (!requireWrite()) return;
+      setData((d) => ({ ...d, receivables: (d.receivables ?? []).map((r) => (r.id === id ? { ...r, receivedAt: undefined, updatedAt: stamp() } : r)) }));
+    },
+    [requireWrite],
+  );
+
+  const setCash = useCallback(
+    (patch: Partial<Omit<CashSettings, "updatedAt">>) => {
+      if (!requireWrite()) return;
+      setData((d) => ({
+        ...d,
+        cash: { balance: 0, balanceDate: todayISO(), ...d.cash, ...patch, updatedAt: stamp() },
+      }));
+    },
+    [requireWrite],
+  );
+
   const markAlertsRead = useCallback((ids: string[]) => {
     setData((d) => ({ ...d, readAlerts: Array.from(new Set([...d.readAlerts, ...ids])).slice(-500) }));
   }, []);
@@ -413,6 +474,12 @@ export function StoreProvider({
     addCategory,
     renameCategory,
     deleteCategory,
+    addReceivable,
+    updateReceivable,
+    deleteReceivable,
+    markReceived,
+    reopenReceivable,
+    setCash,
     markAlertsRead,
     resetToSample,
     clearAll,

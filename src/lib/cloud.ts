@@ -8,7 +8,7 @@
 
 import { uid } from "./format.ts";
 import { authed, authedBlob, SupabaseError } from "./supabase.ts";
-import type { AttachmentMeta, Bill, BusinessDocument, CustomCategory, LumaData, RecurringExpense } from "./types.ts";
+import type { AttachmentMeta, Bill, BusinessDocument, CashSettings, CustomCategory, LumaData, Receivable, RecurringExpense } from "./types.ts";
 
 export type OrgRole = "administrador" | "financeiro" | "consulta";
 export type OrgStatus = "ativa" | "inadimplente" | "suspensa" | "cancelada";
@@ -20,7 +20,7 @@ export interface OrgInfo {
   status: OrgStatus;
 }
 
-type Kind = "bill" | "recurring" | "document" | "category" | "alert_read";
+type Kind = "bill" | "recurring" | "document" | "category" | "receivable" | "setting" | "alert_read";
 interface Row {
   kind: Kind;
   id: string;
@@ -36,17 +36,21 @@ export function toRecords(d: LumaData): Map<string, Row> {
   for (const r of d.recurring) m.set(`recurring:${r.id}`, { kind: "recurring", id: r.id, data: r });
   for (const x of d.documents) m.set(`document:${x.id}`, { kind: "document", id: x.id, data: x });
   for (const c of d.categories ?? []) m.set(`category:${c.id}`, { kind: "category", id: c.id, data: c });
+  for (const r of d.receivables ?? []) m.set(`receivable:${r.id}`, { kind: "receivable", id: r.id, data: r });
+  if (d.cash) m.set("setting:cash", { kind: "setting", id: "cash", data: d.cash });
   for (const a of d.readAlerts) m.set(`alert_read:${a}`, { kind: "alert_read", id: a, data: {} });
   return m;
 }
 
 export function fromRows(rows: Row[]): LumaData {
-  const d: LumaData = { version: 1, bills: [], recurring: [], documents: [], categories: [], readAlerts: [] };
+  const d: LumaData = { version: 1, bills: [], recurring: [], documents: [], categories: [], receivables: [], readAlerts: [] };
   for (const r of rows) {
     if (r.kind === "bill") d.bills.push(r.data as Bill);
     else if (r.kind === "recurring") d.recurring.push(r.data as RecurringExpense);
     else if (r.kind === "document") d.documents.push(r.data as BusinessDocument);
     else if (r.kind === "category") d.categories!.push(r.data as CustomCategory);
+    else if (r.kind === "receivable") d.receivables!.push(r.data as Receivable);
+    else if (r.kind === "setting" && r.id === "cash") d.cash = r.data as CashSettings;
     else if (r.kind === "alert_read") d.readAlerts.push(r.id);
   }
   const byCreated = (a: { createdAt: string }, b: { createdAt: string }) => a.createdAt.localeCompare(b.createdAt);
@@ -54,6 +58,7 @@ export function fromRows(rows: Row[]): LumaData {
   d.recurring.sort(byCreated);
   d.documents.sort(byCreated);
   d.categories!.sort(byCreated);
+  d.receivables!.sort(byCreated);
   return d;
 }
 

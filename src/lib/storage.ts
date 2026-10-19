@@ -33,6 +33,8 @@ export class LocalStorageRepository implements DataRepository {
         recurring: parsed.recurring ?? [],
         documents: parsed.documents ?? [],
         categories: parsed.categories ?? [],
+        receivables: parsed.receivables ?? [],
+        cash: parsed.cash,
         readAlerts: parsed.readAlerts ?? [],
         seededAt: parsed.seededAt,
       };
@@ -87,6 +89,8 @@ export function parseBackup(text: string): LumaData {
     recurring: data.recurring,
     documents: data.documents.map(strip),
     categories: Array.isArray(data.categories) ? data.categories : [],
+    receivables: Array.isArray(data.receivables) ? data.receivables : [],
+    cash: data.cash && typeof data.cash.balance === "number" ? data.cash : undefined,
     readAlerts: Array.isArray(data.readAlerts) ? data.readAlerts : [],
     seededAt: data.seededAt,
   };

@@ -11,6 +11,7 @@ import { CategoryBars, StackedBars } from "../../charts/Charts";
 import { Badge, Button, cx, EmptyState, LogoMark } from "../../ui";
 import { useBillActions } from "../bills/BillActions";
 import { insightFor } from "../bills/BillInsights";
+import { CashAlert, useCashProjection } from "./CashflowPage";
 import { percentText } from "@/lib/insights";
 import { Ribbon, type RibbonEvent } from "../Ribbon";
 import { MiniCalendar } from "./CalendarPage";
@@ -101,6 +102,8 @@ export function Dashboard() {
 
   const upcoming = [...open].sort((a, b) => a.bill.dueDate.localeCompare(b.bill.dueDate)).slice(0, 7);
 
+  const cash = useCashProjection(30);
+
   // Conferência inteligente: contas em aberto com boleto suspeito ou valor acima da média
   const flagged = useMemo(
     () =>
@@ -165,6 +168,9 @@ export function Dashboard() {
           </a>
         )}
       </div>
+
+      {/* Previsão de caixa */}
+      <CashAlert p={cash} compact />
 
       {/* Conferência inteligente */}
       <section aria-label="Conferência da Luma" className="card overflow-hidden">

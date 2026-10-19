@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  LuArrowDownLeft,
   LuBell,
+  LuWallet,
   LuCalendarDays,
   LuChartColumn,
   LuFileText,
@@ -32,7 +34,9 @@ import { navigate, type RouteId } from "./routing";
 
 export const NAV: { id: RouteId; label: string; icon: ReactNode }[] = [
   { id: "painel", label: "Painel", icon: <LuLayoutDashboard /> },
+  { id: "caixa", label: "Fluxo de caixa", icon: <LuWallet /> },
   { id: "contas", label: "Contas a pagar", icon: <LuReceipt /> },
+  { id: "receber", label: "Contas a receber", icon: <LuArrowDownLeft /> },
   { id: "recorrentes", label: "Despesas recorrentes", icon: <LuRepeat /> },
   { id: "categorias", label: "Categorias", icon: <LuTags /> },
   { id: "documentos", label: "Contratos e documentos", icon: <LuFileText /> },
@@ -52,7 +56,7 @@ export function useUnreadAlerts() {
 }
 
 const GROUPS: { title: string; ids: RouteId[] }[] = [
-  { title: "Financeiro", ids: ["painel", "contas", "recorrentes", "categorias", "relatorios"] },
+  { title: "Financeiro", ids: ["painel", "caixa", "contas", "receber", "recorrentes", "categorias", "relatorios"] },
   { title: "Gestão", ids: ["documentos", "calendario", "alertas"] },
   { title: "Sistema", ids: ["ajustes"] },
 ];
@@ -296,7 +300,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
       <nav aria-label="Atalhos" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] sm:hidden">
         {/* indicador que desliza até a aba atual */}
         {(() => {
-          const slot = ({ painel: 0, contas: 1, calendario: 3, alertas: 4 } as Partial<Record<RouteId, number>>)[current];
+          const slot = ({ painel: 0, contas: 1, caixa: 3, alertas: 4 } as Partial<Record<RouteId, number>>)[current];
           return (
             <span
               aria-hidden
@@ -312,7 +316,7 @@ export function Shell({ current, children }: { current: RouteId; children: React
             ["painel", "Painel", <LuLayoutDashboard key="i" />],
             ["contas", "Contas", <LuReceipt key="i" />],
             null,
-            ["calendario", "Agenda", <LuCalendarDays key="i" />],
+            ["caixa", "Caixa", <LuWallet key="i" />],
             ["alertas", "Alertas", <LuBell key="i" />],
           ] as const).map((item) =>
             item === null ? (

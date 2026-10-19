@@ -84,6 +84,37 @@ export interface BusinessDocument {
   updatedAt: string;
 }
 
+/** Valor que a empresa tem para receber (venda, serviço, parcela de cliente). */
+export interface Receivable {
+  id: string;
+  description: string;
+  /** Cliente que vai pagar. */
+  customer: string;
+  /** CPF ou CNPJ do cliente (opcional). */
+  customerDoc?: string;
+  /** Celular/WhatsApp do cliente, só dígitos (para a cobrança). */
+  customerPhone?: string;
+  amount: number;
+  dueDate: ISODate;
+  category?: string;
+  /** Preenchido quando o valor entrou. */
+  receivedAt?: ISODate;
+  notes?: string;
+  source?: "manual" | "importado" | "extrato" | "exemplo";
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Caixa da empresa: saldo informado e dados usados nas cobranças. */
+export interface CashSettings {
+  /** Saldo disponível (soma das contas da empresa) na data informada. */
+  balance: number;
+  balanceDate: ISODate;
+  /** Chave Pix da empresa, enviada nas mensagens de cobrança. */
+  pixKey?: string;
+  updatedAt: string;
+}
+
 /** Categoria criada pela empresa, além das categorias padrão. */
 export interface CustomCategory {
   id: string;
@@ -99,6 +130,10 @@ export interface LumaData {
   documents: BusinessDocument[];
   /** Categorias próprias da empresa (as padrão ficam em CATEGORIES). */
   categories?: CustomCategory[];
+  /** Contas a receber. */
+  receivables?: Receivable[];
+  /** Saldo em caixa e chave Pix para cobranças. */
+  cash?: CashSettings;
   /** IDs de alertas já lidos (o ID inclui o nível, então um novo nível volta a aparecer). */
   readAlerts: string[];
   /** Data em que os dados de exemplo foram gerados. */
