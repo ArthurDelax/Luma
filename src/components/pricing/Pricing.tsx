@@ -113,7 +113,7 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
                 <LuLock className="size-5" />
                 Assinar agora
               </a>
-            ) : checkout.reason === "acima_do_limite" && wa ? (
+            ) : wa ? (
               <a
                 href={wa}
                 target="_blank"
@@ -159,7 +159,7 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
               ? "Pagamento seguro pelo Asaas: Pix, boleto ou cartão. Cobrança mensal, sem fidelidade."
               : checkout.reason === "acima_do_limite"
                 ? `Planos acima de ${ONLINE_MAX_USERS} usuários são contratados com um consultor pelo WhatsApp.`
-                : "Cobrança mensal. Sem fidelidade, sem descontos e sem plano anual."}
+                : "Você recebe o link de pagamento seguro (Pix, boleto ou cartão) direto na conversa. Cobrança mensal, sem fidelidade."}
           </p>
         </div>
       </div>

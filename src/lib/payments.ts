@@ -7,6 +7,11 @@
  *
  * Como preencher: cole o link de cada plano entre as aspas. Link vazio = o botão
  * leva para o WhatsApp no lugar do pagamento.
+ *
+ * ATENÇÃO: este repositório é PÚBLICO. Só preencha depois que a conta do Asaas
+ * estiver com dados da empresa (CNPJ e contatos comerciais) — a página do link
+ * mostra os dados do titular. Até lá, a venda é pelo WhatsApp e o link é
+ * enviado na conversa.
  */
 
 import { isValidUserCount, monthlyPriceCents } from "./pricing.ts";
