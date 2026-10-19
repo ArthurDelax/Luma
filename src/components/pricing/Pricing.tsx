@@ -159,7 +159,16 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
               ? "Pagamento seguro pelo Asaas: Pix, boleto ou cartão. Cobrança mensal, sem fidelidade."
               : checkout.reason === "acima_do_limite"
                 ? `Planos acima de ${ONLINE_MAX_USERS} usuários são contratados com um consultor pelo WhatsApp.`
-                : "Você recebe o link de pagamento seguro (Pix, boleto ou cartão) direto na conversa. Cobrança mensal, sem fidelidade."}
+                : "Você recebe o link de pagamento seguro (Pix, boleto ou cartão) direto na conversa. Cobrança mensal, sem fidelidade."}{" "}
+            Ao contratar, você concorda com os{" "}
+            <a href={href("/termos/")} className="underline hover:text-paper">
+              Termos de uso
+            </a>{" "}
+            e a{" "}
+            <a href={href("/privacidade/")} className="underline hover:text-paper">
+              Política de privacidade
+            </a>
+            .
           </p>
         </div>
       </div>

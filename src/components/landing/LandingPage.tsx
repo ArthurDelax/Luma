@@ -612,7 +612,7 @@ export function Footer() {
         <div>
           <Logo tone="light" />
           <p className="mt-3 text-sm">Sua empresa. Tudo sob controle.</p>
-          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">A demonstração usa apenas dados fictícios e não permite alterações. A contratação online ainda não está ativa.</p>
+          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">A demonstração usa apenas dados fictícios e não permite alterações. A contratação é feita pelo WhatsApp.</p>
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Produto</p>
@@ -634,8 +634,14 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="mx-auto mt-10 flex max-w-6xl items-center gap-4 border-t border-white/10 px-4 pb-16 pt-6 text-xs text-white/40 sm:px-6">
+      <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 px-4 pb-16 pt-6 text-xs text-white/40 sm:px-6">
         <span>© {new Date().getFullYear()} Luma.</span>
+        <a href={href("/termos/")} className="transition-colors hover:text-white/80">
+          Termos de uso
+        </a>
+        <a href={href("/privacidade/")} className="transition-colors hover:text-white/80">
+          Privacidade
+        </a>
         <a href={href("/admin/")} className="text-white/25 transition-colors hover:text-white/60" rel="nofollow">
           Acesso restrito
         </a>

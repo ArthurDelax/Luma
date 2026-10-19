@@ -179,6 +179,17 @@ export function InviteAccept() {
             <button type="button" className="w-full text-center text-sm font-semibold text-ink underline-offset-4 hover:underline" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setError(""); }}>
               {mode === "signup" ? "Já tenho uma conta Luma" : "Ainda não tenho conta"}
             </button>
+            <p className="text-center text-xs text-muted">
+              Ao ativar, você concorda com os{" "}
+              <a className="underline" href={href("/termos/")} target="_blank" rel="noopener noreferrer">
+                Termos de uso
+              </a>{" "}
+              e a{" "}
+              <a className="underline" href={href("/privacidade/")} target="_blank" rel="noopener noreferrer">
+                Política de privacidade
+              </a>
+              .
+            </p>
           </form>
         )}
 
