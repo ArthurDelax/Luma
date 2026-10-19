@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { LuCheck, LuMessageCircle, LuMinus, LuPlus, LuQrCode, LuUsers } from "react-icons/lu";
+import { LuCheck, LuLock, LuMessageCircle, LuMinus, LuPlus, LuQrCode, LuUsers } from "react-icons/lu";
 import { whatsappLink } from "@/lib/contact";
 import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
+import { checkoutFor, ONLINE_MAX_USERS } from "@/lib/payments";
 import { EXTRA_USER_CENTS, INCLUDED_USERS, MAX_USERS, MIN_USERS, PRICE_TABLE, priceBreakdown } from "@/lib/pricing";
 import { Button, cx, LogoMark, Modal } from "../ui";
 
@@ -23,6 +24,7 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
   const [pixOpen, setPixOpen] = useState(false);
   const b = priceBreakdown(users);
   const wa = whatsappLink(users, b.total);
+  const checkout = checkoutFor(users);
   const set = (n: number) => setUsers(Math.min(MAX_USERS, Math.max(MIN_USERS, n)));
 
   return (
@@ -101,14 +103,36 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => setPixOpen(true)}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
-            >
-              <LuQrCode className="size-5" />
-              Contratar com Pix
-            </button>
+            {checkout.kind === "link" ? (
+              <a
+                href={checkout.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
+              >
+                <LuLock className="size-5" />
+                Assinar agora
+              </a>
+            ) : checkout.reason === "acima_do_limite" && wa ? (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
+              >
+                <LuMessageCircle className="size-5" />
+                Contratar pelo WhatsApp
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPixOpen(true)}
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
+              >
+                <LuQrCode className="size-5" />
+                Contratar com Pix
+              </button>
+            )}
             {wa ? (
               <a
                 href={wa}
@@ -130,7 +154,13 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
               </span>
             )}
           </div>
-          <p className="mt-4 text-xs text-paper/45">Cobrança mensal via Pix. Sem fidelidade, sem descontos e sem plano anual.</p>
+          <p className="mt-4 text-xs text-paper/45">
+            {checkout.kind === "link"
+              ? "Pagamento seguro pelo Asaas: Pix, boleto ou cartão. Cobrança mensal, sem fidelidade."
+              : checkout.reason === "acima_do_limite"
+                ? `Planos acima de ${ONLINE_MAX_USERS} usuários são contratados com um consultor pelo WhatsApp.`
+                : "Cobrança mensal. Sem fidelidade, sem descontos e sem plano anual."}
+          </p>
         </div>
       </div>
 
