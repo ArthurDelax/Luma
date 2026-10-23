@@ -7,9 +7,9 @@ import { formatBRL } from "./format.ts";
  */
 export const WHATSAPP_NUMBER: string = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/\D/g, "");
 
-export function whatsappLink(users?: number, total?: number): string | null {
+export function whatsappLink(total?: number): string | null {
   if (!/^55\d{10,11}$/.test(WHATSAPP_NUMBER)) return null;
-  const plan = users && total !== undefined ? ` no plano para ${users} ${users === 1 ? "usuário" : "usuários"} (${formatBRL(total).replace(/\s/g, " ")}/mês)` : "";
+  const plan = total !== undefined ? ` (plano de ${formatBRL(total).replace(/\s/g, " ")}/mês)` : "";
   const text = `Olá! Quero o cardápio digital da Luma para a minha loja${plan}. Pode me enviar o link de pagamento?`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }

@@ -29,7 +29,7 @@ export default function TermosPage() {
 
           <Section n={2} title="Contratação, plano e pagamento">
             <ul>
-              <li>A assinatura é mensal, por loja, com valor conforme a quantidade de pessoas com acesso ao painel, informado na página de planos.</li>
+              <li>A assinatura é mensal, por loja, em plano único com o valor informado na página de planos.</li>
               <li>A Luma não cobra comissão sobre os pedidos feitos pelo cardápio.</li>
               <li>A cobrança é feita por um intermediador de pagamentos (Asaas), por Pix, boleto ou cartão de crédito. A Luma não recebe nem armazena dados do seu cartão.</li>
               <li>Não há fidelidade nem multa de cancelamento.</li>

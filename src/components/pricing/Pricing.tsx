@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { LuCheck, LuLock, LuMessageCircle, LuMinus, LuPlus, LuQrCode, LuUsers } from "react-icons/lu";
+import { LuCheck, LuLock, LuMessageCircle } from "react-icons/lu";
 import { whatsappLink } from "@/lib/contact";
 import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
-import { checkoutFor, ONLINE_MAX_USERS } from "@/lib/payments";
-import { EXTRA_USER_CENTS, INCLUDED_USERS, MAX_USERS, MIN_USERS, PRICE_TABLE, priceBreakdown } from "@/lib/pricing";
-import { Button, cx, LogoMark, Modal } from "../ui";
+import { checkout } from "@/lib/payments";
+import { MAX_USERS, PLAN_PRICE } from "@/lib/pricing";
+import { LogoMark } from "../ui";
 
 const INCLUDED = [
   "Cardápio digital com link próprio da loja",
@@ -15,152 +14,75 @@ const INCLUDED = [
   "Fotos, vídeos de capa, adicionais e cupons",
   "Entrega por bairro com taxa e retirada no balcão",
   "Horário automático e produto esgotado com um toque",
+  `Até ${MAX_USERS} pessoas da equipe com acesso ao painel`,
   "Cardápio montado pela Luma na contratação",
+  "Suporte pelo WhatsApp",
 ];
 
-/** Calculadora de preços com seleção de usuários, resumo e botões de contratação. */
-export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number }) {
-  const [users, setUsers] = useState(initialUsers);
-  const [pixOpen, setPixOpen] = useState(false);
-  const b = priceBreakdown(users);
-  const wa = whatsappLink(users, b.total);
-  const checkout = checkoutFor(users);
-  const set = (n: number) => setUsers(Math.min(MAX_USERS, Math.max(MIN_USERS, n)));
+const STEPS = [
+  ["Você assina", "Pelo link de pagamento seguro: Pix, boleto ou cartão."],
+  ["A gente monta", "Você manda os produtos, preços e fotos; montamos o cardápio com a cara da loja."],
+  ["Você divulga", "Recebe o acesso ao painel e o link para colocar no Instagram, no WhatsApp e nas mesas."],
+];
+
+/** Plano único: preço, o que está incluído e como contratar. */
+export function PricingCalculator() {
+  const wa = whatsappLink(PLAN_PRICE);
+  const pay = checkout();
+  const [reais, cents] = formatBRL(PLAN_PRICE).replace(/\s/g, " ").split(",");
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1.15fr_1fr]">
-      {/* Calculadora */}
-      <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:p-8">
-        <LogoMark tone="light" className="pointer-events-none absolute -bottom-24 -right-16 size-72 opacity-[0.05]" />
+      <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[var(--shadow-pop)] sm:p-9">
+        <LogoMark tone="light" className="pointer-events-none absolute -bottom-24 -right-16 size-72 opacity-[0.06]" />
         <div className="relative">
-          <p className="text-sm text-paper/55">Quantas pessoas da loja vão editar o cardápio?</p>
+          <span className="inline-flex rounded-full bg-paper/10 px-3 py-1 text-xs font-semibold text-paper/80">Plano único · tudo incluído</span>
+          <p className="mt-6 flex flex-wrap items-end gap-1 font-display font-semibold leading-none tracking-[-0.04em]">
+            <span className="text-[4rem] tabular sm:text-[5rem]">{reais}</span>
+            <span className="mb-2 text-2xl tabular sm:mb-3 sm:text-3xl">,{cents}</span>
+            <span className="mb-2 ml-1 text-base font-medium tracking-normal text-paper/55 sm:mb-3">/mês por loja</span>
+          </p>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-paper/65">Sem comissão sobre os pedidos, sem taxa de adesão e sem fidelidade. Cancele quando quiser.</p>
 
-          <div className="mt-4 flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => set(users - 1)}
-              disabled={users <= MIN_USERS}
-              aria-label="Diminuir usuários"
-              className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 text-paper transition-colors hover:bg-white/10 disabled:opacity-30"
-            >
-              <LuMinus className="size-5" />
-            </button>
-            <div className="flex-1 text-center">
-              <p className="font-display text-[3.5rem] font-semibold leading-none tracking-[-0.04em] tabular" aria-live="polite">
-                {users}
-              </p>
-              <p className="mt-1 text-sm text-paper/55">{users === 1 ? "usuário" : "usuários"}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => set(users + 1)}
-              disabled={users >= MAX_USERS}
-              aria-label="Aumentar usuários"
-              className="grid size-12 shrink-0 place-items-center rounded-full border border-white/15 text-paper transition-colors hover:bg-white/10 disabled:opacity-30"
-            >
-              <LuPlus className="size-5" />
-            </button>
-          </div>
-
-          <input
-            type="range"
-            min={MIN_USERS}
-            max={MAX_USERS}
-            step={1}
-            value={users}
-            onChange={(e) => set(Number(e.target.value))}
-            aria-label="Quantidade de usuários"
-            className="mt-6 w-full accent-[#f2f2ee]"
-          />
-          <div className="mt-1 flex justify-between text-[11px] text-paper/40 tabular">
-            {PRICE_TABLE.map((p) => (
-              <span key={p.users} className={cx("w-4 text-center", p.users === users && "font-semibold text-paper")}>
-                {p.users}
-              </span>
+          <ul className="mt-7 grid gap-2.5 text-[15px] sm:grid-cols-2">
+            {INCLUDED.map((i) => (
+              <li key={i} className="flex gap-2.5">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-ink">
+                  <LuCheck className="size-3" />
+                </span>
+                <span className="text-paper/90">{i}</span>
+              </li>
             ))}
-          </div>
+          </ul>
 
-          <div className="mt-8 rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-paper/60">Plano base (até {INCLUDED_USERS} usuários)</dt>
-                <dd className="tabular">{formatBRL(b.base)}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-paper/60">
-                  {b.extraUsers > 0 ? `${b.extraUsers} ${b.extraUsers === 1 ? "usuário adicional" : "usuários adicionais"} × ${formatBRL(EXTRA_USER_CENTS / 100)}` : "Usuários adicionais"}
-                </dt>
-                <dd className="tabular">{formatBRL(b.extraTotal)}</dd>
-              </div>
-            </dl>
-            <div className="mt-4 flex items-end justify-between gap-4 border-t border-white/10 pt-4">
-              <span className="text-sm text-paper/60">Total mensal</span>
-              <span className="font-display text-[2.2rem] font-semibold leading-none tracking-[-0.03em] tabular">
-                {formatBRL(b.total)}
-                <span className="ml-1 text-base font-medium text-paper/50">/mês</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            {checkout.kind === "link" ? (
-              <a
-                href={checkout.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
-              >
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            {pay.kind === "link" ? (
+              <a href={pay.url} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white">
                 <LuLock className="size-5" />
                 Assinar agora
               </a>
             ) : wa ? (
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
-              >
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white">
                 <LuMessageCircle className="size-5" />
-                Contratar pelo WhatsApp
+                Assinar pelo WhatsApp
               </a>
             ) : (
-              <button
-                type="button"
-                onClick={() => setPixOpen(true)}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-ink transition-colors hover:bg-white"
-              >
-                <LuQrCode className="size-5" />
-                Contratar com Pix
-              </button>
-            )}
-            {wa ? (
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-[15px] font-semibold text-paper transition-colors hover:bg-white/10"
-              >
-                <LuMessageCircle className="size-5" />
-                Falar com um consultor
-              </a>
-            ) : (
-              <span
-                aria-disabled="true"
-                title="O atendimento por WhatsApp será liberado em breve."
-                className="inline-flex h-12 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-white/10 px-6 text-[15px] font-semibold text-paper/40"
-              >
-                <LuMessageCircle className="size-5" />
-                WhatsApp em breve
+              <span aria-disabled="true" className="inline-flex h-12 flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-full bg-paper/30 px-6 text-[15px] font-semibold text-ink">
+                Contratação em breve
               </span>
             )}
+            {wa && pay.kind === "link" && (
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-[15px] font-semibold text-paper transition-colors hover:bg-white/10">
+                <LuMessageCircle className="size-5" />
+                Falar com a gente
+              </a>
+            )}
+            <a href={href("/demo/")} className="inline-flex h-12 items-center justify-center rounded-full border border-white/20 px-6 text-[15px] font-semibold text-paper transition-colors hover:bg-white/10">
+              Ver exemplo
+            </a>
           </div>
           <p className="mt-4 text-xs text-paper/45">
-            {checkout.kind === "link"
-              ? "Pagamento seguro pelo Asaas: Pix, boleto ou cartão. Cobrança mensal, sem fidelidade."
-              : checkout.reason === "acima_do_limite"
-                ? `Planos acima de ${ONLINE_MAX_USERS} usuários são contratados com um consultor pelo WhatsApp.`
-                : "Você recebe o link de pagamento seguro (Pix, boleto ou cartão) direto na conversa. Cobrança mensal, sem fidelidade."}{" "}
-            Ao contratar, você concorda com os{" "}
+            {pay.kind === "link" ? "Pagamento seguro pelo Asaas: Pix, boleto ou cartão." : "Você recebe o link de pagamento seguro (Pix, boleto ou cartão) direto na conversa."} Ao contratar, você concorda com os{" "}
             <a href={href("/termos/")} className="underline hover:text-paper">
               Termos de uso
             </a>{" "}
@@ -173,90 +95,23 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
         </div>
       </div>
 
-      {/* O que está incluído + tabela */}
-      <div className="flex flex-col gap-5">
-        <div className="card p-6">
-          <h3 className="font-display text-lg font-semibold">Tudo incluído em todos os planos</h3>
-          <ul className="mt-4 space-y-2.5 text-[15px]">
-            {INCLUDED.map((i) => (
-              <li key={i} className="flex gap-3">
-                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-ink text-paper">
-                  <LuCheck className="size-3" />
-                </span>
-                {i}
-              </li>
-            ))}
-            <li className="flex gap-3">
-              <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-ink text-paper">
-                <LuUsers className="size-3" />
-              </span>
-              Acesso para a equipe: administrador, editor e somente consulta
+      <div className="card p-6 sm:p-7">
+        <h3 className="font-display text-lg font-semibold">Como funciona a contratação</h3>
+        <ol className="mt-5 space-y-5">
+          {STEPS.map(([t, d], i) => (
+            <li key={t} className="flex gap-4">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-ink font-display text-sm font-semibold text-paper">{i + 1}</span>
+              <div>
+                <p className="font-semibold">{t}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-muted">{d}</p>
+              </div>
             </li>
-          </ul>
-        </div>
-        <div className="card overflow-hidden">
-          <table className="w-full text-sm">
-            <caption className="px-5 pb-2 pt-5 text-left font-display text-base font-semibold">Mensalidade por pessoas com acesso ao painel</caption>
-            <thead>
-              <tr className="border-y border-line bg-paper/70 text-left text-xs font-semibold text-muted">
-                <th className="px-5 py-2">Pessoas</th>
-                <th className="px-5 py-2 text-right">Mensalidade</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {PRICE_TABLE.map((p) => (
-                <tr
-                  key={p.users}
-                  onClick={() => set(p.users)}
-                  className={cx("cursor-pointer transition-colors", p.users === users ? "bg-ink text-paper" : "hover:bg-sky-50")}
-                  aria-selected={p.users === users}
-                >
-                  <td className="px-5 py-2 tabular">{p.users}</td>
-                  <td className="px-5 py-2 text-right font-semibold tabular">{formatBRL(p.total)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          ))}
+        </ol>
+        <div className="mt-6 rounded-2xl bg-accent-soft p-4 text-sm leading-relaxed text-ink">
+          <strong>Conta de cabeça:</strong> um app de delivery cobra comissão em cada pedido. Na Luma você paga {formatBRL(PLAN_PRICE)} por mês, venda 10 ou 1.000 pedidos.
         </div>
       </div>
-
-      <Modal
-        open={pixOpen}
-        onClose={() => setPixOpen(false)}
-        size="sm"
-        title="Contratar com Pix"
-        description={`${users} ${users === 1 ? "usuário" : "usuários"} — ${formatBRL(b.total)} por mês`}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setPixOpen(false)}>
-              Fechar
-            </Button>
-            {wa ? (
-              <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-paper hover:bg-navy-700">
-                <LuMessageCircle className="size-4" /> Falar com um consultor
-              </a>
-            ) : (
-              <a href={href("/app/")} className="inline-flex h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper hover:bg-navy-700">
-                Explorar a demonstração
-              </a>
-            )}
-          </>
-        }
-      >
-        <div className="space-y-3 text-sm leading-relaxed text-slate-700">
-          <p>
-            A contratação online por Pix <strong>ainda não está ativa</strong>. Ela será liberada quando o ambiente seguro de pagamentos e contas estiver pronto.
-          </p>
-          <p>Quando estiver no ar, o fluxo será:</p>
-          <ol className="list-decimal space-y-1 pl-5">
-            <li>Você confirma o plano e informa os dados da loja.</li>
-            <li>Geramos uma cobrança Pix (QR Code e copia e cola).</li>
-            <li>O pagamento é confirmado automaticamente pelo provedor.</li>
-            <li>Montamos o seu cardápio e você recebe o convite de acesso ao painel.</li>
-          </ol>
-          <p className="rounded-xl bg-paper px-3 py-2 text-xs text-muted">Nenhum valor é cobrado nesta página.</p>
-        </div>
-      </Modal>
     </div>
   );
 }

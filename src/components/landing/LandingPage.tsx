@@ -118,7 +118,7 @@ function PhoneDemo() {
   }, []);
   return (
     <div className="relative mx-auto w-[300px] max-w-full sm:w-[320px]">
-      <div className="relative aspect-[9/19] w-full overflow-hidden rounded-[44px] border-[10px] border-ink bg-ink shadow-[0_50px_100px_-30px_rgba(17,17,17,0.6)]">
+      <div className="relative aspect-[9/19] w-full overflow-hidden rounded-[44px] border-[10px] border-ink bg-ink shadow-[0_50px_100px_-30px_rgba(10,31,24,0.6)]">
         <div className="absolute left-1/2 top-2 z-10 h-6 w-28 -translate-x-1/2 rounded-full bg-ink" />
         {load ? (
           <iframe title="Cardápio de exemplo" src={DEMO} className="size-full rounded-[34px] bg-[#f6f1e8]" loading="lazy" />
@@ -188,7 +188,7 @@ function HowItWorks() {
           <ol className="mt-10 space-y-8">
             {steps.map(([t, d], i) => (
               <li key={t} className="flex gap-5">
-                <span className="font-display text-4xl font-semibold text-sky-400/90">{i + 1}</span>
+                <span className="font-display text-4xl font-semibold text-accent">{i + 1}</span>
                 <div>
                   <h3 className="font-display text-xl font-semibold">{t}</h3>
                   <p className="mt-2 max-w-md leading-relaxed text-white/65">{d}</p>
@@ -285,7 +285,7 @@ function PanelSection() {
             <CTA to={PANEL}>Testar o painel</CTA>
           </div>
         </div>
-        <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:p-8">
+        <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[var(--shadow-pop)] sm:p-8">
           <div className="flex items-center gap-2 text-sm">
             <span className="size-2.5 rounded-full bg-[#6fd3a0]" /> Cardápio no ar
           </div>
@@ -315,7 +315,7 @@ function PanelSection() {
 }
 
 const FAQ = [
-  ["Quanto custa?", "R$ 99,90 por mês por loja, com até 2 pessoas da equipe com acesso ao painel. Cada pessoa a mais custa R$ 29,90. Sem comissão sobre os pedidos e sem fidelidade."],
+  ["Quanto custa?", "Um plano único de R$ 119,90 por mês por loja, com tudo incluído e até 10 pessoas da equipe no painel. Sem comissão sobre os pedidos, sem taxa de adesão e sem fidelidade."],
   ["Vocês cobram taxa por pedido?", "Não. Os pedidos vão direto para o WhatsApp da loja e o pagamento é feito com a loja, por Pix, cartão ou dinheiro. Você paga só a mensalidade."],
   ["Preciso montar o cardápio sozinho?", "Não. Quando você assina, a Luma pode entregar o cardápio já montado com seus produtos e fotos. Depois você altera o que quiser pelo painel."],
   ["Como o cliente paga?", "Direto com a loja. O cardápio registra a forma escolhida (Pix, cartão na entrega ou dinheiro com troco) na mensagem do pedido."],
@@ -330,11 +330,11 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-10 max-w-2xl">
           {standalone ? (
-            <h1 className="font-display text-[2.6rem] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[4rem]">Um preço simples, sem comissão</h1>
+            <h1 className="font-display text-[2.6rem] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[4rem]">Um plano, um preço, sem comissão</h1>
           ) : (
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um preço simples, sem comissão</h2>
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um plano, um preço, sem comissão</h2>
           )}
-          <p className="mt-4 text-lg leading-relaxed text-muted">R$ 99,90 por mês por loja, com até 2 pessoas no painel. Cada pessoa adicional custa R$ 29,90. Os pedidos são todos seus.</p>
+          <p className="mt-4 text-lg leading-relaxed text-muted">Um plano só, com tudo incluído: R$ 119,90 por mês por loja. Os pedidos são todos seus.</p>
         </div>
         <PricingCalculator />
       </div>

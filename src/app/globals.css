@@ -4,26 +4,30 @@
   --font-sans: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: var(--font-poppins), "Poppins", var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Paleta Luma: tinta preta sobre papel off-white. */
-  --color-ink: #111111;
-  --color-paper: #f2f2ee;
-  --color-line: #e3e2db;
-  --color-muted: #6b6a63;
+  /* Paleta Luma: verde manjericão sobre creme, com mostarda nos realces. */
+  --color-ink: #13342a;
+  --color-paper: #f5f3ec;
+  --color-line: #e3e0d3;
+  --color-muted: #5f6b62;
+
+  /* Realce (usar pouco): mostarda. */
+  --color-accent: #e5a238;
+  --color-accent-soft: #f8ecd4;
 
   /* Escala grafite (antigo "navy"): superfícies escuras e texto forte. */
-  --color-navy-950: #0a0a0a;
-  --color-navy-900: #111111;
-  --color-navy-800: #1c1c1b;
-  --color-navy-700: #2b2b29;
-  --color-navy-600: #45443f;
+  --color-navy-950: #0a1f18;
+  --color-navy-900: #13342a;
+  --color-navy-800: #1a4335;
+  --color-navy-700: #215242;
+  --color-navy-600: #336553;
 
   /* Escala de neutros quentes (antigo "sky"): fundos suaves, divisórias, realces. */
-  --color-sky-50: #f8f8f5;
-  --color-sky-100: #edede7;
-  --color-sky-200: #dedcd3;
-  --color-sky-300: #c7c5bb;
-  --color-sky-400: #9c9a90;
-  --color-sky-500: #111111;
+  --color-sky-50: #f9f8f2;
+  --color-sky-100: #ecebe1;
+  --color-sky-200: #dcdccd;
+  --color-sky-300: #c4c6b4;
+  --color-sky-400: #9aa292;
+  --color-sky-500: #13342a;
 
   /* Estados (usados com moderação). */
   --color-overdue: #cf3f3c;
@@ -38,8 +42,8 @@
   --color-doc-soft: #e0f0f1;
 
   --radius-card: 20px;
-  --shadow-card: 0 1px 0 rgb(17 17 17 / 0.03), 0 10px 30px -18px rgb(17 17 17 / 0.18);
-  --shadow-pop: 0 24px 60px -18px rgb(17 17 17 / 0.4);
+  --shadow-card: 0 1px 0 rgb(19 52 42 / 0.03), 0 10px 30px -18px rgb(19 52 42 / 0.2);
+  --shadow-pop: 0 24px 60px -18px rgb(10 31 24 / 0.45);
 
   --animate-fade-in: fade-in 0.18s ease-out;
   --animate-pop-in: pop-in 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
@@ -77,8 +81,8 @@
     -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background: #111111;
-    color: #f2f2ee;
+    background: #13342a;
+    color: #f5f3ec;
   }
   h1, h2, h3 {
     letter-spacing: -0.015em;
@@ -122,7 +126,7 @@
   &:focus {
     outline: none;
     border-color: var(--color-ink);
-    box-shadow: 0 0 0 3px rgb(17 17 17 / 0.08);
+    box-shadow: 0 0 0 3px rgb(19 52 42 / 0.1);
   }
   &[aria-invalid="true"] {
     border-color: var(--color-overdue);
@@ -283,10 +287,10 @@ html {
 
 /* Textura de pontos usada em superfícies escuras e no hero. */
 @utility dot-grid {
-  background-image: radial-gradient(rgb(17 17 17 / 0.09) 1px, transparent 1.2px);
+  background-image: radial-gradient(rgb(19 52 42 / 0.09) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
 @utility dot-grid-light {
-  background-image: radial-gradient(rgb(242 242 238 / 0.08) 1px, transparent 1.2px);
+  background-image: radial-gradient(rgb(245 243 236 / 0.08) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }

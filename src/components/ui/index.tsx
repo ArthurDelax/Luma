@@ -44,7 +44,7 @@ export function cx(...parts: (string | false | null | undefined)[]): string {
 
 /** Símbolo da Luma: balão de conversa com lua e brilho. */
 export function LogoMark({ className = "size-8", tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
-  const c = tone === "dark" ? "#111111" : "#f2f2ee";
+  const c = tone === "dark" ? "#13342a" : "#f5f3ec";
   return (
     <svg viewBox="8 8 336 356" className={className} aria-hidden="true" fill="none">
       <path d="M114.6 310.7L34 342L71.8 281.8A148.5 148.5 0 1 1 114.6 310.7Z" stroke={c} strokeWidth="34" strokeLinejoin="round" />
@@ -70,7 +70,7 @@ export function Logo({ tone = "dark", className, size = "md" }: { tone?: "dark" 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "soft";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-ink text-paper hover:bg-navy-700 shadow-[0_1px_0_rgb(255_255_255/0.08)_inset,0_6px_16px_-8px_rgb(17_17_17/0.6)]",
+  primary: "bg-ink text-paper hover:bg-navy-700 shadow-[0_1px_0_rgb(255_255_255/0.08)_inset,0_6px_16px_-8px_rgb(19_52_42/0.6)]",
   secondary: "bg-white text-ink border border-line hover:border-ink/30",
   ghost: "text-ink hover:bg-sky-100",
   danger: "bg-overdue text-white hover:bg-[#b23431]",

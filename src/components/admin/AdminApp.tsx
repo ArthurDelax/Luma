@@ -775,7 +775,7 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
     responsible: "",
     email: "",
     licenses: "2",
-    price: amountToInput(monthlyPrice(2)),
+    price: amountToInput(monthlyPrice()),
     due: addMonthsClamped(todayISO(), 1),
     origin: ORIGINS[0],
     notes: "",

@@ -1,18 +1,15 @@
 /**
- * Regras de preço da Luma (mensal, sem descontos e sem cobrança anual).
+ * Preço da Luma: plano único, mensal, sem comissão por pedido e sem fidelidade.
  *
- * - Mensalidade mínima de R$ 99,90, que inclui até 2 usuários.
- * - Cada usuário adicional custa R$ 29,90.
- * - Limite atual: 10 usuários.
+ * - R$ 119,90 por mês por loja, com tudo incluído.
+ * - A equipe da loja pode ter até 10 pessoas com acesso ao painel, sem custo extra.
  *
- * Valores em centavos para evitar erros de ponto flutuante. No SaaS comercial,
- * o backend recalcula o preço com estas mesmas regras — o valor enviado pelo
- * navegador nunca é usado para cobrar.
+ * Valores em centavos para evitar erros de ponto flutuante. O valor enviado pelo
+ * navegador nunca é usado para cobrar: a cobrança usa o link do plano (payments.ts).
  */
 
-export const BASE_PRICE_CENTS = 9990;
-export const INCLUDED_USERS = 2;
-export const EXTRA_USER_CENTS = 2990;
+export const PLAN_PRICE_CENTS = 11990;
+export const PLAN_PRICE = PLAN_PRICE_CENTS / 100;
 export const MIN_USERS = 1;
 export const MAX_USERS = 10;
 
@@ -20,25 +17,12 @@ export function isValidUserCount(users: number): boolean {
   return Number.isInteger(users) && users >= MIN_USERS && users <= MAX_USERS;
 }
 
-/** Mensalidade em centavos para a quantidade de usuários (licenças). */
-export function monthlyPriceCents(users: number): number {
+/** Mensalidade em centavos: a mesma para qualquer tamanho de equipe dentro do limite. */
+export function monthlyPriceCents(users = MIN_USERS): number {
   if (!isValidUserCount(users)) throw new RangeError(`Quantidade de usuários inválida: ${users}`);
-  return BASE_PRICE_CENTS + Math.max(0, users - INCLUDED_USERS) * EXTRA_USER_CENTS;
+  return PLAN_PRICE_CENTS;
 }
 
-export function monthlyPrice(users: number): number {
+export function monthlyPrice(users = MIN_USERS): number {
   return monthlyPriceCents(users) / 100;
 }
-
-export function priceBreakdown(users: number) {
-  const extra = Math.max(0, users - INCLUDED_USERS);
-  return {
-    users,
-    base: BASE_PRICE_CENTS / 100,
-    extraUsers: extra,
-    extraTotal: (extra * EXTRA_USER_CENTS) / 100,
-    total: monthlyPrice(users),
-  };
-}
-
-export const PRICE_TABLE = Array.from({ length: MAX_USERS }, (_, i) => ({ users: i + 1, total: monthlyPrice(i + 1) }));
