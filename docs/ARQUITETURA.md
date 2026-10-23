@@ -1,5 +1,10 @@
 # Luma — arquitetura do SaaS comercial
 
+> **Atualização (out/2026):** a Luma passou a ser uma plataforma de **cardápio digital**. A estrutura de lojas
+> (organizations), usuários, convites, administração com 2 etapas, bloqueio por inadimplência e suporte continua a mesma
+> descrita abaixo; as telas de gestão financeira foram substituídas pelo cardápio (tabela `menus`, migração 0007).
+> Os trechos sobre contas, boletos e documentos são históricos.
+
 Este documento descreve como a Luma deixa de ser apenas uma demonstração estática e passa a ser um SaaS multiempresa, com contratação por Pix. Nada aqui está ativo ainda: é o plano técnico para as próximas etapas.
 
 > **Regra de ouro:** o GitHub Pages continua hospedando só o site e a demonstração (dados fictícios, somente leitura). Tudo que envolve contas reais, dados de clientes, pagamentos e segredos roda em um backend seguro, fora do GitHub Pages.

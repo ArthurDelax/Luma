@@ -37,6 +37,18 @@ Ele cria os chamados de suporte: o cliente pede ajuda pelo botão **Ajuda** (íc
 painel da empresa, e você responde na aba **Suporte** do painel restrito. Cada empresa só vê os
 próprios chamados; só o dono da plataforma (com 2 etapas) vê todos.
 
+### 1e. Cardápio digital
+
+Repita com [`supabase/migrations/0007_cardapio.sql`](../supabase/migrations/0007_cardapio.sql).
+Ele cria a tabela `menus` (um cardápio por loja), a leitura pública do cardápio publicado
+(`public_menu`), a troca de responsável antes da ativação e a pasta pública `cardapio` para as fotos
+e vídeos. **Rode antes de publicar a versão do site de cardápios.** Só acrescenta: nenhum dado
+existente é alterado.
+
+Para conferir a segurança sem gravar nada: no SQL Editor, cole `begin;`, o arquivo 0007 e o
+[`supabase/tests/cardapio_test.sql`](../supabase/tests/cardapio_test.sql) e clique em **Run**. O
+resultado aparece como mensagem de erro (de propósito), e tudo é desfeito.
+
 ## 2. Configurar os endereços de login
 
 Supabase → **Authentication** → **URL Configuration**:
@@ -66,12 +78,19 @@ on conflict do nothing;
 3. O painel pede a **verificação em duas etapas**: escaneie o QR Code com um app autenticador (Google Authenticator, Microsoft Authenticator, Authy…) e digite o código de 6 dígitos.
 4. A partir daí, todo login pede senha + código do app.
 
-## Como funciona a criação manual de clientes
+## Como montar a loja de um cliente
 
-1. Painel → **Criar empresa** (nome, CNPJ, responsável, e-mail, licenças, valor, vencimento, origem da venda).
-2. O sistema cria a empresa vazia e gera um **link de ativação** (válido por 7 dias, uso único).
-3. Envie o link ao cliente (WhatsApp ou e-mail). Ele cria a própria senha — você nunca vê nem envia senhas.
-4. O painel mostra "Convite pendente" até o cliente ativar, depois "Acesso ativado".
+1. Painel → **Criar loja** (nome, responsável, e-mail, licenças, valor, vencimento, origem da venda).
+   Se ainda não tiver o e-mail do cliente, use o seu: dá para trocar depois.
+2. O sistema cria a loja com o cardápio **vazio e fora do ar** e gera um **link de ativação** (válido por 7 dias, uso único).
+3. Clique em **Montar cardápio agora** (ou no ícone de talheres na lista de lojas). Você entra no mesmo painel
+   que o cliente vai usar: monte do zero ou comece pelo modelo de hamburgueria, envie fotos, cadastre preços,
+   adicionais, bairros, horário e o WhatsApp da loja. Use **Prévia** para ver como o cliente final vê.
+4. Quando o cliente assinar: se o e-mail mudou, edite a loja (lápis) → **Trocar e gerar link**. Se o link de 7 dias
+   venceu, gere outro (ícone de corrente).
+5. Envie o link ao cliente (WhatsApp ou e-mail). Ele cria a própria senha — você nunca vê nem envia senhas — e
+   já encontra o cardápio pronto. Publique você mesmo ou deixe o cliente publicar.
+6. O link público do cardápio fica em `<endereço do site>/c/?l=<endereço-da-loja>`.
 
 ## Bloquear um cliente inadimplente
 
@@ -95,7 +114,9 @@ Permissões dentro da empresa:
 | Empresa **suspensa** (bloqueada pelo administrador por inadimplência) | Não — vê o aviso de pagamento pendente com o botão do WhatsApp | Não |
 | Empresa **cancelada** ou usuário desativado | Não | Não |
 
-O dono da plataforma **não** vê os dados financeiros dos clientes.
+O dono da plataforma (com 2 etapas) pode ler e editar o cardápio de qualquer loja, para montar a base; fica
+registrado quem salvou por último. Os dados antigos da gestão financeira (`org_records`) continuam guardados no
+banco, mas o site não tem mais telas para eles.
 
 ## Segurança (resumo)
 

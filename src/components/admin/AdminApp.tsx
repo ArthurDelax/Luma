@@ -18,12 +18,18 @@ import {
   LuSearch,
   LuShieldCheck,
   LuUsers,
+  LuUtensils,
 } from "react-icons/lu";
+import { menuUrl } from "@/lib/menu/links";
+import { emptyMenu, slugify } from "@/lib/menu/logic";
+import { CloudMenuRepo } from "@/lib/menu/repo";
+import { MenuEditor } from "../menu/editor/MenuEditor";
 import { formatDate, isValidISO, todayISO, addMonthsClamped } from "@/lib/dates";
 import { amountToInput, formatBRL, formatCNPJ, isValidCNPJ, normalizeText, parseBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
 import { MAX_USERS, MIN_USERS, monthlyPrice } from "@/lib/pricing";
 import {
+  authed,
   currentSession,
   enrollTotp,
   getUser,
@@ -74,6 +80,28 @@ interface Stats {
   convites_pendentes: number;
 }
 
+interface MenuRow {
+  org_id: string;
+  slug: string;
+  published: boolean;
+  updated_at: string;
+}
+
+/** Cria o cardápio vazio da loja com um endereço livre (nome-da-loja, nome-da-loja-2, …). */
+async function createEmptyMenu(orgId: string, name: string): Promise<string> {
+  const base = slugify(name).slice(0, 44).replace(/-+$/, "");
+  for (let n = 1; n <= 20; n++) {
+    const slug = n === 1 ? base : `${base}-${n}`;
+    try {
+      await authed("/rest/v1/menus", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ org_id: orgId, slug, published: false, data: emptyMenu(name) }) });
+      return slug;
+    } catch (e) {
+      if (!(e instanceof Error) || !/duplicate|menus_slug_key|23505/i.test(e.message)) throw e;
+    }
+  }
+  throw new Error("Não foi possível escolher um endereço para o cardápio.");
+}
+
 interface AuditRow {
   created_at: string;
   action: string;
@@ -87,8 +115,9 @@ const STATUS_TONE: Record<Org["status"], Tone> = { ativa: "paid", inadimplente: 
 const INVITE_LABEL: Record<Org["invite_status"], [string, Tone]> = { ativado: ["Acesso ativado", "paid"], pendente: ["Convite pendente", "info"], expirado: ["Convite expirado", "soon"] };
 const ORIGINS = ["Venda direta", "WhatsApp", "Indicação", "Parceiro", "Evento", "Outro"];
 const ACTION_LABEL: Record<string, string> = {
-  empresa_criada: "Empresa criada",
-  empresa_atualizada: "Empresa atualizada",
+  empresa_criada: "Loja criada",
+  empresa_atualizada: "Loja atualizada",
+  responsavel_trocado: "Responsável trocado",
   convite_reenviado: "Novo link de ativação",
   convite_aceito: "Convite aceito",
 };
@@ -403,9 +432,11 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
   const [status, setStatus] = useState<"todas" | Org["status"]>("todas");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Org | null>(null);
-  const [link, setLink] = useState<{ org: string; email: string; url: string } | null>(null);
+  const [link, setLink] = useState<{ org: string; email: string; url: string; orgId?: string; created?: boolean } | null>(null);
   const [blocking, setBlocking] = useState<Org | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menus, setMenus] = useState<Record<string, MenuRow>>({});
+  const [building, setBuilding] = useState<Org | null>(null);
 
   const call = useCallback(
     async <T,>(fn: string, args: Record<string, unknown> = {}): Promise<T> => {
@@ -427,6 +458,10 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
       setStats(st);
       setOrgs(list);
       setAudit(hist);
+      // cardápios (não bloqueia o painel se a migração 0007 ainda não foi aplicada)
+      authed<MenuRow[]>("/rest/v1/menus?select=org_id,slug,published,updated_at")
+        .then((rows) => setMenus(Object.fromEntries(rows.map((r) => [r.org_id, r]))))
+        .catch(() => {});
       // chamados de suporte (não bloqueia o painel se o script 0003 ainda não foi aplicado)
       call<{ unread: boolean }[]>("admin_support_list", { p_status: null })
         .then((l) => setSupportUnread(l.filter((t) => t.unread).length))
@@ -457,6 +492,8 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
     return orgs.filter((o) => (status === "todas" || o.status === status) && (!nq || normalizeText(`${o.name} ${o.responsible_name} ${o.responsible_email} ${o.cnpj ?? ""}`).includes(nq)));
   }, [orgs, q, status]);
 
+  const buildRepo = useMemo(() => (building ? new CloudMenuRepo(building.id, building.name) : null), [building]);
+
   const newLink = async (o: Org) => {
     try {
       const token = await call<string>("admin_regenerate_invite", { p_org: o.id });
@@ -468,6 +505,25 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
   };
 
   const email = String(session.user.email ?? "");
+
+  if (building && buildRepo) {
+    return (
+      <MenuEditor
+        key={building.id}
+        repo={buildRepo}
+        orgName={building.name}
+        publicUrl={menuUrl}
+        session={{
+          kind: "admin",
+          email,
+          onBack: () => {
+            setBuilding(null);
+            void reload();
+          },
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-dvh">
@@ -489,17 +545,17 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-[1.9rem] font-semibold tracking-[-0.03em] sm:text-[2.3rem]">Painel da plataforma</h1>
-            <p className="text-sm text-muted">Empresas, assinaturas e ambientes criados na Luma.</p>
+            <p className="text-sm text-muted">Lojas, assinaturas e cardápios criados na Luma.</p>
           </div>
           <Button icon={<LuPlus className="size-4" />} onClick={() => setCreating(true)}>
-            Criar empresa
+            Criar loja
           </Button>
         </div>
 
         <section className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard dark label="Bases criadas" value={String(stats?.total ?? "—")} sub={stats ? `${stats.criadas_mes} neste mês` : undefined} icon={<LuBuilding2 />} />
+          <StatCard dark label="Lojas criadas" value={String(stats?.total ?? "—")} sub={stats ? `${stats.criadas_mes} neste mês` : undefined} icon={<LuBuilding2 />} />
           <StatCard label="Ativas" value={String(stats?.ativas ?? "—")} sub={stats ? `${stats.inadimplentes} inadimplentes · ${stats.suspensas} suspensas` : undefined} icon={<LuCircleCheck />} />
-          <StatCard label="Receita mensal" value={stats ? formatBRL(stats.receita_mensal_centavos / 100) : "—"} sub="Empresas ativas e inadimplentes" icon={<LuKeyRound />} />
+          <StatCard label="Receita mensal" value={stats ? formatBRL(stats.receita_mensal_centavos / 100) : "—"} sub="Lojas ativas e inadimplentes" icon={<LuKeyRound />} />
           <StatCard label="Licenças" value={String(stats?.licencas ?? "—")} sub={stats ? `${stats.usuarios_ativos} usuários ativos · ${stats.convites_pendentes} convites pendentes` : undefined} icon={<LuUsers />} />
         </section>
 
@@ -509,7 +565,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
             value={tab}
             onChange={setTab}
             options={[
-              { value: "empresas", label: "Empresas", count: orgs.length },
+              { value: "empresas", label: "Lojas", count: orgs.length },
               { value: "suporte", label: "Suporte", count: supportUnread || undefined },
               { value: "historico", label: "Histórico" },
             ]}
@@ -518,7 +574,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
             <div className="flex gap-2">
               <div className="relative flex-1 sm:w-64">
                 <LuSearch className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar empresa ou responsável" className="pl-9" aria-label="Buscar empresas" />
+                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar loja ou responsável" className="pl-9" aria-label="Buscar lojas" />
               </div>
               <Select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="w-auto" aria-label="Filtrar por situação">
                 <option value="todas">Todas</option>
@@ -537,15 +593,15 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
         ) : tab === "empresas" ? (
           <div className="card overflow-hidden">
             {filtered.length === 0 ? (
-              <EmptyState icon={<LuBuilding2 className="size-6" />} title={orgs.length ? "Nenhuma empresa encontrada" : "Nenhuma empresa criada ainda"} action={!orgs.length && <Button onClick={() => setCreating(true)}>Criar primeira empresa</Button>}>
-                {orgs.length ? "Ajuste a busca ou o filtro." : "Crie o ambiente de um cliente e envie o link de ativação para o responsável."}
+              <EmptyState icon={<LuBuilding2 className="size-6" />} title={orgs.length ? "Nenhuma loja encontrada" : "Nenhuma loja criada ainda"} action={!orgs.length && <Button onClick={() => setCreating(true)}>Criar primeira loja</Button>}>
+                {orgs.length ? "Ajuste a busca ou o filtro." : "Crie a loja, monte o cardápio e envie o link de ativação para o cliente quando ele assinar."}
               </EmptyState>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[760px] text-sm">
                   <thead>
                     <tr className="border-b border-line bg-paper/70 text-left text-xs font-semibold text-muted">
-                      <th className="px-5 py-3">Empresa</th>
+                      <th className="px-5 py-3">Loja</th>
                       <th className="px-3 py-3">Situação</th>
                       <th className="px-3 py-3">Usuários</th>
                       <th className="px-3 py-3 text-right">Mensalidade</th>
@@ -563,6 +619,18 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
                           <p className="text-xs text-muted">
                             {o.responsible_name} — {o.responsible_email}
                           </p>
+                          {menus[o.id] ? (
+                            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                              <Badge tone={menus[o.id].published ? "paid" : "neutral"}>{menus[o.id].published ? "Cardápio no ar" : "Cardápio em rascunho"}</Badge>
+                              {menus[o.id].published && (
+                                <a href={menuUrl(menus[o.id].slug)} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline-offset-2 hover:underline">
+                                  /{menus[o.id].slug}
+                                </a>
+                              )}
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-xs text-muted">Sem cardápio ainda</p>
+                          )}
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex flex-col items-start gap-1">
@@ -579,6 +647,9 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
                         <td className="px-3 py-3 tabular">{formatDate(o.next_due_date ?? undefined)}</td>
                         <td className="px-5 py-3">
                           <div className="flex justify-end gap-0.5">
+                            <IconButton label="Montar cardápio" onClick={() => setBuilding(o)} className="text-ink">
+                              <LuUtensils className="size-4" />
+                            </IconButton>
                             {o.invite_status !== "ativado" && (
                               <IconButton label="Gerar novo link de ativação" onClick={() => newLink(o)}>
                                 <LuLink className="size-4" />
@@ -627,7 +698,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
         )}
 
         <p className="mt-6 text-xs text-muted">
-          Este painel administra empresas e assinaturas. Ele não dá acesso aos dados financeiros dos clientes. A sessão é encerrada após 30 minutos sem uso.
+          Este painel administra lojas e assinaturas. Pelo botão de montar cardápio você edita o cardápio de qualquer loja (fica registrado quem salvou). A sessão é encerrada após 30 minutos sem uso.
         </p>
       </main>
 
@@ -635,9 +706,9 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
         <CreateOrgModal
           call={call}
           onClose={() => setCreating(false)}
-          onCreated={(org, mail, token) => {
+          onCreated={(org, mail, token, orgId) => {
             setCreating(false);
-            setLink({ org, email: mail, url: activationLink(token) });
+            setLink({ org, email: mail, url: activationLink(token), orgId, created: true });
             void reload();
           }}
         />
@@ -650,6 +721,12 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
           onSaved={() => {
             setEditing(null);
             toast("success", "Assinatura atualizada.");
+            void reload();
+          }}
+          onResponsibleChanged={(mail, token) => {
+            const o = editing;
+            setEditing(null);
+            setLink({ org: o.name, email: mail, url: activationLink(token), orgId: o.id });
             void reload();
           }}
         />
@@ -666,7 +743,21 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
           }}
         />
       )}
-      {link && <LinkModal {...link} onClose={() => setLink(null)} />}
+      {link && (
+        <LinkModal
+          {...link}
+          onClose={() => setLink(null)}
+          onBuild={
+            link.orgId
+              ? () => {
+                  const target = orgs.find((o) => o.id === link.orgId) ?? ({ id: link.orgId, name: link.org } as Org);
+                  setLink(null);
+                  setBuilding(target);
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }
@@ -677,7 +768,7 @@ function AdminDashboard({ session, onLogout, onSessionExpired }: { session: Sess
 
 type Caller = <T>(fn: string, args?: Record<string, unknown>) => Promise<T>;
 
-function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: () => void; onCreated: (org: string, email: string, token: string) => void }) {
+function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: () => void; onCreated: (org: string, email: string, token: string, orgId: string) => void }) {
   const [f, setF] = useState({
     name: "",
     cnpj: "",
@@ -710,7 +801,7 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
     const err: Record<string, string> = {};
     const licenses = Number(f.licenses);
     const price = parseBRL(f.price);
-    if (f.name.trim().length < 2) err.name = "Informe o nome da empresa.";
+    if (f.name.trim().length < 2) err.name = "Informe o nome da loja.";
     if (f.cnpj.trim() && !isValidCNPJ(f.cnpj)) err.cnpj = "CNPJ inválido.";
     if (f.responsible.trim().length < 2) err.responsible = "Informe o nome do responsável.";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) err.email = "Informe um e-mail válido.";
@@ -733,9 +824,11 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
         p_sale_origin: f.origin,
         p_admin_notes: f.notes.trim() || null,
       });
-      onCreated(f.name.trim(), f.email.trim().toLowerCase(), r.token);
+      // o cardápio nasce vazio e fora do ar; se falhar, o painel cria no primeiro salvar
+      await createEmptyMenu(r.org_id, f.name.trim()).catch(() => {});
+      onCreated(f.name.trim(), f.email.trim().toLowerCase(), r.token, r.org_id);
     } catch (e2) {
-      setServerError(e2 instanceof Error ? e2.message : "Não foi possível criar a empresa.");
+      setServerError(e2 instanceof Error ? e2.message : "Não foi possível criar a loja.");
     } finally {
       setBusy(false);
     }
@@ -745,21 +838,21 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
     <Modal
       open
       onClose={onClose}
-      title="Criar empresa"
-      description="O ambiente é criado vazio e o responsável recebe um link para ativar o acesso."
+      title="Criar loja"
+      description="A loja é criada com o cardápio vazio e fora do ar. Você monta o cardápio e, quando o cliente assinar, envia o link de ativação para ele."
       footer={
         <>
           <ModalCloseButton>
             Cancelar
           </ModalCloseButton>
           <Button type="submit" form="org-form" disabled={busy}>
-            {busy ? "Criando…" : "Criar empresa"}
+            {busy ? "Criando…" : "Criar loja"}
           </Button>
         </>
       }
     >
       <form id="org-form" onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Field label="Nome da empresa" htmlFor="o-name" required error={errors.name} className="sm:col-span-2">
+        <Field label="Nome da loja" htmlFor="o-name" required error={errors.name} className="sm:col-span-2">
           <Input id="o-name" value={f.name} onChange={(e) => set("name", e.target.value)} invalid={!!errors.name} maxLength={120} />
         </Field>
         <Field label="CNPJ" htmlFor="o-cnpj" error={errors.cnpj} hint="Opcional">
@@ -775,7 +868,7 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
         <Field label="Nome do responsável" htmlFor="o-resp" required error={errors.responsible}>
           <Input id="o-resp" value={f.responsible} onChange={(e) => set("responsible", e.target.value)} invalid={!!errors.responsible} maxLength={120} />
         </Field>
-        <Field label="E-mail do responsável" htmlFor="o-email" required error={errors.email} hint="O convite só pode ser aceito com este e-mail.">
+        <Field label="E-mail do responsável" htmlFor="o-email" required error={errors.email} hint="O convite só pode ser aceito com este e-mail. Se ainda não tiver o do cliente, use o seu e troque depois.">
           <Input id="o-email" type="email" value={f.email} onChange={(e) => set("email", e.target.value)} invalid={!!errors.email} />
         </Field>
         <Field label="Licenças (usuários)" htmlFor="o-lic" required error={errors.licenses}>
@@ -810,7 +903,24 @@ function CreateOrgModal({ call, onClose, onCreated }: { call: Caller; onClose: (
   );
 }
 
-function EditOrgModal({ org, call, onClose, onSaved }: { org: Org; call: Caller; onClose: () => void; onSaved: () => void }) {
+function EditOrgModal({ org, call, onClose, onSaved, onResponsibleChanged }: { org: Org; call: Caller; onClose: () => void; onSaved: () => void; onResponsibleChanged: (email: string, token: string) => void }) {
+  const [resp, setResp] = useState({ name: org.responsible_name, email: org.responsible_email });
+  const [respBusy, setRespBusy] = useState(false);
+  const [respError, setRespError] = useState("");
+  const changeResponsible = async () => {
+    setRespError("");
+    if (resp.name.trim().length < 2) return setRespError("Informe o nome do responsável.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(resp.email.trim())) return setRespError("Informe um e-mail válido.");
+    setRespBusy(true);
+    try {
+      const token = await call<string>("admin_set_responsible", { p_org: org.id, p_name: resp.name.trim(), p_email: resp.email.trim() });
+      onResponsibleChanged(resp.email.trim().toLowerCase(), token);
+    } catch (e) {
+      setRespError(e instanceof Error ? e.message : "Não foi possível trocar o responsável.");
+    } finally {
+      setRespBusy(false);
+    }
+  };
   const [f, setF] = useState({
     licenses: String(org.licenses),
     price: amountToInput(org.monthly_price_cents / 100),
@@ -884,8 +994,36 @@ function EditOrgModal({ org, call, onClose, onSaved }: { org: Org; call: Caller;
           <Textarea id="e-notes" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
         </Field>
         <p className="text-xs text-muted sm:col-span-2">
-          Suspensa = acesso bloqueado com aviso de pagamento pendente. Nenhum dado é apagado: a empresa pode ser reativada a qualquer momento. Responsável: {org.responsible_name} ({org.responsible_email}).
+          Suspensa = painel bloqueado e cardápio fora do ar, com aviso de pagamento pendente. Nenhum dado é apagado: a loja pode ser reativada a qualquer momento.
         </p>
+        <div className="rounded-2xl border border-line p-4 sm:col-span-2">
+          <p className="text-[13px] font-semibold">Responsável pela loja</p>
+          {org.invite_status === "ativado" ? (
+            <p className="mt-1 text-sm text-muted">
+              {org.responsible_name} ({org.responsible_email}) já ativou o acesso.
+            </p>
+          ) : (
+            <>
+              <p className="mt-1 text-xs text-muted">Trocar gera um novo link de ativação para o novo e-mail; o link anterior deixa de valer.</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                <Field label="Nome" htmlFor="e-rname">
+                  <Input id="e-rname" value={resp.name} onChange={(e) => setResp({ ...resp, name: e.target.value })} maxLength={120} />
+                </Field>
+                <Field label="E-mail" htmlFor="e-remail">
+                  <Input id="e-remail" type="email" value={resp.email} onChange={(e) => setResp({ ...resp, email: e.target.value })} />
+                </Field>
+                <Button variant="secondary" onClick={changeResponsible} disabled={respBusy || (resp.name === org.responsible_name && resp.email === org.responsible_email)}>
+                  {respBusy ? "Trocando…" : "Trocar e gerar link"}
+                </Button>
+              </div>
+              {respError && (
+                <p role="alert" className="mt-2 text-xs font-medium text-overdue">
+                  {respError}
+                </p>
+              )}
+            </>
+          )}
+        </div>
         {error && (
           <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 text-sm font-medium text-overdue sm:col-span-2">
             {error}
@@ -941,13 +1079,13 @@ function BlockOrgModal({ org, call, onClose, onDone }: { org: Org; call: Caller;
         {blocking ? (
           <>
             <p>
-              Os usuários da empresa deixam de acessar o painel e, ao entrar, veem o aviso de <strong className="text-ink">pagamento pendente</strong> com o botão para falar com você no WhatsApp.
+              O cardápio sai do ar e os usuários da loja deixam de acessar o painel; ao entrar, veem o aviso de <strong className="text-ink">pagamento pendente</strong> com o botão para falar com você no WhatsApp.
             </p>
             <p>Nenhum dado é apagado. Quando o cliente pagar, é só clicar em liberar acesso.</p>
           </>
         ) : (
           <p>
-            A empresa volta para a situação <strong className="text-ink">Ativa</strong> e os usuários acessam o painel normalmente no próximo login.
+            A loja volta para a situação <strong className="text-ink">Ativa</strong>: o cardápio volta ao ar (se estava publicado) e os usuários acessam o painel normalmente.
           </p>
         )}
         {error && (
@@ -960,7 +1098,7 @@ function BlockOrgModal({ org, call, onClose, onDone }: { org: Org; call: Caller;
   );
 }
 
-function LinkModal({ org, email, url, onClose }: { org: string; email: string; url: string; onClose: () => void }) {
+function LinkModal({ org, email, url, created, onClose, onBuild }: { org: string; email: string; url: string; created?: boolean; onClose: () => void; onBuild?: () => void }) {
   const toast = useToast();
   const copy = async () => {
     try {
@@ -970,29 +1108,39 @@ function LinkModal({ org, email, url, onClose }: { org: string; email: string; u
       toast("error", "Não foi possível copiar. Selecione o link e copie manualmente.");
     }
   };
-  const subject = encodeURIComponent(`Ative seu acesso à Luma — ${org}`);
+  const subject = encodeURIComponent(`Ative o painel do seu cardápio na Luma — ${org}`);
   const body = encodeURIComponent(
-    `Olá!\n\nO ambiente da ${org} na Luma está pronto.\n\nPara ativar seu acesso e criar sua senha, abra o link abaixo (válido por 7 dias e de uso único):\n${url}\n\nUse este e-mail (${email}) para criar a conta.\n\nEquipe Luma`,
+    `Olá!\n\nO cardápio digital da ${org} na Luma está pronto.\n\nPara ativar seu acesso e criar sua senha, abra o link abaixo (válido por 7 dias e de uso único):\n${url}\n\nUse este e-mail (${email}) para criar a conta.\n\nEquipe Luma`,
   );
   return (
     <Modal
       open
       onClose={onClose}
       size="md"
-      title="Link de ativação"
+      title={created ? "Loja criada" : "Link de ativação"}
       description={`${org} — enviar para ${email}`}
       footer={
         <>
           <a href={`mailto:${email}?subject=${subject}&body=${body}`} className="inline-flex h-10 items-center gap-2 rounded-full border border-line px-5 text-sm font-semibold hover:border-ink/30">
             <LuMail className="size-4" /> Enviar por e-mail
           </a>
-          <Button icon={<LuCopy className="size-4" />} onClick={copy}>
+          <Button variant={onBuild ? "secondary" : "primary"} icon={<LuCopy className="size-4" />} onClick={copy}>
             Copiar link
           </Button>
+          {onBuild && (
+            <Button icon={<LuUtensils className="size-4" />} onClick={onBuild}>
+              Montar cardápio agora
+            </Button>
+          )}
         </>
       }
     >
       <div className="space-y-3 text-sm">
+        {created && (
+          <p className="rounded-xl bg-paid-soft px-3 py-2.5 font-medium text-paid">
+            O cardápio foi criado vazio e fora do ar. Monte tudo agora pelo botão “Montar cardápio” (ícone de talheres na lista) e envie o link abaixo ao cliente quando ele assinar.
+          </p>
+        )}
         <p className="break-all rounded-xl border border-line bg-paper p-3 font-mono text-[12px]">{url}</p>
         <ul className="space-y-1 text-slate-600">
           <li>• Válido por 7 dias e utilizável uma única vez.</li>

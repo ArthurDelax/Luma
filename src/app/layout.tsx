@@ -9,9 +9,9 @@ const poppins = Poppins({ subsets: ["latin", "latin-ext"], weight: ["500", "600"
 const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
-  title: { default: "Luma — Sua empresa. Tudo sob controle.", template: "%s · Luma" },
+  title: { default: "Luma — Cardápio digital com pedido no WhatsApp", template: "%s · Luma" },
   description:
-    "Luma organiza contas a pagar, boletos, despesas recorrentes, contratos e documentos da sua empresa, com alertas de vencimento e relatórios. Versão demonstrativa.",
+    "Cardápio digital para hamburguerias, pizzarias, lanchonetes e restaurantes: fotos, adicionais, entrega ou retirada e o pedido pronto no WhatsApp da loja, sem comissão.",
   icons: { icon: `${base}/icon.svg` },
 };
 

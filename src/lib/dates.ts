@@ -1,4 +1,5 @@
-import type { ISODate } from "./types.ts";
+/** Data no formato "AAAA-MM-DD". */
+export type ISODate = string;
 
 /** Converte "AAAA-MM-DD" em Date local (meia-noite), sem problemas de fuso. */
 export function parseISO(iso: ISODate): Date {

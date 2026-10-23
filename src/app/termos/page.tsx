@@ -4,7 +4,7 @@ import { LegalPage, Section } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
   title: "Termos de uso",
-  description: "Regras de uso e de contratação da Luma, plataforma de gestão de contas a pagar e a receber.",
+  description: "Regras de uso e de contratação da Luma, cardápio digital com pedido pelo WhatsApp.",
 };
 
 export default function TermosPage() {
@@ -18,18 +18,19 @@ export default function TermosPage() {
         >
           <Section n={1} title="O que é a Luma">
             <p>
-              A Luma é uma plataforma on-line para organizar o financeiro de empresas: contas a pagar e a receber, boletos, despesas recorrentes,
-              contratos, documentos, alertas de vencimento, fluxo de caixa e relatórios.
+              A Luma é uma plataforma on-line de cardápio digital. A loja cadastra produtos, preços, fotos, adicionais, horários, bairros de entrega e
+              cupons, e recebe um link público do cardápio. O cliente final monta o pedido nesse link e o envia pelo próprio WhatsApp para o número da loja.
             </p>
             <p>
-              <strong>A Luma não faz pagamentos nem movimenta dinheiro.</strong> Ela ajuda a organizar e conferir informações. Todo pagamento é feito por
-              você, no seu banco. Marcar uma conta como paga na Luma é apenas um registro.
+              <strong>A Luma não vende os produtos, não recebe pagamentos dos clientes finais e não faz entregas.</strong> A venda, o preparo, a entrega, a
+              cobrança e o atendimento são feitos pela loja, diretamente com o cliente.
             </p>
           </Section>
 
           <Section n={2} title="Contratação, plano e pagamento">
             <ul>
-              <li>A assinatura é mensal, com valor conforme a quantidade de usuários do plano escolhido, informado na página de planos.</li>
+              <li>A assinatura é mensal, por loja, com valor conforme a quantidade de pessoas com acesso ao painel, informado na página de planos.</li>
+              <li>A Luma não cobra comissão sobre os pedidos feitos pelo cardápio.</li>
               <li>A cobrança é feita por um intermediador de pagamentos (Asaas), por Pix, boleto ou cartão de crédito. A Luma não recebe nem armazena dados do seu cartão.</li>
               <li>Não há fidelidade nem multa de cancelamento.</li>
               <li>O acesso é liberado depois da confirmação do pagamento.</li>
@@ -41,39 +42,37 @@ export default function TermosPage() {
             <ul>
               <li>Você pode cancelar a qualquer momento pelo WhatsApp de atendimento. A cobrança recorrente é interrompida e o acesso continua até o fim do período já pago.</li>
               <li>Na primeira contratação, você pode desistir em até 7 dias e receber de volta o valor pago, conforme o Código de Defesa do Consumidor.</li>
-              <li>Se uma mensalidade ficar em atraso, o acesso pode passar a ser somente consulta até a regularização. Seus dados não são apagados por causa do atraso.</li>
+              <li>Se uma mensalidade ficar em atraso, o painel e o cardápio podem ser tirados do ar até a regularização. O cardápio não é apagado por causa do atraso.</li>
             </ul>
           </Section>
 
-          <Section n={4} title="Suas responsabilidades">
+          <Section n={4} title="Responsabilidades da loja">
             <ul>
-              <li>Manter o login e a senha em segurança e não compartilhar o acesso fora dos usuários contratados.</li>
-              <li>Conferir os dados lidos automaticamente dos boletos antes de usar e antes de pagar qualquer conta.</li>
-              <li>Cadastrar apenas informações que você tem direito de usar e não usar a plataforma para fins ilegais.</li>
+              <li>Manter o login e a senha em segurança e não compartilhar o acesso fora das pessoas contratadas.</li>
+              <li>Manter preços, descrições, fotos, horários, taxas e disponibilidade dos produtos corretos e atualizados no cardápio.</li>
+              <li>Usar apenas fotos, vídeos, marcas e textos que tenha direito de usar.</li>
+              <li>Cumprir as regras de defesa do consumidor, vigilância sanitária e demais leis aplicáveis à venda dos seus produtos.</li>
+              <li>Tratar os dados dos clientes que chegam pelo WhatsApp de acordo com a LGPD.</li>
             </ul>
           </Section>
 
-          <Section n={5} title="Avisos automáticos e leitura de boletos">
+          <Section n={5} title="Montagem do cardápio pela Luma">
             <p>
-              A leitura de boletos, os alertas de vencimento, o alerta de boleto suspeito, o aviso de conta acima da média e a previsão de caixa são
-              ferramentas de apoio. Elas podem não identificar todos os casos e não garantem que um boleto seja verdadeiro ou falso. Em caso de dúvida,
-              confirme sempre com o fornecedor por um contato que você já conhece.
+              Quando a contratação inclui a montagem do cardápio, a Luma cadastra os produtos com base nas informações e imagens enviadas pela loja. A loja
+              deve conferir o cardápio antes de divulgá-lo e pode alterá-lo a qualquer momento pelo painel.
             </p>
           </Section>
 
           <Section n={6} title="Disponibilidade e limites de responsabilidade">
             <p>
               Trabalhamos para manter a Luma disponível e segura, mas podem ocorrer interrupções para manutenção ou por falhas de terceiros (como
-              provedores de internet, hospedagem e banco de dados). A Luma não se responsabiliza por multas, juros ou prejuízos decorrentes de pagamentos
-              feitos ou deixados de fazer, já que a decisão e a execução do pagamento são sempre suas.
+              provedores de internet, hospedagem, banco de dados e o próprio WhatsApp). A Luma não se responsabiliza por pedidos não enviados ou não lidos,
+              por divergências entre o cardápio e o que a loja vende, nem por prejuízos decorrentes da venda, já que ela é sempre feita pela loja.
             </p>
           </Section>
 
           <Section n={7} title="Seus dados">
-            <p>
-              Os dados que você cadastra são seus. Você pode baixar uma cópia a qualquer momento em <strong>Dados e ajustes</strong>. Como tratamos esses
-              dados está na Política de privacidade.
-            </p>
+            <p>O cardápio e as imagens que você cadastra são seus. Como tratamos os dados está na Política de privacidade.</p>
           </Section>
 
           <Section n={8} title="Mudanças nestes termos">

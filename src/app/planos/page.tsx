@@ -3,7 +3,7 @@ import { Footer, Header, PlansSection } from "@/components/landing/LandingPage";
 
 export const metadata: Metadata = {
   title: "Planos",
-  description: "Luma: R$ 99,90 por mês para até 2 usuários e R$ 29,90 por usuário adicional, até 10 usuários.",
+  description: "Cardápio digital Luma: R$ 99,90 por mês por loja, com até 2 pessoas no painel e sem comissão por pedido.",
 };
 
 export default function PlanosPage() {

@@ -10,12 +10,12 @@ import { EXTRA_USER_CENTS, INCLUDED_USERS, MAX_USERS, MIN_USERS, PRICE_TABLE, pr
 import { Button, cx, LogoMark, Modal } from "../ui";
 
 const INCLUDED = [
-  "Contas a pagar, boletos e Pix",
-  "Leitura automática de boletos e guias em PDF",
-  "Despesas recorrentes",
-  "Contratos e documentos com alertas",
-  "Calendário financeiro e relatórios",
-  "Ambiente exclusivo da sua empresa",
+  "Cardápio digital com link próprio da loja",
+  "Pedidos completos direto no seu WhatsApp, sem comissão",
+  "Fotos, vídeos de capa, adicionais e cupons",
+  "Entrega por bairro com taxa e retirada no balcão",
+  "Horário automático e produto esgotado com um toque",
+  "Cardápio montado pela Luma na contratação",
 ];
 
 /** Calculadora de preços com seleção de usuários, resumo e botões de contratação. */
@@ -33,7 +33,7 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
       <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:p-8">
         <LogoMark tone="light" className="pointer-events-none absolute -bottom-24 -right-16 size-72 opacity-[0.05]" />
         <div className="relative">
-          <p className="text-sm text-paper/55">Quantos usuários vão usar a Luma?</p>
+          <p className="text-sm text-paper/55">Quantas pessoas da loja vão editar o cardápio?</p>
 
           <div className="mt-4 flex items-center gap-4">
             <button
@@ -190,16 +190,16 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
               <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-ink text-paper">
                 <LuUsers className="size-3" />
               </span>
-              Gestão de usuários e permissões a partir de 2 usuários
+              Acesso para a equipe: administrador, editor e somente consulta
             </li>
           </ul>
         </div>
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
-            <caption className="px-5 pb-2 pt-5 text-left font-display text-base font-semibold">Mensalidade por quantidade de usuários</caption>
+            <caption className="px-5 pb-2 pt-5 text-left font-display text-base font-semibold">Mensalidade por pessoas com acesso ao painel</caption>
             <thead>
               <tr className="border-y border-line bg-paper/70 text-left text-xs font-semibold text-muted">
-                <th className="px-5 py-2">Usuários</th>
+                <th className="px-5 py-2">Pessoas</th>
                 <th className="px-5 py-2 text-right">Mensalidade</th>
               </tr>
             </thead>
@@ -249,10 +249,10 @@ export function PricingCalculator({ initialUsers = 3 }: { initialUsers?: number 
           </p>
           <p>Quando estiver no ar, o fluxo será:</p>
           <ol className="list-decimal space-y-1 pl-5">
-            <li>Você confirma o plano e informa os dados da empresa.</li>
+            <li>Você confirma o plano e informa os dados da loja.</li>
             <li>Geramos uma cobrança Pix (QR Code e copia e cola).</li>
             <li>O pagamento é confirmado automaticamente pelo provedor.</li>
-            <li>Seu ambiente exclusivo é criado vazio e você recebe o convite de acesso.</li>
+            <li>Montamos o seu cardápio e você recebe o convite de acesso ao painel.</li>
           </ol>
           <p className="rounded-xl bg-paper px-3 py-2 text-xs text-muted">Nenhum valor é cobrado nesta página.</p>
         </div>

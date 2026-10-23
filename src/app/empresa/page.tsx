@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { CompanyApp } from "@/components/app/CompanyApp";
+import { StoreArea } from "@/components/store/StoreArea";
 
 export const metadata: Metadata = { title: "Entrar", robots: { index: false, follow: false } };
 
 export default function EmpresaPage() {
-  return <CompanyApp />;
+  return <StoreArea />;
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { LumaApp } from "@/components/app/LumaApp";
+import { DemoPanel } from "@/components/menu/DemoPanel";
 
-export const metadata: Metadata = { title: "Painel" };
+export const metadata: Metadata = { title: "Painel da loja (demonstração)" };
 
 export default function AppPage() {
-  return <LumaApp />;
+  return <DemoPanel />;
 }

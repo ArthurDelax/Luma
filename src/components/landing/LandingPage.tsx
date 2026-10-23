@@ -1,45 +1,40 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  LuBell,
-  LuCalendarDays,
-  LuChartColumn,
-  LuCircleCheck,
-  LuFilePenLine,
-  LuFileUp,
-  LuLock,
-  LuMenu,
-  LuReceipt,
-  LuRepeat,
-  LuScanText,
-  LuX,
-  LuChevronDown,
-  LuMonitorSmartphone,
   LuArrowRight,
-  LuArrowUpRight,
-  LuFileText,
-  LuSparkles,
-  LuTriangleAlert,
+  LuBadgePercent,
+  LuChevronDown,
+  LuClock3,
+  LuImage,
+  LuLayers,
+  LuLink2,
+  LuMapPin,
+  LuMenu,
+  LuMessageCircle,
+  LuMonitorSmartphone,
+  LuPackageX,
+  LuPalette,
+  LuShoppingBag,
+  LuStore,
+  LuX,
 } from "react-icons/lu";
-import { addDays, todayISO } from "@/lib/dates";
 import { whatsappLink } from "@/lib/contact";
-import { formatBRL } from "@/lib/format";
 import { href } from "@/lib/paths";
-import { Ribbon, type RibbonEvent } from "../app/Ribbon";
 import { PricingCalculator } from "../pricing/Pricing";
 import { HelpButton } from "../support/HelpCenter";
-import { cx, Logo, LogoMark, usePresence } from "../ui";
+import { cx, Logo, usePresence } from "../ui";
 
-const APP = href("/app/");
+const DEMO = href("/demo/");
+const PANEL = href("/app/");
 const HOME = href("/");
 const PLANS = href("/planos/");
 const LOGIN = href("/empresa/");
 
-function CTA({ children = "Experimentar demonstração", variant = "dark", className }: { children?: React.ReactNode; variant?: "light" | "dark"; className?: string }) {
+function CTA({ children = "Ver cardápio de exemplo", to = DEMO, variant = "dark", className }: { children?: React.ReactNode; to?: string; variant?: "light" | "dark"; className?: string }) {
   return (
     <a
-      href={APP}
+      href={to}
       className={cx(
         "group inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full pl-6 pr-2 text-[15px] font-semibold transition-all active:scale-[0.98]",
         variant === "light" ? "bg-paper text-ink hover:bg-white" : "bg-ink text-paper hover:bg-navy-700",
@@ -65,9 +60,9 @@ export function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   const links = [
-    [`${HOME}#diferenciais`, "Diferenciais"],
-    [`${HOME}#funcionalidades`, "Funcionalidades"],
-    [`${HOME}#boletos`, "Boletos e Pix"],
+    [`${HOME}#como-funciona`, "Como funciona"],
+    [`${HOME}#recursos`, "Recursos"],
+    [DEMO, "Exemplo"],
     [PLANS, "Planos"],
     [`${HOME}#perguntas`, "Perguntas"],
   ];
@@ -87,8 +82,8 @@ export function Header() {
         <a href={LOGIN} className="ml-auto hidden h-10 items-center rounded-full px-4 text-sm font-semibold text-ink transition-colors hover:bg-ink/5 sm:inline-flex">
           Entrar
         </a>
-        <a href={APP} className="hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
-          Abrir demonstração
+        <a href={PANEL} className="hidden h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-paper transition-colors hover:bg-navy-700 sm:inline-flex">
+          Testar o painel
         </a>
         <button className="relative ml-auto grid size-10 place-items-center rounded-full text-ink transition-transform active:scale-90 md:hidden sm:ml-0" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           <LuMenu className={cx("absolute size-6 transition-all duration-300", open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100")} />
@@ -103,435 +98,77 @@ export function Header() {
             </a>
           ))}
           <a href={LOGIN} className="block rounded-2xl px-3 py-3 text-base font-semibold text-ink hover:bg-ink/5">
-            Entrar (clientes)
+            Entrar (lojas)
           </a>
-          <CTA className="mt-3 w-full" />
+          <CTA className="mt-3 w-full" to={PANEL}>
+            Testar o painel
+          </CTA>
         </nav>
       )}
     </header>
   );
 }
 
-function useSampleEvents(today: string): RibbonEvent[] {
-  return useMemo(
-    () => [
-      { id: "a", date: addDays(today, -3), kind: "vencida", label: "Manutenção do ar-condicionado", amount: 640 },
-      { id: "b", date: addDays(today, 1), kind: "conta", label: "Fornecedor de embalagens — 2ª parcela", amount: 5420 },
-      { id: "c", date: addDays(today, 3), kind: "documento", label: "Certificado digital e-CNPJ" },
-      { id: "d", date: addDays(today, 4), kind: "conta", label: "Energia elétrica", amount: 821.75 },
-      { id: "e", date: addDays(today, 7), kind: "recorrente", label: "Internet fibra", amount: 289.9 },
-      { id: "f", date: addDays(today, 7), kind: "conta", label: "Simples Nacional", amount: 3412.9 },
-      { id: "g", date: addDays(today, 9), kind: "conta", label: "Água e esgoto", amount: 174.55 },
-      { id: "h", date: addDays(today, 12), kind: "contrato", label: "Contrato de suporte de TI" },
-      { id: "i", date: addDays(today, 15), kind: "recorrente", label: "Aluguel do escritório", amount: 4800 },
-      { id: "j", date: addDays(today, 16), kind: "conta", label: "Consultoria jurídica", amount: 2800 },
-      { id: "k", date: addDays(today, 20), kind: "recorrente", label: "Honorários contábeis", amount: 1350 },
-      { id: "l", date: addDays(today, 22), kind: "recorrente", label: "Sistema de notas fiscais", amount: 189 },
-      { id: "m", date: addDays(today, 26), kind: "contrato", label: "Contrato de locação" },
-      { id: "n", date: addDays(today, 27), kind: "conta", label: "Pró-labore e encargos", amount: 8900 },
-    ],
-    [today],
-  );
-}
-
-function Hero() {
-  const [today, setToday] = useState("2026-01-15");
-  useEffect(() => setToday(todayISO()), []);
-  const events = useSampleEvents(today);
-  const open = events.reduce((a, e) => a + (e.amount ?? 0), 0);
-  const overdue = events.filter((e) => e.kind === "vencida").length;
-  const week = events.filter((e) => e.kind !== "vencida" && e.amount !== undefined && e.date <= addDays(today, 7)).length;
-  const docs = events.filter((e) => e.kind === "contrato" || e.kind === "documento").length;
+/** Celular com o cardápio de exemplo funcionando de verdade dentro. */
+function PhoneDemo() {
+  const [load, setLoad] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLoad(true), 400);
+    return () => clearTimeout(t);
+  }, []);
   return (
-    <section className="dot-grid relative overflow-hidden pb-20 pt-32 sm:pb-28 sm:pt-40">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid items-end gap-10 lg:grid-cols-[1.25fr_1fr]">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/80 py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium text-ink/75 shadow-sm">
-              <span className="grid size-6 place-items-center rounded-full bg-ink">
-                <LogoMark tone="light" className="size-3.5" />
-              </span>
-              Demonstração com dados fictícios, sem cadastro
-            </span>
-            <h1 className="mt-6 font-display text-[2.9rem] font-bold leading-[1] tracking-[-0.035em] sm:text-[5rem]">
-              Sua empresa.
-              <br />
-              Tudo sob controle.
-            </h1>
-          </div>
-          <div className="lg:pb-3">
-            <p className="max-w-md text-lg leading-relaxed text-ink/70">
-              Contas a pagar e a receber, fluxo de caixa, boletos com Pix, contratos e documentos em um só painel — com aviso antes de cada vencimento e antes de faltar dinheiro.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CTA />
-              <a href="#funcionalidades" className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-ink/15 bg-white/60 px-6 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40">
-                Funcionalidades
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="dot-grid-light relative mt-14 overflow-hidden rounded-[32px] bg-ink p-5 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:mt-16 sm:p-8">
-          <LogoMark tone="light" className="pointer-events-none absolute -bottom-28 -right-20 size-80 opacity-[0.05]" />
-          <div className="relative mb-6 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-sm text-paper/50">Total em aberto — exemplo fictício</p>
-              <p className="mt-1 font-display text-[2.3rem] font-semibold leading-none tracking-[-0.03em] tabular sm:text-[3.2rem]">{formatBRL(open)}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {[
-                ["Vencidas", String(overdue), "text-[#ff8f86]"],
-                ["Em 7 dias", String(week), "text-paper"],
-                ["Contratos e docs.", String(docs), "text-[#4cc3cc]"],
-              ].map(([l, v, c]) => (
-                <div key={l} className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 sm:px-4">
-                  <p className="text-[11px] text-paper/50 sm:text-xs">{l}</p>
-                  <p className={cx("font-display text-xl font-semibold sm:text-2xl", c)}>{v}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="relative">
-            <Ribbon today={today} events={events} tone="dark" />
-          </div>
-        </div>
+    <div className="relative mx-auto w-[300px] max-w-full sm:w-[320px]">
+      <div className="relative aspect-[9/19] w-full overflow-hidden rounded-[44px] border-[10px] border-ink bg-ink shadow-[0_50px_100px_-30px_rgba(17,17,17,0.6)]">
+        <div className="absolute left-1/2 top-2 z-10 h-6 w-28 -translate-x-1/2 rounded-full bg-ink" />
+        {load ? (
+          <iframe title="Cardápio de exemplo" src={DEMO} className="size-full rounded-[34px] bg-[#f6f1e8]" loading="lazy" />
+        ) : (
+          <div className="size-full rounded-[34px] bg-[#f6f1e8]" />
+        )}
       </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Diferenciais: o que a Luma confere por você                          */
-/* ------------------------------------------------------------------ */
-
-function Differentials() {
-  return (
-    <section id="diferenciais" className="scroll-mt-20 bg-paper pb-20 sm:pb-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-semibold text-paper">
-            <LuSparkles className="size-3.5" /> Diferenciais da Luma
-          </span>
-          <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">A Luma avisa antes do problema acontecer</h2>
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
-            Ela compara cada cobrança com o histórico da sua empresa e avisa quando algo foge do normal.
-          </p>
-        </div>
-
-        {/* destaque: previsão de caixa */}
-        <article className="dot-grid-light mt-12 grid gap-6 overflow-hidden rounded-[28px] bg-ink p-6 text-paper sm:p-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-overdue px-3 py-1 text-[12px] font-semibold text-white">Novo</span>
-            <h3 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">Aviso de falta de dinheiro</h3>
-            <p className="mt-3 text-[15px] leading-relaxed text-paper/70">
-              A Luma junta o saldo da empresa, as contas a pagar e o que seus clientes vão pagar, e prevê o caixa dos próximos 30, 60 e 90 dias. Se em algum dia o dinheiro não for dar, você fica sabendo semanas antes, com sugestões do que fazer: cobrar quem está atrasado, antecipar um recebimento ou negociar uma data.
-            </p>
-            <p className="mt-3 text-[15px] leading-relaxed text-paper/70">E para cobrar um cliente atrasado, é um toque: o WhatsApp abre com a mensagem pronta.</p>
-          </div>
-          <div className="rounded-2xl bg-overdue-soft p-5 text-ink" aria-hidden>
-            <p className="flex items-center gap-2 font-display text-lg font-semibold text-overdue">
-              <LuTriangleAlert className="size-5" /> Em 18 dias o caixa fica negativo em R$ 459,95
-            </p>
-            <p className="mt-1 text-sm text-ink/70">Vencem nesse dia: folha de pagamento e aluguel.</p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-3">
-              {[
-                ["Cobrar 1 cliente em atraso", "R$ 3.200,00"],
-                ["Antecipar recebimentos", "R$ 4.500,00"],
-                ["Negociar novas datas", "R$ 5.420,00"],
-              ].map(([t, v]) => (
-                <div key={t} className="rounded-xl bg-white/80 p-3">
-                  <p className="text-xs font-semibold">{t}</p>
-                  <p className="mt-0.5 font-display text-base font-semibold tabular">{v}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </article>
-
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          {/* 1. boleto suspeito */}
-          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
-            <span className="grid size-11 place-items-center rounded-2xl bg-overdue-soft text-overdue">
-              <LuTriangleAlert className="size-5" />
-            </span>
-            <h3 className="mt-5 font-display text-xl font-semibold">Alerta de boleto suspeito</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted">
-              Se um fornecedor passa a cobrar por outro banco, outro CNPJ ou outra chave Pix, a Luma avisa antes do pagamento. É o sinal mais comum de boleto adulterado.
-            </p>
-            <div className="mt-6 rounded-2xl border border-overdue/25 bg-overdue-soft/70 p-4 text-[13px]" aria-hidden>
-              <p className="flex items-center gap-1.5 font-semibold text-overdue">
-                <LuTriangleAlert className="size-3.5" /> Confira antes de pagar
-              </p>
-              <p className="mt-1.5 leading-relaxed text-ink/75">
-                EmbalaMais sempre cobrou pelo <strong className="font-semibold text-ink">Itaú</strong>, e este boleto é do <strong className="font-semibold text-ink">Bradesco</strong>.
-              </p>
-            </div>
-          </article>
-
-          {/* 2. conta que subiu */}
-          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
-            <span className="grid size-11 place-items-center rounded-2xl bg-soon-soft text-soon">
-              <LuArrowUpRight className="size-5" />
-            </span>
-            <h3 className="mt-5 font-display text-xl font-semibold">Aviso de conta que subiu</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted">
-              Energia, água, internet ou fornecedor: quando o valor vem bem acima da média das últimas contas, você fica sabendo antes de pagar.
-            </p>
-            <div className="mt-6 rounded-2xl border border-line bg-paper/70 p-4 text-[13px]" aria-hidden>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold">Água e esgoto</p>
-                  <p className="text-muted">Média das últimas contas: R$ 175,05</p>
-                </div>
-                <p className="font-display text-base font-semibold tabular">R$ 236,40</p>
-              </div>
-              <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-soon-soft px-2 py-0.5 text-[11px] font-semibold text-soon">
-                <LuArrowUpRight className="size-3" /> 35% acima da média
-              </span>
-            </div>
-          </article>
-
-          {/* 3. pacote do contador */}
-          <article className="flex flex-col rounded-[28px] border border-line bg-white p-6 sm:p-7">
-            <span className="grid size-11 place-items-center rounded-2xl bg-paid-soft text-paid">
-              <LuFileText className="size-5" />
-            </span>
-            <h3 className="mt-5 font-display text-xl font-semibold">Pacote do contador</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-muted">
-              Em um clique, o fechamento do mês num único arquivo: contas pagas, resumo por categoria, contas em aberto e os boletos em PDF.
-            </p>
-            <div className="mt-6 rounded-2xl border border-line bg-paper/70 p-4 font-mono text-[12px] leading-6 text-ink/80" aria-hidden>
-              <p className="font-sans text-[13px] font-semibold text-ink">luma-contador-setembro.zip</p>
-              <p>├ 1-contas-pagas.csv</p>
-              <p>├ 2-resumo-por-categoria.csv</p>
-              <p>├ 3-contas-em-aberto.csv</p>
-              <p>└ boletos/ (PDFs)</p>
-            </div>
-          </article>
-        </div>
-
-        <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-          <CTA>Ver na demonstração</CTA>
-          <p className="text-sm text-muted">A demonstração já mostra um boleto suspeito e uma conta acima da média.</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ProductPreview() {
-  const bars = [62, 74, 58, 81, 69, 88, 40];
-  const months = ["mai", "jun", "jul", "ago", "set", "out", "nov"];
-  return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-paper shadow-[var(--shadow-pop)]" aria-label="Representação do painel da Luma" role="img">
-      <div className="flex">
-        <div className="hidden w-40 shrink-0 flex-col gap-1 bg-navy-900 p-3 xl:flex">
-          <div className="mb-3 flex items-center gap-2 px-1">
-            <span className="size-5 rounded-md bg-white/90" />
-            <span className="h-2.5 w-12 rounded bg-white/70" />
-          </div>
-          {["Painel", "Contas a pagar", "Recorrentes", "Contratos", "Calendário", "Alertas", "Relatórios"].map((l, i) => (
-            <span key={l} className={cx("rounded-md px-2 py-1.5 text-[11px] font-medium", i === 0 ? "bg-white/10 text-white" : "text-white/55")}>
-              {l}
-            </span>
-          ))}
-        </div>
-        <div className="min-w-0 flex-1 p-4 sm:p-5">
-          <p className="font-display text-sm font-semibold text-ink">Visão geral</p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
-              ["Contas a pagar", "10", "bg-sky-100"],
-              ["Vencidas", "3", "bg-overdue-soft"],
-              ["Vencem em 7 dias", "5", "bg-soon-soft"],
-              ["Pagas no mês", "6", "bg-paid-soft"],
-            ].map(([l, v, c]) => (
-              <div key={l} className="rounded-lg border border-line bg-white p-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-semibold text-muted">{l}</span>
-                  <span className={cx("size-4 rounded", c)} />
-                </div>
-                <p className="mt-1 font-display text-lg font-semibold text-ink">{v}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 grid gap-2 sm:grid-cols-[1.4fr_1fr]">
-            <div className="rounded-lg border border-line bg-white p-3">
-              <p className="text-[10px] font-semibold text-muted">Despesas por mês</p>
-              <div className="mt-2 flex h-24 items-end gap-2">
-                {bars.map((h, i) => (
-                  <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-                    <div className="flex w-full flex-col-reverse overflow-hidden rounded-t" style={{ height: `${h}%` }}>
-                      <span className="bg-navy-800" style={{ flex: i === 6 ? 0 : 3 }} />
-                      <span className="bg-overdue" style={{ flex: i === 5 ? 1 : 0 }} />
-                      <span className="bg-sky-300" style={{ flex: i >= 5 ? 2 : 0 }} />
-                    </div>
-                    <span className="text-[9px] text-muted">{months[i]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-lg border border-line bg-white p-3">
-              <p className="text-[10px] font-semibold text-muted">Próximos vencimentos</p>
-              {[
-                ["Energia elétrica", "R$ 821,75", "bg-soon"],
-                ["Embalagens — 2ª parcela", "R$ 5.420,00", "bg-soon"],
-                ["Consultoria jurídica", "R$ 2.800,00", "bg-sky-400"],
-                ["Água e esgoto", "R$ 174,55", "bg-sky-400"],
-              ].map(([l, v, c]) => (
-                <div key={l} className="mt-2 flex items-center gap-2 text-[11px]">
-                  <span className={cx("size-1.5 rounded-full", c)} />
-                  <span className="min-w-0 flex-1 truncate text-ink">{l}</span>
-                  <span className="font-semibold tabular text-ink">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <p className="mt-4 text-center text-xs text-muted">Toque e teste: o pedido abre no WhatsApp.</p>
     </div>
   );
 }
 
-const FEATURES = [
-  { icon: <LuReceipt />, title: "Contas a pagar", text: "Cadastre, edite, filtre e marque como paga. Contas vencidas são identificadas automaticamente, e cadastros duplicados são bloqueados.", wide: true },
-  { icon: <LuChartColumn />, title: "Fluxo de caixa e contas a receber", text: "Saldo previsto dia a dia, contas a receber com cobrança pelo WhatsApp e aviso antes de faltar dinheiro.", wide: true },
-  { icon: <LuFileUp />, title: "Importação de boletos", text: "Selecione o PDF e a Luma preenche beneficiário, CNPJ, valor, vencimento, linha digitável, chave Pix e Pix Copia e Cola para você conferir." },
-  { icon: <LuRepeat />, title: "Despesas recorrentes", text: "Aluguel, internet, contabilidade e assinaturas com frequência mensal, trimestral ou anual." },
-  { icon: <LuFilePenLine />, title: "Contratos e documentos", text: "Validade de contratos, certificados digitais, licenças, alvarás e seguros em um só lugar." },
-  { icon: <LuBell />, title: "Central de alertas", text: "Avisos 30, 15, 7 e 3 dias antes, no dia e depois do vencimento." },
-  { icon: <LuCalendarDays />, title: "Calendário financeiro", text: "Contas, recorrências, contratos e documentos no mês, com cores por tipo." },
-  { icon: <LuChartColumn />, title: "Relatórios", text: "Despesas por período e categoria, contas pagas, pendentes e vencidas, evolução mensal. Exporte em CSV ou imprima." },
-  { icon: <LuRepeat />, title: "Importe extrato e planilha", text: "Traga suas contas de uma planilha e dê baixa automática com o extrato do banco (OFX)." },
-];
-
-function Features() {
+function Hero() {
   return (
-    <section id="funcionalidades" className="scroll-mt-20 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
-          <div>
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Tudo o que vence na sua empresa, organizado</h2>
-            <p className="mt-4 max-w-md text-lg leading-relaxed text-muted">Um painel único para o financeiro do dia a dia: o que pagar, quando pagar e o que está prestes a expirar.</p>
-          </div>
-          <ProductPreview />
-        </div>
-
-        <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <div key={f.title} className={cx("bg-white p-6", f.wide && "lg:col-span-2")}>
-              <span className="grid size-10 place-items-center rounded-xl bg-sky-100 text-navy-700 [&>svg]:size-5">{f.icon}</span>
-              <h3 className="mt-4 font-display text-lg font-semibold">{f.title}</h3>
-              <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{f.text}</p>
-            </div>
-          ))}
-          <div className="dot-grid-light flex flex-col gap-4 bg-ink p-6 text-paper sm:col-span-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-4 lg:px-8">
-            <div className="flex items-center gap-4">
-              <LogoMark tone="light" className="size-10 shrink-0" />
-              <div>
-                <p className="font-display text-lg font-semibold">Veja tudo isso funcionando</p>
-                <p className="text-sm text-paper/55">A demonstração já vem com dados fictícios para explorar.</p>
-              </div>
-            </div>
-            <CTA variant="light">Abrir demonstração</CTA>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Boletos() {
-  const fields = [
-    ["Beneficiário", "Exemplo Serviços de Tecnologia Ltda", true],
-    ["CNPJ", "11.222.333/0001-81", true],
-    ["Valor", "R$ 389,90", true],
-    ["Vencimento", "20/11/2026", true],
-    ["Chave Pix", "11.222.333/0001-81 (CNPJ)", true],
-    ["Pix Copia e Cola", "lido do QR Code", true],
-    ["Pagador", "—", false],
-  ] as const;
-  return (
-    <section id="boletos" className="scroll-mt-20 bg-paper py-20 sm:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-        <div className="order-2 min-w-0 lg:order-1">
-          <div className="card overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-              <LuScanText className="size-5 text-soon" />
-              <div>
-                <p className="text-sm font-semibold">Leitura parcial — confira antes de salvar</p>
-                <p className="text-xs text-muted">boleto-fornecedor.pdf</p>
-              </div>
-            </div>
-            <dl className="divide-y divide-line">
-              {fields.map(([k, v, ok]) => (
-                <div key={k} className="flex items-center gap-3 px-5 py-2.5 text-sm">
-                  <dt className="w-28 shrink-0 text-muted sm:w-36">{k}</dt>
-                  <dd className={cx("min-w-0 flex-1 truncate font-medium", !ok && "text-muted")}>{ok ? v : "não identificado — preencha"}</dd>
-                  {ok ? <LuCircleCheck className="size-4 shrink-0 text-paid" /> : <span className="size-4 shrink-0 rounded-full border-2 border-dashed border-soon" />}
-                </div>
-              ))}
-            </dl>
-            <div className="border-t border-line bg-paid-soft/60 px-5 py-3">
-              <p className="break-all font-mono text-[12px] text-ink">23790.00017 23456.789017 72345.678903 1 77160000038990</p>
-              <p className="mt-0.5 text-xs font-semibold text-paid">Dígitos verificadores conferem</p>
-            </div>
-          </div>
-        </div>
-        <div className="order-1 min-w-0 lg:order-2">
-          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Do PDF para a conta a pagar, sem digitar</h2>
-          <p className="mt-4 text-lg leading-relaxed text-muted">
-            Selecione o boleto e a Luma lê o documento: encontra a linha digitável e confere os dígitos verificadores, e também pega a chave Pix e o código Pix Copia e Cola — inclusive lendo o QR Code.
+    <section className="dot-grid relative overflow-hidden pb-20 pt-32 sm:pb-28 sm:pt-40">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-paper" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1.25fr_1fr]">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/80 py-1.5 pl-1.5 pr-3.5 text-[13px] font-medium text-ink/75 shadow-sm">
+            <span className="grid size-6 place-items-center rounded-full bg-[#1f9d55] text-white">
+              <LuMessageCircle className="size-3.5" />
+            </span>
+            Pedido pronto no WhatsApp da loja
+          </span>
+          <h1 className="mt-6 font-display text-[2.8rem] font-bold leading-[1] tracking-[-0.035em] sm:text-[4.6rem]">
+            O cardápio digital que faz o cliente pedir.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/70">
+            Fotos e vídeos dos pratos, adicionais, entrega ou retirada e cupom. O cliente monta a sacola em poucos toques e o pedido chega organizado no seu WhatsApp, sem comissão por pedido.
           </p>
-          <ul className="mt-6 space-y-3 text-[15px]">
-            <li className="flex gap-3">
-              <LuLock className="mt-0.5 size-5 shrink-0 text-navy-600" />
-              <span>
-                <strong>Processado no seu navegador.</strong> O arquivo não é enviado a nenhum servidor.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <LuCircleCheck className="mt-0.5 size-5 shrink-0 text-navy-600" />
-              <span>
-                <strong>Você confirma tudo.</strong> Nada é cadastrado automaticamente, e campos não encontrados ficam em branco.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <LuReceipt className="mt-0.5 size-5 shrink-0 text-navy-600" />
-              <span>
-                <strong>Sem pagar duas vezes.</strong> A mesma linha digitável ou o mesmo Pix não pode ser cadastrado de novo.
-              </span>
-            </li>
-          </ul>
-          <p className="mt-6 text-sm text-muted">
-            Linha digitável e Pix válidos indicam que os códigos foram lidos corretamente — não que a cobrança seja legítima. Se o recebedor do Pix for diferente do beneficiário do boleto, a Luma avisa. Em PDFs escaneados, só o QR Code Pix é lido.
-          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <CTA />
+            <a href={PANEL} className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-ink/15 bg-white/60 px-6 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40">
+              Testar o painel da loja
+            </a>
+          </div>
+          <dl className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-ink/10 pt-6">
+            {[
+              ["0%", "de comissão por pedido"],
+              ["1 link", "para Instagram, WhatsApp e mesas"],
+              ["Na hora", "troca de preço e esgotado"],
+            ].map(([v, l]) => (
+              <div key={l}>
+                <dt className="font-display text-2xl font-semibold tracking-tight">{v}</dt>
+                <dd className="mt-1 text-xs leading-snug text-muted">{l}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function Benefits() {
-  const items = [
-    ["Menos multas e juros", "Avisos escalonados antes de cada vencimento, e uma faixa visual com tudo o que vence nos próximos 30 dias."],
-    ["Documentos sempre válidos", "Certificado digital, alvará ou contrato expirando deixam de ser surpresa."],
-    ["Visão clara do caixa", "Quanto está em aberto, o que já foi pago e para onde vai o dinheiro, por categoria e por mês."],
-    ["Simples para qualquer pessoa", "Interface em português, formatos brasileiros de data e moeda, e funciona bem no celular."],
-  ];
-  return (
-    <section className="bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="max-w-2xl font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Feita para pequenas e médias empresas, escritórios e prestadores de serviço</h2>
-        <dl className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
-          {items.map(([t, d]) => (
-            <div key={t} className="border-t-2 border-ink pt-5">
-              <dt className="font-display text-xl font-semibold">{t}</dt>
-              <dd className="mt-2 text-[15px] leading-relaxed text-muted">{d}</dd>
-            </div>
-          ))}
-        </dl>
+        <PhoneDemo />
       </div>
     </section>
   );
@@ -539,26 +176,138 @@ function Benefits() {
 
 function HowItWorks() {
   const steps = [
-    ["Abra a demonstração", "Não precisa de cadastro. A Luma já vem com dados fictícios para você explorar."],
-    ["Cadastre ou importe", "Inclua contas manualmente, importe boletos em PDF e registre despesas recorrentes, contratos e documentos."],
-    ["Acompanhe e aja", "Veja alertas, o calendário e os relatórios. Marque contas como pagas e exporte o que precisar."],
+    ["O cliente abre o seu link", "Pelo Instagram, pelo status do WhatsApp ou pelo QR Code da mesa. Vê fotos, vídeos e o que está aberto agora."],
+    ["Monta a sacola", "Escolhe ponto da carne, adicionais e observações. Informa entrega ou retirada, bairro, pagamento e troco."],
+    ["O pedido chega no seu WhatsApp", "Com itens, adicionais, endereço, taxa, desconto e total já calculados. É só confirmar e preparar."],
   ];
   return (
     <section id="como-funciona" className="scroll-mt-20 bg-navy-900 py-20 text-white sm:py-28">
+      <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_1fr]">
+        <div>
+          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Do link ao pedido em três passos</h2>
+          <ol className="mt-10 space-y-8">
+            {steps.map(([t, d], i) => (
+              <li key={t} className="flex gap-5">
+                <span className="font-display text-4xl font-semibold text-sky-400/90">{i + 1}</span>
+                <div>
+                  <h3 className="font-display text-xl font-semibold">{t}</h3>
+                  <p className="mt-2 max-w-md leading-relaxed text-white/65">{d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="self-center rounded-[28px] bg-[#0b141a] p-4 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)] sm:p-6">
+          <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">Como chega no WhatsApp</p>
+          <div className="ml-auto max-w-[92%] rounded-2xl rounded-tr-sm bg-[#005c4b] px-4 py-3 font-mono text-[12.5px] leading-relaxed text-[#e9edef]">
+            <p>
+              <b>Novo pedido #4821</b> · Brasa Burger
+            </p>
+            <p className="mt-2">
+              <b>ENTREGA</b>
+            </p>
+            <p>Cliente: Ana · (62) 98888-1234</p>
+            <p>Rua 7, 120 – Ap 32 · Setor Oeste</p>
+            <p className="mt-2 text-white/50">────────────</p>
+            <p>
+              <b>2x Brasa Burger</b> — R$ 83,80
+            </p>
+            <p className="pl-3 text-white/80">• Ponto: Ao ponto</p>
+            <p className="pl-3 text-white/80">• Adicional: Bacon (+R$ 5,00)</p>
+            <p>
+              <b>1x Fritas Rústicas</b> — R$ 18,90
+            </p>
+            <p className="text-white/50">────────────</p>
+            <p>Subtotal: R$ 102,70</p>
+            <p>Desconto (BEMVINDO10): – R$ 10,27</p>
+            <p>Entrega: Grátis</p>
+            <p>
+              <b>Total: R$ 92,43</b>
+            </p>
+            <p className="mt-2">Pagamento: Pix</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FEATURES = [
+  [LuImage, "Fotos e vídeos que dão fome", "Capa com vídeos curtos do preparo passando como stories, e foto em cada produto."],
+  [LuLayers, "Adicionais e escolhas", "Ponto da carne, tamanho, sabor e extras pagos, com opções obrigatórias e limite de escolhas."],
+  [LuMapPin, "Entrega por bairro", "Cada bairro com sua taxa, frete grátis acima de um valor e preenchimento pelo CEP."],
+  [LuStore, "Retirada no balcão", "O cliente escolhe entre entrega e retirada, cada um com o seu tempo de preparo."],
+  [LuBadgePercent, "Cupons de desconto", "Porcentagem ou valor fixo, ativados e desativados quando quiser."],
+  [LuClock3, "Aberto e fechado sozinho", "O cardápio mostra o horário de hoje e avisa quando a loja abre."],
+  [LuPackageX, "Esgotado com um toque", "Acabou o pão? Marque o produto como esgotado e ele para de ser vendido na hora."],
+  [LuPalette, "Com a cara da sua loja", "Seu logo, sua cor, seus textos. Nada de visual genérico de aplicativo."],
+  [LuLink2, "Um link para tudo", "Coloque na bio do Instagram, no status do WhatsApp e no QR Code das mesas."],
+] as const;
+
+function Features() {
+  return (
+    <section id="recursos" className="scroll-mt-20 bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem]">Como funciona</h2>
-        <ol className="mt-12 grid gap-8 md:grid-cols-3">
-          {steps.map(([t, d], i) => (
-            <li key={t} className="relative">
-              <span className="font-display text-5xl font-semibold text-sky-400/90">{i + 1}</span>
-              <h3 className="mt-3 font-display text-xl font-semibold">{t}</h3>
-              <p className="mt-2 leading-relaxed text-white/65">{d}</p>
-            </li>
+        <div className="max-w-2xl">
+          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Tudo o que um cardápio precisa para vender mais</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted">Feito para hamburguerias, pizzarias, lanchonetes, açaí, marmitas, doceiras e restaurantes que vendem pelo WhatsApp.</p>
+        </div>
+        <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map(([Icon, t, d]) => (
+            <div key={t} className="border-t-2 border-ink pt-5">
+              <Icon className="size-6" />
+              <h3 className="mt-3 font-display text-lg font-semibold">{t}</h3>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{d}</p>
+            </div>
           ))}
-        </ol>
-        <div className="mt-12 flex items-center gap-3 rounded-2xl bg-white/5 p-5 text-sm text-white/70">
-          <LuMonitorSmartphone className="size-6 shrink-0 text-sky-300" />
-          Funciona no computador e no celular, direto no navegador. Nada para instalar.
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PanelSection() {
+  return (
+    <section className="bg-paper py-20 sm:py-28">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
+        <div>
+          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Você muda o cardápio em segundos, pelo celular</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted">Preço, foto, produto novo, bairro, horário. Salvou, está no ar. Sem pedir para ninguém e sem esperar.</p>
+          <ul className="mt-8 space-y-3 text-[15px]">
+            {["Painel em português, simples para quem atende no balcão", "Prévia do cardápio antes de publicar", "Modelo pronto de hamburgueria para começar rápido", "Equipe com acesso: administrador, editor e somente consulta"].map((t) => (
+              <li key={t} className="flex gap-3">
+                <span className="mt-1 size-2 shrink-0 rounded-full bg-ink" />
+                {t}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8">
+            <CTA to={PANEL}>Testar o painel</CTA>
+          </div>
+        </div>
+        <div className="dot-grid-light relative overflow-hidden rounded-[32px] bg-ink p-6 text-paper shadow-[0_40px_90px_-30px_rgba(17,17,17,0.55)] sm:p-8">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="size-2.5 rounded-full bg-[#6fd3a0]" /> Cardápio no ar
+          </div>
+          <p className="mt-3 font-display text-xl font-semibold">gestãoluma.com.br/c/?l=sua-loja</p>
+          <div className="mt-6 space-y-2">
+            {[
+              ["Smash Bacon Duplo", "R$ 34,90", true],
+              ["Brasa Burger", "R$ 36,90", true],
+              ["Milkshake Nutella", "R$ 22,90", false],
+            ].map(([n, p, on]) => (
+              <div key={String(n)} className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
+                <LuShoppingBag className="size-4 text-paper/50" />
+                <span className="flex-1 text-sm font-semibold">{n}</span>
+                <span className="text-sm tabular text-paper/70">{p}</span>
+                <span className={cx("rounded-full px-2.5 py-0.5 text-[11px] font-semibold", on ? "bg-[#6fd3a0]/15 text-[#6fd3a0]" : "bg-white/10 text-paper/60")}>{on ? "Vendendo" : "Esgotado"}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex items-center gap-3 rounded-2xl bg-paper p-3 text-ink">
+            <LuMonitorSmartphone className="size-5" />
+            <span className="text-sm font-semibold">Funciona no celular e no computador, sem instalar nada.</span>
+          </div>
         </div>
       </div>
     </section>
@@ -566,14 +315,13 @@ function HowItWorks() {
 }
 
 const FAQ = [
-  ["Quanto custa a Luma?", "R$ 99,90 por mês para até 2 usuários. Cada usuário adicional custa R$ 29,90, até o limite de 10 usuários. A cobrança é mensal, via Pix, sem fidelidade."],
-  ["Posso testar antes de contratar?", "Sim. A demonstração é pública e usa apenas dados fictícios. Você navega por tudo — painel, contas, calendário, relatórios e leitura de boletos —, mas cadastrar, editar e excluir ficam disponíveis apenas para assinantes."],
-  ["Já posso contratar online?", "Ainda não. A contratação por Pix com liberação automática do ambiente está em desenvolvimento. Assim que estiver ativa, ela aparecerá na página de planos."],
-  ["Os dados da minha empresa ficam separados?", "Sim. Na versão comercial, cada empresa terá um ambiente exclusivo, com seus próprios usuários, contas, boletos, contratos e documentos, isolados das demais empresas."],
-  ["Os boletos em PDF são enviados para algum lugar?", "Na demonstração, não: a leitura acontece dentro do seu navegador, com a biblioteca PDF.js."],
-  ["A Luma paga os boletos?", "Não. A Luma organiza e lembra dos vencimentos. O pagamento continua sendo feito no seu banco; depois, basta marcar a conta como paga."],
-  ["Quais boletos a leitura automática reconhece?", "Boletos bancários (linha digitável de 47 dígitos), documentos de arrecadação, como contas de consumo e tributos (48 dígitos), guias como FGTS Digital, DAS e DARF, e cobranças com Pix: a Luma pega a chave Pix e o código Pix Copia e Cola, inclusive lendo o QR Code."],
-  ["Recebo alertas por e-mail ou WhatsApp?", "Ainda não. Os alertas aparecem dentro da Luma, no ícone de notificações e na central de alertas."],
+  ["Quanto custa?", "R$ 99,90 por mês por loja, com até 2 pessoas da equipe com acesso ao painel. Cada pessoa a mais custa R$ 29,90. Sem comissão sobre os pedidos e sem fidelidade."],
+  ["Vocês cobram taxa por pedido?", "Não. Os pedidos vão direto para o WhatsApp da loja e o pagamento é feito com a loja, por Pix, cartão ou dinheiro. Você paga só a mensalidade."],
+  ["Preciso montar o cardápio sozinho?", "Não. Quando você assina, a Luma pode entregar o cardápio já montado com seus produtos e fotos. Depois você altera o que quiser pelo painel."],
+  ["Como o cliente paga?", "Direto com a loja. O cardápio registra a forma escolhida (Pix, cartão na entrega ou dinheiro com troco) na mensagem do pedido."],
+  ["O cliente precisa baixar aplicativo ou fazer cadastro?", "Não. Ele abre o link no navegador, monta o pedido e envia pelo WhatsApp que já tem no celular."],
+  ["Posso usar o meu domínio?", "O cardápio fica em um endereço da Luma com o nome da sua loja. Fale com a gente se quiser usar um domínio próprio."],
+  ["Posso testar antes?", "Sim. O cardápio de exemplo e o painel de demonstração são públicos e não pedem cadastro."],
 ];
 
 export function PlansSection({ standalone = false }: { standalone?: boolean }) {
@@ -582,11 +330,11 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-10 max-w-2xl">
           {standalone ? (
-            <h1 className="font-display text-[2.6rem] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[4rem]">Um preço simples, por usuário</h1>
+            <h1 className="font-display text-[2.6rem] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[4rem]">Um preço simples, sem comissão</h1>
           ) : (
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um preço simples, por usuário</h2>
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um preço simples, sem comissão</h2>
           )}
-          <p className="mt-4 text-lg leading-relaxed text-muted">R$ 99,90 por mês para até 2 usuários. Cada usuário adicional custa R$ 29,90, até 10 usuários.</p>
+          <p className="mt-4 text-lg leading-relaxed text-muted">R$ 99,90 por mês por loja, com até 2 pessoas no painel. Cada pessoa adicional custa R$ 29,90. Os pedidos são todos seus.</p>
         </div>
         <PricingCalculator />
       </div>
@@ -596,11 +344,11 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
 
 function Faq() {
   return (
-    <section id="perguntas" className="scroll-mt-20 bg-paper py-20 sm:py-28">
+    <section id="perguntas" className="scroll-mt-20 bg-white py-20 sm:py-28">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.6fr]">
         <div>
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Perguntas frequentes</h2>
-          <p className="mt-4 text-muted">Planos, demonstração e funcionamento.</p>
+          <p className="mt-4 text-muted">Preço, pedidos, pagamento e como começar.</p>
         </div>
         <div className="divide-y divide-line rounded-2xl border border-line bg-white">
           {FAQ.map(([q, a]) => (
@@ -620,14 +368,14 @@ function Faq() {
 
 function FinalCta() {
   return (
-    <section className="bg-white py-20">
+    <section className="bg-paper py-20">
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="font-display text-3xl font-semibold tracking-tight">Experimente a Luma agora</h2>
-          <p className="mt-2 max-w-xl text-muted">Navegue pela demonstração com dados fictícios, sem cadastro. Quando quiser, escolha o plano para a sua equipe.</p>
+          <h2 className="font-display text-3xl font-semibold tracking-tight">Seu cardápio no ar ainda esta semana</h2>
+          <p className="mt-2 max-w-xl text-muted">Veja o exemplo funcionando, teste o painel e fale com a gente para montar o cardápio da sua loja.</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <CTA variant="dark" />
+          <CTA />
           <a href={PLANS} className="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-full border border-ink/15 px-6 text-[15px] font-semibold text-ink transition-colors hover:border-ink/40">
             Ver planos
           </a>
@@ -643,16 +391,16 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <Logo tone="light" />
-          <p className="mt-3 text-sm">Sua empresa. Tudo sob controle.</p>
-          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">A demonstração usa apenas dados fictícios e não permite alterações. A contratação é feita pelo WhatsApp.</p>
+          <p className="mt-3 text-sm">Cardápio digital com pedido no WhatsApp.</p>
+          <p className="mt-4 max-w-sm text-xs leading-relaxed text-white/45">O cardápio de exemplo usa uma loja fictícia; o pedido de teste abre o WhatsApp de um número fictício.</p>
         </div>
         <div>
           <p className="text-sm font-semibold text-white">Produto</p>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><a className="hover:text-white" href={`${HOME}#funcionalidades`}>Funcionalidades</a></li>
-            <li><a className="hover:text-white" href={`${HOME}#boletos`}>Leitura de boletos</a></li>
+            <li><a className="hover:text-white" href={`${HOME}#recursos`}>Recursos</a></li>
+            <li><a className="hover:text-white" href={DEMO}>Cardápio de exemplo</a></li>
+            <li><a className="hover:text-white" href={PANEL}>Painel de demonstração</a></li>
             <li><a className="hover:text-white" href={PLANS}>Planos</a></li>
-            <li><a className="hover:text-white" href={APP}>Demonstração</a></li>
           </ul>
         </div>
         <div>
@@ -660,6 +408,7 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li><a className="hover:text-white" href={`${HOME}#como-funciona`}>Como funciona</a></li>
             <li><a className="hover:text-white" href={`${HOME}#perguntas`}>Perguntas frequentes</a></li>
+            <li><a className="hover:text-white" href={LOGIN}>Entrar (lojas)</a></li>
             {whatsappLink() && (
               <li><a className="hover:text-white" href={whatsappLink()!} target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a></li>
             )}
@@ -678,7 +427,6 @@ export function Footer() {
           Acesso restrito
         </a>
       </div>
-      {/* Ajuda sempre à mão: WhatsApp do suporte e acesso para clientes */}
       <div className="fixed bottom-5 right-5 z-40 print:hidden">
         <HelpButton variant="pill" />
       </div>
@@ -692,11 +440,9 @@ export function LandingPage() {
       <Header />
       <main>
         <Hero />
-        <Differentials />
-        <Features />
-        <Boletos />
-        <Benefits />
         <HowItWorks />
+        <Features />
+        <PanelSection />
         <PlansSection />
         <Faq />
         <FinalCta />

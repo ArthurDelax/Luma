@@ -1,24 +1,16 @@
 # Luma
 
-**Sua empresa. Tudo sob controle.**
+**O cardápio digital que faz o cliente pedir.**
 
-Luma é uma plataforma de gestão empresarial para pequenas e médias empresas, escritórios e prestadores de serviço: contas a pagar, boletos, despesas recorrentes, contratos, documentos, alertas de vencimento, calendário e relatórios.
+Luma é uma plataforma de cardápio digital para hamburguerias, pizzarias, lanchonetes e restaurantes que vendem pelo WhatsApp. Cada loja tem um link próprio com fotos, vídeos, adicionais, entrega por bairro ou retirada e cupons. O cliente monta a sacola e o pedido chega pronto no WhatsApp da loja, sem comissão.
 
-> **Demonstração pública.** O site publicado no GitHub Pages usa apenas dados fictícios e é **somente leitura**: navegar, pesquisar, filtrar, exportar e testar a leitura de boletos funciona; cadastrar, editar e excluir é bloqueado na camada de dados (`StoreProvider`) e mostra o aviso para assinantes. A contratação por Pix e o ambiente multiempresa ainda não existem — veja [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+## O que tem
 
-## Funcionalidades
-
-- **Site institucional** com apresentação, funcionalidades, como funciona e perguntas frequentes.
-- **Planos** (`/planos`): R$ 99,90/mês até 2 usuários, R$ 29,90 por usuário adicional, até 10 usuários; calculadora interativa, botão "Contratar com Pix" (ainda informativo) e "Falar com um consultor" no WhatsApp (ativado ao configurar `WHATSAPP_NUMBER`). Regras em `src/lib/pricing.ts`.
-- **Painel** com faixa de vencimentos dos próximos 30 dias, indicadores, despesas por mês e por categoria, próximos vencimentos, calendário e alertas.
-- **Contas a pagar**: cadastrar, editar, excluir (com confirmação), marcar como paga, reabrir, buscar, filtrar (status, categoria, vencimento), ordenar (data, valor), anexar PDF, exportar CSV e bloqueio de duplicidades.
-- **Importação de boletos em PDF** (PDF.js, 100% no navegador): beneficiário, CNPJ, pagador, valor, vencimento, linha digitável, nº do documento, banco, **chave Pix** e **Pix Copia e Cola** (lido do texto ou do QR Code, com validação do CRC16 e alerta quando o recebedor do Pix difere do beneficiário). Validação dos dígitos verificadores de boletos bancários (47 dígitos, módulo 10 + módulo 11) e de arrecadação (48 dígitos, módulo 10 ou 11 conforme o identificador de valor), incluindo o novo ciclo do fator de vencimento (a partir de 22/02/2025).
-- **Despesas recorrentes** mensais, trimestrais ou anuais, com previsão de vencimentos e lançamento sem duplicar.
-- **Contratos e documentos** com situação (vigente, a vencer, vencido) e anexo.
-- **Central de alertas**: 30, 15, 7 e 3 dias antes, no dia e após o vencimento.
-- **Calendário** mensal com cores por tipo de evento.
-- **Relatórios** por período e categoria, pagas/pendentes/vencidas, evolução mensal, exportação CSV e impressão.
-- **Dados e ajustes**: backup/restauração em JSON, restaurar dados de exemplo, apagar tudo.
+- **Site** (`/`) com apresentação, como funciona, recursos, planos e perguntas frequentes.
+- **Cardápio público** (`/c/?l=endereco-da-loja`): topo com foto ou vídeos em sequência (estilo stories), aberto/fechado pelo horário, entrega ou retirada, destaques, busca, produto com adicionais obrigatórios e limite de escolhas, observação, sacola, cupom, pedido mínimo, frete grátis, taxa por bairro, CEP que preenche a rua (ViaCEP), pagamento (Pix, cartão, dinheiro com troco) e a mensagem do pedido aberta no WhatsApp.
+- **Painel da loja** (`/empresa/`): login do cliente; telas Início (link, publicar, checklist), Cardápio (categorias e produtos, esgotado, destaque, ordem), Adicionais, Loja (textos, cor, logo, capa, vídeos, horário, endereço, promoções) e Pedidos e entrega (WhatsApp, bairros e taxas, retirada, pagamentos, cupons). Prévia antes de publicar.
+- **Administração** (`/admin/`, com verificação em duas etapas): lojas, assinaturas, bloqueio por inadimplência, suporte, histórico, **criar loja com cardápio vazio**, **montar o cardápio de qualquer loja** antes de entregar e **trocar o responsável** antes da ativação.
+- **Demonstrações públicas**: cardápio de exemplo (`/demo/`) e painel de exemplo (`/app/`, as alterações ficam só no navegador).
 
 ## Executar no seu computador
 
@@ -29,53 +21,42 @@ npm install
 npm run dev
 ```
 
-Abra http://localhost:3000 (site) e http://localhost:3000/app/ (demonstração).
-
-Para testar localmente com edição liberada (dados salvos no navegador):
-
-```bash
-DEMO_MODE=false npm run dev
-```
+Abra http://localhost:3000 (site), http://localhost:3000/demo/ (cardápio de exemplo) e http://localhost:3000/app/ (painel de exemplo). Para o login das lojas e o admin funcionarem localmente, defina `SUPABASE_URL` e `SUPABASE_ANON_KEY` (valores públicos, os mesmos do workflow).
 
 Variáveis de build:
 
-| Variável | Padrão | Uso |
-|---|---|---|
-| `DEMO_MODE` | `true` | `false` libera cadastro/edição (somente para desenvolvimento local) |
-| `WHATSAPP_NUMBER` | vazio | número comercial com DDI e DDD (ex.: `5511999999999`); vazio deixa o botão desativado |
+| Variável | Uso |
+|---|---|
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | projeto Supabase (URL e chave pública) |
+| `WHATSAPP_NUMBER` | WhatsApp comercial da Luma, com DDI e DDD (ex.: `5511999999999`) |
 
 Outros comandos:
 
 ```bash
-npm test          # testes da linha digitável e da leitura de boletos
+npm test          # regras do pedido, cupons, entrega, horário e preços
 npm run typecheck # verificação de TypeScript
 npm run build     # gera o site estático na pasta out/
 ```
 
 ## Publicação
 
-Cada `push` na branch `main` executa o workflow `.github/workflows/deploy.yml`, que roda os testes, verifica o TypeScript, gera o site estático e publica no GitHub Pages.
+Cada `push` na branch `main` executa o workflow `.github/workflows/deploy.yml`, que roda os testes, verifica o TypeScript, gera o site estático e publica no GitHub Pages. Antes de publicar esta versão, aplique `supabase/migrations/0007_cardapio.sql` no Supabase ([docs/SUPABASE.md](docs/SUPABASE.md)).
 
 ## Estrutura
 
 ```
 src/
-  app/                 páginas do Next.js (site em /, painel em /app/)
+  app/                 páginas (site, /c, /demo, /app, /empresa, /admin, /convite)
   components/
     landing/           site institucional
-    app/               painel (shell, páginas, contas, boletos)
-    charts/            gráficos em SVG
+    menu/              cardápio público e painel da loja (menu/editor)
+    store/             login e acesso das lojas
+    admin/             administração da plataforma
+    support/           central de ajuda
     ui/                componentes de interface
   lib/
-    boleto/            linha digitável, extração de PDF, bancos
-    domain.ts          regras: status, recorrências, alertas, duplicidades
-    storage.ts         persistência (interface DataRepository + localStorage)
-    store.tsx          estado da aplicação
-tests/                 testes automatizados e PDFs fictícios de exemplo
+    menu/              tipos, regras do pedido, exemplo, gravação no Supabase
+supabase/migrations/   banco (0007 = cardápio)
+tests/                 testes automatizados
+public/demo/           fotos (Unsplash) e vídeos (Mixkit) da loja de exemplo
 ```
-
-Para adicionar um backend no futuro, implemente outra classe com a interface `DataRepository` (em `src/lib/storage.ts`) e passe-a ao `StoreProvider`.
-
-## Aviso
-
-Uma linha digitável com dígitos verificadores corretos indica apenas que foi lida ou digitada sem erros — **não** garante que o boleto seja legítimo. Os boletos em `tests/fixtures` e `public/exemplos` são fictícios.
