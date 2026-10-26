@@ -139,3 +139,13 @@ test("cardápio salvo incompleto é completado", () => {
   assert.ok(n.categories[0].id && n.categories[0].items[0].id);
   assert.deepEqual(n.groups, []);
 });
+
+test("pedido feito na mesa pelo QR Code", () => {
+  const lines: CartLine[] = [{ key: "1", itemId: "f1", qty: 2, opts: [], note: "", unit: 18.9 }];
+  const msg = buildOrderMessage(menu, { code: "77", mode: "table", customer: { name: "Rita", phone: "", table: "5", pay: "Cartão" }, lines });
+  assert.match(msg, /\*MESA 5 · CONSUMO NO LOCAL\*/);
+  assert.doesNotMatch(msg, /Telefone|Endereço|Entrega:|Retirada em|Previsão/);
+  assert.match(msg, /\*Total: R\$ 37,80\*/);
+  assert.equal(deliveryFee(store, "table", undefined, 10), 0);
+  assert.equal(normalizeMenu({ store: { name: "X" } }).store.dineIn.enabled, false);
+});

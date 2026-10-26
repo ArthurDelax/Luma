@@ -8,7 +8,7 @@ import {
   LuClock3,
   LuImage,
   LuLayers,
-  LuLink2,
+  LuQrCode,
   LuMapPin,
   LuMenu,
   LuMessageCircle,
@@ -241,7 +241,7 @@ const FEATURES = [
   [LuClock3, "Aberto e fechado sozinho", "O cardápio mostra o horário de hoje e avisa quando a loja abre."],
   [LuPackageX, "Esgotado com um toque", "Acabou o pão? Marque o produto como esgotado e ele para de ser vendido na hora."],
   [LuPalette, "Com a cara da sua loja", "Seu logo, sua cor, seus textos. Nada de visual genérico de aplicativo."],
-  [LuLink2, "Um link para tudo", "Coloque na bio do Instagram, no status do WhatsApp e no QR Code das mesas."],
+  [LuQrCode, "QR Code no balcão e na mesa", "Cada mesa com o seu QR Code: o cliente pede pelo celular e o pedido chega com o número da mesa."],
 ] as const;
 
 function Features() {
@@ -321,6 +321,7 @@ const FAQ = [
   ["Como o cliente paga?", "Direto com a loja. O cardápio registra a forma escolhida (Pix, cartão na entrega ou dinheiro com troco) na mensagem do pedido."],
   ["O cliente precisa baixar aplicativo ou fazer cadastro?", "Não. Ele abre o link no navegador, monta o pedido e envia pelo WhatsApp que já tem no celular."],
   ["Posso usar o meu domínio?", "O cardápio fica em um endereço da Luma com o nome da sua loja. Fale com a gente se quiser usar um domínio próprio."],
+  ["Serve para pedido na mesa?", "Sim. No painel você imprime um QR Code para cada mesa. O cliente escaneia, pede pelo celular e o pedido chega no WhatsApp da loja com o número da mesa, sem endereço nem taxa de entrega."],
   ["Posso testar antes?", "Sim. O cardápio de exemplo e o painel de demonstração são públicos e não pedem cadastro."],
 ];
 

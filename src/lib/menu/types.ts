@@ -47,6 +47,8 @@ export interface StoreInfo {
   hours: DayHours[];
   delivery: { enabled: boolean; time: string; minFee?: number; freeFrom: number | null; zones: DeliveryZone[] };
   pickup: { enabled: boolean; time: string };
+  /** pedido feito na mesa pelo QR Code (sem endereço nem taxa) */
+  dineIn: { enabled: boolean; tables: number };
   minOrder: number;
   payments: { pix: boolean; card: boolean; cash: boolean };
   /** textos da faixa de promoções */

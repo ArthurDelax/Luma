@@ -47,6 +47,7 @@ export function emptyStore(name: string): StoreInfo {
     hours: DEFAULT_HOURS.map((h) => (h ? [h[0], h[1]] : null)),
     delivery: { enabled: true, time: "40–60 min", freeFrom: null, zones: [] },
     pickup: { enabled: true, time: "20–30 min" },
+    dineIn: { enabled: false, tables: 10 },
     minOrder: 0,
     payments: { pix: true, card: true, cash: true },
     promos: [],
@@ -73,6 +74,7 @@ export function normalizeMenu(raw: unknown, fallbackName = "Minha loja"): MenuDa
   s.delivery = { ...base.delivery, ...(d.store?.delivery ?? {}) };
   s.pickup = { ...base.pickup, ...(d.store?.pickup ?? {}) };
   s.payments = { ...base.payments, ...(d.store?.payments ?? {}) };
+  s.dineIn = { ...base.dineIn, ...(d.store?.dineIn ?? {}) };
   s.hours = Array.from({ length: 7 }, (_, i) => {
     const h = d.store?.hours?.[i];
     return Array.isArray(h) && h.length === 2 ? [String(h[0]), String(h[1])] : h === null ? null : base.hours[i];
@@ -174,7 +176,7 @@ export interface CartLine {
   unit: number;
 }
 
-export type OrderMode = "delivery" | "pickup";
+export type OrderMode = "delivery" | "pickup" | "table";
 
 export function unitPrice(item: Pick<MenuItem, "price">, opts: ChosenOption[]): number {
   return round2(item.price + opts.reduce((s, o) => s + o.price, 0));
@@ -232,6 +234,8 @@ export interface Customer {
   cep?: string;
   pay?: "Pix" | "Cartão" | "Dinheiro";
   change?: string;
+  /** número da mesa (pedido pelo QR Code da mesa) */
+  table?: string;
 }
 
 export interface OrderSummary {
@@ -261,8 +265,9 @@ export function buildOrderMessage(menu: MenuData, o: OrderSummary): string {
   const line = "────────────";
   const out: string[] = [];
   out.push(`*Novo pedido #${o.code}* · ${s.name}`, "");
-  out.push(`*${o.mode === "delivery" ? "ENTREGA" : "RETIRADA NA LOJA"}*`);
-  out.push(`Cliente: ${o.customer.name}`, `Telefone: ${o.customer.phone}`);
+  out.push(`*${o.mode === "delivery" ? "ENTREGA" : o.mode === "table" ? `MESA ${o.customer.table ?? "?"} · CONSUMO NO LOCAL` : "RETIRADA NA LOJA"}*`);
+  out.push(`Cliente: ${o.customer.name}`);
+  if (o.customer.phone.trim()) out.push(`Telefone: ${o.customer.phone}`);
   if (o.mode === "delivery") {
     out.push(`Endereço: ${o.customer.street}, ${o.customer.number}${o.customer.complement ? ` – ${o.customer.complement}` : ""}`);
     const zone = s.delivery.zones.find((z) => z.id === o.customer.zoneId);
@@ -290,7 +295,8 @@ export function buildOrderMessage(menu: MenuData, o: OrderSummary): string {
     pay += ch ? ` (troco para ${brl(ch)})` : " (sem troco)";
   }
   out.push(pay);
-  out.push("", o.mode === "delivery" ? `Previsão: ${s.delivery.time}` : `Retirada em: ${s.address}${s.city ? ` – ${s.city}` : ""}`);
+  if (o.mode === "delivery") out.push("", `Previsão: ${s.delivery.time}`);
+  else if (o.mode === "pickup") out.push("", `Retirada em: ${s.address}${s.city ? ` – ${s.city}` : ""}`);
   return out.join("\n");
 }
 

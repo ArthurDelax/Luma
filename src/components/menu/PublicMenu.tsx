@@ -208,7 +208,7 @@ interface Draft {
 
 type View = "cart" | "checkout" | "done";
 
-export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: string; notice?: ReactNode }) {
+export function PublicMenu({ menu, slug, notice, table }: { menu: MenuData; slug: string; notice?: ReactNode; /** mesa do QR Code (?mesa=5) */ table?: string }) {
   const s = menu.store;
   const groupsById = useMemo(() => new Map(menu.groups.map((g) => [g.id, g])), [menu.groups]);
   const items = useMemo(() => allItems(menu), [menu]);
@@ -216,7 +216,9 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
   const sections = useMemo(() => menu.categories.filter((c) => c.items.length > 0), [menu.categories]);
   const featured = useMemo(() => items.filter((i) => i.featured && i.available).slice(0, 6), [items]);
 
-  const defaultMode: OrderMode = s.delivery.enabled ? "delivery" : "pickup";
+  // QR Code da mesa: o pedido é para consumir no local, sem endereço nem taxa
+  const tableMode = !!table && s.dineIn.enabled;
+  const defaultMode: OrderMode = tableMode ? "table" : s.delivery.enabled ? "delivery" : "pickup";
   const cartKey = `luma:cart:${slug}`;
   const [mode, setModeState] = useState<OrderMode>(defaultMode);
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -229,17 +231,18 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
     const saved = store.get<{ mode?: OrderMode; cart?: CartLine[]; coupon?: string | null }>(cartKey, {});
     const valid = (saved.cart ?? []).filter((l) => items.some((i) => i.id === l.itemId && i.available));
     setCart(valid);
-    if (saved.mode && (saved.mode === "delivery" ? s.delivery.enabled : s.pickup.enabled)) setModeState(saved.mode);
+    if (tableMode) setModeState("table");
+    else if (saved.mode &&(saved.mode === "delivery" ? s.delivery.enabled : saved.mode === "pickup" && s.pickup.enabled)) setModeState(saved.mode);
     setCouponCode(saved.coupon ?? null);
     setCustomer(store.get<Customer>("luma:customer", { name: "", phone: "" }));
     setNow(new Date());
     setHydrated(true);
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
-  }, [cartKey, items, s.delivery.enabled, s.pickup.enabled]);
+  }, [cartKey, items, s.delivery.enabled, s.pickup.enabled, tableMode]);
 
   useEffect(() => {
-    if (hydrated) store.set(cartKey, { mode, cart, coupon: couponCode });
+    if (hydrated) store.set(cartKey, { mode: mode === "table" ? undefined : mode, cart, coupon: couponCode });
   }, [hydrated, cartKey, mode, cart, couponCode]);
 
   const status = useMemo(() => (now ? openStatus(s.hours, now) : { open: true, label: "" }), [now, s.hours]);
@@ -599,7 +602,7 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
     const c = customer;
     const e: string[] = [];
     if (!c.name || c.name.trim().length < 2) e.push("name");
-    if (!c.phone || c.phone.replace(/\D/g, "").length < 10) e.push("phone");
+    if (mode !== "table" && (!c.phone || c.phone.replace(/\D/g, "").length < 10)) e.push("phone");
     if (mode === "delivery") {
       if (s.delivery.zones.length && !c.zoneId) e.push("zoneId");
       if (!c.street?.trim()) e.push("street");
@@ -618,7 +621,7 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
       return;
     }
     const code = String(Math.floor(1000 + Math.random() * 9000));
-    const msg = buildOrderMessage(menu, { code, mode, customer: c, lines: cart, coupon });
+    const msg = buildOrderMessage(menu, { code, mode, customer: { ...c, table: mode === "table" ? table : undefined }, lines: cart, coupon });
     setLastOrder({ code, url: whatsappOrderUrl(s.whatsapp, msg), total, sent: false });
     setView("done");
   };
@@ -652,11 +655,14 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
   }, [cart]);
 
   const minFee = minZoneFee(s);
-  const below = s.minOrder > 0 && sub < s.minOrder;
+  const below = mode !== "table" && s.minOrder > 0 && sub < s.minOrder;
   const today = now?.getDay() ?? -1;
   const anyVisible = sections.some((c) => c.items.some(visible));
   const accentStyle = { "--accent": /^#[0-9a-f]{6}$/i.test(s.accent) ? s.accent : "#de3f1c" } as CSSProperties;
-  const bothModes = s.delivery.enabled && s.pickup.enabled;
+  const bothModes = !tableMode && s.delivery.enabled && s.pickup.enabled;
+  const modeLabel = mode === "delivery" ? "Entrega" : mode === "table" ? `Mesa ${table}` : "Retirada";
+  const modeTime = mode === "delivery" ? s.delivery.time : s.pickup.time;
+  const feeText = (pending: string) => (mode === "delivery" ? (fee === null ? pending : fee === 0 ? "Grátis" : brl(fee)) : mode === "table" ? "Consumo no local" : "Grátis");
 
   /* ---------- render ---------- */
   return (
@@ -773,18 +779,26 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
             <div className="facts">
               <div className="fact">
                 <small>Tempo</small>
-                <b>{mode === "delivery" ? s.delivery.time : s.pickup.time}</b>
+                <b>{modeTime}</b>
               </div>
               <div className="fact">
-                <small>{mode === "delivery" ? "Entrega" : "Retirada"}</small>
-                <b>{mode === "delivery" ? (minFee === null ? "a combinar" : minFee === 0 ? "Grátis" : `a partir de ${brl(minFee)}`) : "Grátis"}</b>
+                <small>{mode === "delivery" ? "Entrega" : mode === "table" ? "Seu lugar" : "Retirada"}</small>
+                <b>{mode === "delivery" ? (minFee === null ? "a combinar" : minFee === 0 ? "Grátis" : `a partir de ${brl(minFee)}`) : mode === "table" ? `Mesa ${table}` : "Grátis"}</b>
               </div>
               <div className="fact">
                 <small>Pedido mín.</small>
-                <b>{s.minOrder > 0 ? brl(s.minOrder) : "Sem mínimo"}</b>
+                <b>{s.minOrder > 0 && mode !== "table" ? brl(s.minOrder) : "Sem mínimo"}</b>
               </div>
             </div>
           </div>
+          {mode === "table" && (
+            <div className="pickup-note">
+              <I n="shop" />
+              <span>
+                Você está na <b>mesa {table}</b>. Peça por aqui: o pedido chega na hora para a equipe da casa.
+              </span>
+            </div>
+          )}
           {mode === "pickup" && s.address && (
             <div className="pickup-note">
               <I n="pin" />
@@ -1121,7 +1135,7 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
               <div className="mode-strip">
                 <I n={mode === "delivery" ? "moto" : "shop"} />
                 <span>
-                  <b>{mode === "delivery" ? "Entrega" : "Retirada"}</b> · {mode === "delivery" ? s.delivery.time : s.pickup.time}
+                  <b>{modeLabel}</b> · {mode === "table" ? "consumo no local" : modeTime}
                 </span>
                 {bothModes && <button onClick={() => setMode(mode === "delivery" ? "pickup" : "delivery")}>Trocar</button>}
               </div>
@@ -1188,8 +1202,8 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
                   </div>
                 )}
                 <div className="muted">
-                  <span>{mode === "delivery" ? "Taxa de entrega" : "Retirada"}</span>
-                  <span>{mode === "delivery" ? (fee === null ? "calculada no próximo passo" : fee === 0 ? "Grátis" : brl(fee)) : "Grátis"}</span>
+                  <span>{mode === "delivery" ? "Taxa de entrega" : modeLabel}</span>
+                  <span>{feeText("calculada no próximo passo")}</span>
                 </div>
                 <div className="grand">
                   <span>Total</span>
@@ -1227,7 +1241,7 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
                   <em className="msg">Informe seu nome</em>
                 </label>
                 <label className={`fld ${errs.includes("phone") ? "err" : ""}`} data-f="phone">
-                  <span>WhatsApp</span>
+                  <span>{mode === "table" ? "WhatsApp (opcional)" : "WhatsApp"}</span>
                   <input id="cm-phone" type="tel" inputMode="numeric" autoComplete="tel" value={customer.phone} onChange={(e) => setCust({ phone: maskPhone(e.target.value) })} placeholder="(11) 90000-0000" />
                   <em className="msg">Informe um telefone válido</em>
                 </label>
@@ -1288,16 +1302,24 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
                 </div>
               ) : (
                 <div className="fs">
-                  <b>Retirada</b>
+                  <b>{mode === "table" ? "Consumo no local" : "Retirada"}</b>
                   <div className="pickup-box">
-                    <I n="pin" />
-                    <div>
-                      <b>{s.name}</b>
-                      <br />
-                      {s.address || "Endereço informado pela loja no WhatsApp"}
-                      <br />
-                      <span style={{ color: "var(--muted)" }}>Fica pronto em {s.pickup.time}</span>
-                    </div>
+                    <I n={mode === "table" ? "shop" : "pin"} />
+                    {mode === "table" ? (
+                      <div>
+                        <b>Mesa {table}</b>
+                        <br />
+                        O pedido vai para a equipe da {s.name} e é servido na sua mesa.
+                      </div>
+                    ) : (
+                      <div>
+                        <b>{s.name}</b>
+                        <br />
+                        {s.address || "Endereço informado pela loja no WhatsApp"}
+                        <br />
+                        <span style={{ color: "var(--muted)" }}>Fica pronto em {s.pickup.time}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1322,7 +1344,7 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
                     <em className="msg">Valor menor que o total</em>
                   </label>
                 )}
-                {customer.pay === "Cartão" && <p className="hint">A maquininha vai até você{mode === "delivery" ? "" : " no balcão"}. Crédito, débito e vale-refeição.</p>}
+                {customer.pay === "Cartão" && <p className="hint">A maquininha vai até você{mode === "pickup" ? " no balcão" : mode === "table" ? " na mesa" : ""}. Crédito, débito e vale-refeição.</p>}
                 {customer.pay === "Pix" && <p className="hint">A chave Pix é enviada pela loja no WhatsApp junto da confirmação.</p>}
               </div>
               <div className="mini-sum">
@@ -1339,8 +1361,8 @@ export function PublicMenu({ menu, slug, notice }: { menu: MenuData; slug: strin
                   </div>
                 )}
                 <div>
-                  <span>{mode === "delivery" ? "Entrega" : "Retirada"}</span>
-                  <span>{mode === "delivery" ? (fee === null ? "—" : fee === 0 ? "Grátis" : brl(fee)) : "Grátis"}</span>
+                  <span>{modeLabel}</span>
+                  <span>{feeText("—")}</span>
                 </div>
                 <div className="grand">
                   <span>Total</span>

@@ -16,7 +16,7 @@ const INCLUDED = [
   "Horário automático e produto esgotado com um toque",
   `Até ${MAX_USERS} pessoas da equipe com acesso ao painel`,
   "Cardápio montado pela Luma na contratação",
-  "Suporte pelo WhatsApp",
+  "QR Code para o balcão e para cada mesa",
 ];
 
 const STEPS = [

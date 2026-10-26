@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { tableFromLocation } from "@/lib/menu/links";
 import { fetchPublicMenu } from "@/lib/menu/repo";
 import type { MenuRecord } from "@/lib/menu/types";
 import { href } from "@/lib/paths";
@@ -14,10 +15,12 @@ type State = { kind: "loading" } | { kind: "ok"; rec: MenuRecord } | { kind: "mi
 export function StoreMenuPage() {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [slug, setSlug] = useState("");
+  const [table, setTable] = useState<string | undefined>();
 
   useEffect(() => {
     const l = (new URLSearchParams(window.location.search).get("l") ?? "").trim().toLowerCase();
     setSlug(l);
+    setTable(tableFromLocation(window.location.search));
     if (!l || !supabaseConfigured()) return setState({ kind: "missing" });
     let alive = true;
     const load = () =>
@@ -35,7 +38,7 @@ export function StoreMenuPage() {
     };
   }, []);
 
-  if (state.kind === "ok") return <PublicMenu menu={state.rec.data} slug={slug} />;
+  if (state.kind === "ok") return <PublicMenu menu={state.rec.data} slug={slug} table={table} />;
 
   return (
     <div className="cm-state">

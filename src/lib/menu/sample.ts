@@ -64,6 +64,7 @@ export function sampleMenu(base = ""): MenuData {
         ],
       },
       pickup: { enabled: true, time: "15–20 min" },
+      dineIn: { enabled: true, tables: 12 },
       minOrder: 25,
       payments: { pix: true, card: true, cash: true },
       promos: ["Use o cupom BEMVINDO10 e ganhe 10% off", "Terça do Smash: 2º burger com 50%", "Frete grátis acima de R$ 99 em bairros próximos", "Batata rústica feita na hora"],

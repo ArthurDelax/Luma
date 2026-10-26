@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { LuArrowLeft, LuHouse, LuLayers, LuLayoutDashboard, LuLogOut, LuMenu, LuStore, LuTruck, LuUtensils, LuX } from "react-icons/lu";
+import { LuArrowLeft, LuHouse, LuLayers, LuLayoutDashboard, LuLogOut, LuMenu, LuQrCode, LuStore, LuTruck, LuUtensils, LuX } from "react-icons/lu";
 import { emptyMenu, slugify } from "@/lib/menu/logic";
 import type { MenuRepository } from "@/lib/menu/repo";
 import type { MenuData, MenuRecord } from "@/lib/menu/types";
@@ -14,9 +14,10 @@ import { EditorContext, type EditorContextValue } from "./context";
 import { GroupsPage } from "./GroupsPage";
 import { OrdersPage } from "./OrdersPage";
 import { OverviewPage } from "./OverviewPage";
+import { QrPage } from "./QrPage";
 import { StorePage } from "./StorePage";
 
-export type Tab = "inicio" | "cardapio" | "adicionais" | "loja" | "pedidos";
+export type Tab = "inicio" | "cardapio" | "adicionais" | "loja" | "pedidos" | "qrcode";
 
 const NAV: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "inicio", label: "Início", icon: <LuLayoutDashboard /> },
@@ -24,6 +25,7 @@ const NAV: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "adicionais", label: "Adicionais", icon: <LuLayers /> },
   { id: "loja", label: "Loja", icon: <LuStore /> },
   { id: "pedidos", label: "Pedidos e entrega", icon: <LuTruck /> },
+  { id: "qrcode", label: "QR Code", icon: <LuQrCode /> },
 ];
 
 export interface EditorSession {
@@ -311,6 +313,7 @@ function EditorScreen({ repo, orgName, readOnly = false, session, publicUrl, ini
             {tab === "adicionais" && <GroupsPage />}
             {tab === "loja" && <StorePage />}
             {tab === "pedidos" && <OrdersPage />}
+            {tab === "qrcode" && <QrPage />}
           </div>
         </main>
 
