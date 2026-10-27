@@ -13,6 +13,17 @@ export const metadata: Metadata = {
   description:
     "Cardápio digital para hamburguerias, pizzarias, lanchonetes e restaurantes: fotos, adicionais, entrega ou retirada e o pedido pronto no WhatsApp da loja, sem comissão.",
   icons: { icon: `${base}/icon.svg` },
+  // imagem que aparece ao compartilhar o link (WhatsApp, Instagram, Facebook)
+  metadataBase: new URL("https://xn--gestoluma-o2a.com.br"),
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Luma",
+    title: "Luma — Cardápio digital com pedido no WhatsApp",
+    description: "Fotos, adicionais, entrega ou retirada, QR Code nas mesas e o pedido pronto no WhatsApp da loja, sem comissão.",
+    images: [{ url: `${base}/divulgacao/luma-cardapio-link.png`, width: 1200, height: 630, alt: "Luma: cardápio digital com pedido direto no WhatsApp" }],
+  },
+  twitter: { card: "summary_large_image", images: [`${base}/divulgacao/luma-cardapio-link.png`] },
 };
 
 export const viewport: Viewport = {
