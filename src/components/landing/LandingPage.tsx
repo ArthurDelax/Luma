@@ -315,9 +315,10 @@ function PanelSection() {
 }
 
 const FAQ = [
-  ["Quanto custa?", "Um plano único de R$ 119,90 por mês por loja, com tudo incluído e até 10 pessoas da equipe no painel. Sem comissão sobre os pedidos, sem taxa de adesão e sem fidelidade."],
+  ["Quanto custa?", "No mensal, R$ 119,90 por mês por loja + implantação de R$ 197, paga uma vez (a gente monta o cardápio, ajusta as fotos e entrega os QR Codes das mesas). No anual, R$ 1.199 à vista, com 2 meses grátis e implantação grátis. Sem comissão sobre os pedidos e sem fidelidade no mensal."],
   ["Vocês cobram taxa por pedido?", "Não. Os pedidos vão direto para o WhatsApp da loja e o pagamento é feito com a loja, por Pix, cartão ou dinheiro. Você paga só a mensalidade."],
-  ["Preciso montar o cardápio sozinho?", "Não. Quando você assina, a Luma pode entregar o cardápio já montado com seus produtos e fotos. Depois você altera o que quiser pelo painel."],
+  ["Preciso montar o cardápio sozinho?", "Não. A implantação inclui a montagem: você manda os produtos, preços e fotos, e a Luma entrega o cardápio pronto, com os QR Codes das mesas. Depois você altera o que quiser pelo painel."],
+  ["E se eu tiver algum problema?", "É só chamar no WhatsApp. Esqueceu a senha, não está conseguindo trocar uma foto ou precisa de ajuda com o cardápio? A gente resolve com você."],
   ["Como o cliente paga?", "Direto com a loja. O cardápio registra a forma escolhida (Pix, cartão na entrega ou dinheiro com troco) na mensagem do pedido."],
   ["O cliente precisa baixar aplicativo ou fazer cadastro?", "Não. Ele abre o link no navegador, monta o pedido e envia pelo WhatsApp que já tem no celular."],
   ["Posso usar o meu domínio?", "O cardápio fica em um endereço da Luma com o nome da sua loja. Fale com a gente se quiser usar um domínio próprio."],
@@ -335,7 +336,7 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
           ) : (
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-[2.6rem] sm:leading-[1.08]">Um plano, um preço, sem comissão</h2>
           )}
-          <p className="mt-4 text-lg leading-relaxed text-muted">Um plano só, com tudo incluído: R$ 119,90 por mês por loja. Os pedidos são todos seus.</p>
+          <p className="mt-4 text-lg leading-relaxed text-muted">R$ 119,90 por mês por loja, com tudo incluído, ou o anual com 2 meses grátis. A gente monta o seu cardápio e os pedidos são todos seus.</p>
         </div>
         <PricingCalculator />
       </div>

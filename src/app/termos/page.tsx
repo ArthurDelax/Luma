@@ -29,10 +29,11 @@ export default function TermosPage() {
 
           <Section n={2} title="Contratação, plano e pagamento">
             <ul>
-              <li>A assinatura é mensal, por loja, em plano único com o valor informado na página de planos.</li>
+              <li>A assinatura é por loja, em plano único, paga por mês ou por ano, com os valores informados na página de planos.</li>
+              <li>No plano mensal há uma taxa de implantação, paga uma vez, que cobre a montagem do cardápio, o ajuste das fotos e os QR Codes das mesas. No plano anual a implantação é grátis.</li>
               <li>A Luma não cobra comissão sobre os pedidos feitos pelo cardápio.</li>
               <li>A cobrança é feita por um intermediador de pagamentos (Asaas), por Pix, boleto ou cartão de crédito. A Luma não recebe nem armazena dados do seu cartão.</li>
-              <li>Não há fidelidade nem multa de cancelamento.</li>
+              <li>Não há fidelidade nem multa de cancelamento no plano mensal. No plano anual, se você cancelar antes do fim, devolvemos os meses inteiros que não foram usados, descontado o valor da implantação que foi dada de graça.</li>
               <li>O acesso é liberado depois da confirmação do pagamento.</li>
               <li>Mudanças de preço serão avisadas com antecedência de pelo menos 30 dias e valem a partir da cobrança seguinte.</li>
             </ul>
