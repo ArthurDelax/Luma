@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { LuPlus, LuX } from "react-icons/lu";
 import { isValidWhatsapp, uid } from "@/lib/menu/logic";
-import type { Coupon } from "@/lib/menu/types";
-import { Badge, Button, Field, IconButton, Input, Select } from "../../ui";
+import { Badge, Button, Field, IconButton, Input } from "../../ui";
 import { useEditor } from "./context";
 import { MoneyInput, Panel, Toggle } from "./fields";
 import { useStore } from "./StorePage";
@@ -23,18 +22,17 @@ function phoneDisplay(digits: string): string {
 
 export function OrdersPage() {
   const { store: s, setStore } = useStore();
-  const { menu, update, readOnly } = useEditor();
+  const { readOnly } = useEditor();
   const [phone, setPhone] = useState(phoneDisplay(s.whatsapp));
   const validPhone = isValidWhatsapp(s.whatsapp);
 
   const setDelivery = (patch: Partial<typeof s.delivery>) => setStore({ delivery: { ...s.delivery, ...patch } });
-  const setCoupons = (fn: (c: Coupon[]) => Coupon[]) => update((m) => ({ ...m, coupons: fn(m.coupons) }));
 
   return (
     <fieldset disabled={readOnly} className="space-y-5">
       <div>
         <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2rem]">Pedidos e entrega</h1>
-        <p className="mt-1 text-sm text-muted">Para onde vão os pedidos, onde a loja entrega, quanto cobra e como o cliente paga.</p>
+        <p className="mt-1 text-sm text-muted">Para onde vão os pedidos, onde a loja entrega, quanto cobra e como o cliente paga. Cupons ficam em “Promoções”.</p>
       </div>
 
       <Panel title="WhatsApp que recebe os pedidos" description="Quando o cliente finaliza, o WhatsApp dele abre com o pedido pronto para enviar a este número.">
@@ -132,46 +130,6 @@ export function OrdersPage() {
         </div>
       </Panel>
 
-      <Panel
-        title="Cupons de desconto"
-        description="O cliente digita o código na sacola. Desative em vez de excluir se quiser usar de novo depois."
-        actions={
-          !readOnly && (
-            <Button size="sm" variant="secondary" icon={<LuPlus className="size-4" />} onClick={() => setCoupons((c) => [...c, { code: "", type: "pct", value: 10, active: true }])}>
-              Novo cupom
-            </Button>
-          )
-        }
-      >
-        {menu.coupons.length === 0 ? (
-          <p className="text-sm text-muted">Nenhum cupom. Ex.: BEMVINDO10 para 10% no primeiro pedido.</p>
-        ) : (
-          <div className="space-y-2">
-            {menu.coupons.map((c, i) => (
-              <div key={i} className="flex flex-wrap items-center gap-2 rounded-2xl border border-line p-2.5">
-                <Input value={c.code} onChange={(e) => setCoupons((l) => l.map((x, j) => (j === i ? { ...x, code: e.target.value.toUpperCase().replace(/\s/g, "") } : x)))} placeholder="CÓDIGO" maxLength={20} aria-label="Código do cupom" className="w-40 font-semibold uppercase tracking-wide" />
-                <Select value={c.type} onChange={(e) => setCoupons((l) => l.map((x, j) => (j === i ? { ...x, type: e.target.value as Coupon["type"] } : x)))} className="w-auto" aria-label="Tipo de desconto">
-                  <option value="pct">% do pedido</option>
-                  <option value="fix">Valor fixo (R$)</option>
-                </Select>
-                <div className="w-28">
-                  {c.type === "pct" ? (
-                    <Input type="number" min={1} max={100} value={c.value} onChange={(e) => setCoupons((l) => l.map((x, j) => (j === i ? { ...x, value: Math.min(100, Math.max(0, Number(e.target.value) || 0)) } : x)))} aria-label="Porcentagem" />
-                  ) : (
-                    <MoneyInput value={c.value} onChange={(v) => setCoupons((l) => l.map((x, j) => (j === i ? { ...x, value: v ?? 0 } : x)))} />
-                  )}
-                </div>
-                <div className="ml-auto flex items-center gap-1">
-                  <Toggle checked={c.active} onChange={(active) => setCoupons((l) => l.map((x, j) => (j === i ? { ...x, active } : x)))} label={c.active ? "Ativo" : "Inativo"} />
-                  <IconButton label="Excluir cupom" onClick={() => setCoupons((l) => l.filter((_, j) => j !== i))}>
-                    <LuX className="size-4" />
-                  </IconButton>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Panel>
     </fieldset>
   );
 }

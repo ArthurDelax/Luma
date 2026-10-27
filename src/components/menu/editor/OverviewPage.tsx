@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { LuCircleCheck, LuCircle, LuCopy, LuExternalLink, LuEye, LuLayers, LuPackageX, LuSparkles, LuUtensils } from "react-icons/lu";
+import { useEffect, useState } from "react";
+import { LuCircleCheck, LuCircle, LuCopy, LuExternalLink, LuBadgePercent, LuEye, LuImage, LuLayers, LuPackageX, LuPrinter, LuSparkles, LuStar, LuUtensils } from "react-icons/lu";
 import { allItems, publishChecklist, SLUG_RE, slugify } from "@/lib/menu/logic";
+import { tableUrl } from "@/lib/menu/links";
+import { qrPng } from "@/lib/menu/qr";
 import { sampleMenu } from "@/lib/menu/sample";
 import { BASE_PATH } from "@/lib/paths";
 import { Badge, Button, cx, Field, Input, useConfirm, useToast } from "../../ui";
 import { useEditor } from "./context";
 import { Panel } from "./fields";
+import type { Tab } from "./MenuEditor";
 
-export function OverviewPage({ onPublish, onPreview, onGo, saving }: { onPublish: (published: boolean) => void; onPreview: () => void; onGo: (tab: "cardapio" | "loja" | "pedidos" | "adicionais") => void; saving: boolean }) {
+export function OverviewPage({ onPublish, onPreview, onGo, saving }: { onPublish: (published: boolean) => void; onPreview: () => void; onGo: (tab: Tab) => void; saving: boolean }) {
   const { record, setRecord, update, menu, readOnly, publicUrl, repo, clean } = useEditor();
   const toast = useToast();
   const confirm = useConfirm();
@@ -149,6 +152,20 @@ export function OverviewPage({ onPublish, onPreview, onGo, saving }: { onPublish
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              const blob = new Blob([JSON.stringify({ slug: record.slug, published: record.published, data: menu }, null, 2)], { type: "application/json" });
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = `cardapio-${record.slug}.json`;
+              a.click();
+              setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            }}
+            className="text-left text-xs font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
+          >
+            Baixar uma cópia do cardápio (backup)
+          </button>
           <Panel title="Endereço do cardápio" description="A parte final do link. Mude antes de divulgar: links antigos deixam de funcionar.">
             <Field label="Endereço" htmlFor="ov-slug" error={slugError} hint={`Sugestão: ${slugify(menu.store.name)}`}>
               <div className="flex gap-2">
@@ -163,6 +180,58 @@ export function OverviewPage({ onPublish, onPreview, onGo, saving }: { onPublish
           </Panel>
         </div>
       </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
+        <section className="card flex items-center gap-5 p-5 sm:p-6">
+          <TableQr url={tableUrl(url, 1)} />
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-semibold">QR Code das mesas</h2>
+            <p className="mt-1 text-sm text-muted">
+              {menu.store.dineIn.enabled ? `Pedido na mesa ativado para ${menu.store.dineIn.tables} mesas. Imprima os cartões e cole nas mesas.` : "Pedido na mesa desativado. Ative para o cliente pedir pelo celular direto da mesa."}
+            </p>
+            <Button className="mt-4" icon={<LuPrinter className="size-4" />} onClick={() => onGo("qrcode")}>
+              {menu.store.dineIn.enabled ? "Imprimir QR das mesas" : "Ativar e imprimir"}
+            </Button>
+          </div>
+        </section>
+        <section className="card p-5 sm:p-6">
+          <h2 className="font-display text-lg font-semibold">Atalhos</h2>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {([
+              ["cardapio", "Produtos e preços", <LuUtensils key="a" />],
+              ["destaques", "Destaques da casa", <LuStar key="b" />],
+              ["capa", "Foto e vídeos do topo", <LuImage key="c" />],
+              ["promocoes", "Faixa e cupons", <LuBadgePercent key="d" />],
+            ] as const).map(([t, l, ic]) => (
+              <button key={t} type="button" onClick={() => onGo(t)} className="flex flex-col items-start gap-2 rounded-2xl border border-line bg-white p-3 text-left text-sm font-semibold transition-colors hover:border-ink/30 [&>svg]:size-5">
+                {ic}
+                {l}
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
+  );
+}
+
+function TableQr({ url }: { url: string }) {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    let alive = true;
+    qrPng(url, 320).then((s) => alive && setSrc(s), () => {});
+    return () => {
+      alive = false;
+    };
+  }, [url]);
+  return (
+    <span className="grid size-28 shrink-0 place-items-center rounded-2xl border border-line bg-white p-2">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="QR Code da mesa 1" className="size-full" />
+      ) : (
+        <span className="size-full animate-pulse rounded-xl bg-sky-100" />
+      )}
+    </span>
   );
 }

@@ -468,7 +468,7 @@ function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack
         <LuMailCheck className="mx-auto size-10" />
         <h1 className="mt-3 font-display text-xl font-semibold">Confira seu e-mail</h1>
         <p className="mt-2 text-sm text-muted">
-          Se houver uma conta Luma com <strong className="text-ink">{sentTo}</strong>, você vai receber um link para criar uma nova senha. Verifique também a caixa de spam.
+          Se houver uma conta Luma com <strong className="text-ink">{sentTo}</strong>, você vai receber um link para criar uma nova senha. Verifique também a caixa de spam. Não chegou em 5 minutos? Fale com a Luma pelo WhatsApp: enviamos o link por lá.
         </p>
         <Button variant="secondary" className="mt-6 w-full" onClick={onBack}>
           Voltar para o login

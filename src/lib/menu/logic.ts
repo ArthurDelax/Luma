@@ -47,7 +47,7 @@ export function emptyStore(name: string): StoreInfo {
     hours: DEFAULT_HOURS.map((h) => (h ? [h[0], h[1]] : null)),
     delivery: { enabled: true, time: "40–60 min", freeFrom: null, zones: [] },
     pickup: { enabled: true, time: "20–30 min" },
-    dineIn: { enabled: false, tables: 10 },
+    dineIn: { enabled: true, tables: 10 },
     minOrder: 0,
     payments: { pix: true, card: true, cash: true },
     promos: [],

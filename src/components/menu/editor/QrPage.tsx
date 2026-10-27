@@ -99,7 +99,7 @@ export function QrPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2rem]">QR Code</h1>
+        <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] sm:text-[2rem]">QR Code das mesas</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">Imprima e cole no balcão, na vitrine, nas embalagens e nas mesas. O cliente aponta a câmera do celular e o cardápio abre na hora, sem baixar nada.</p>
       </div>
 
@@ -112,40 +112,22 @@ export function QrPage() {
         </div>
       )}
 
-      <Panel title="QR Code do cardápio" description="Leva para o cardápio completo, com entrega e retirada. Use em cartazes, panfletos, sacolas e no balcão.">
-        <div className="grid items-center gap-6 sm:grid-cols-[220px_1fr]">
-          <div className="mx-auto w-full max-w-[220px] rounded-3xl border border-line bg-white p-3">
-            {qr ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={qr} alt={`QR Code do cardápio da ${s.name}`} className="aspect-square w-full" />
-            ) : (
-              <div className="aspect-square w-full animate-pulse rounded-2xl bg-sky-100" />
-            )}
-          </div>
-          <div className="min-w-0 space-y-4">
-            <p className="break-all rounded-xl bg-paper px-3 py-2 font-mono text-xs text-muted">{url}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button icon={<LuPrinter className="size-4" />} onClick={printPoster} disabled={!qr}>
-                Imprimir cartaz
-              </Button>
-              <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={() => qr && download(`qrcode-${fileBase}.png`, qr)} disabled={!qr}>
-                Baixar PNG
-              </Button>
-              <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={() => downloadSvg(url, `qrcode-${fileBase}.svg`)}>
-                Baixar SVG (gráfica)
-              </Button>
-            </div>
-            <p className="text-xs text-muted">PNG para redes sociais e WhatsApp; SVG para a gráfica, que imprime em qualquer tamanho sem perder qualidade.</p>
-          </div>
-        </div>
-      </Panel>
-
       <Panel
         title="Pedido na mesa"
         description="Cada mesa ganha o seu QR Code. O cliente pede pelo celular e a mensagem chega no WhatsApp da loja com o número da mesa, sem endereço nem taxa de entrega."
         actions={<Toggle checked={s.dineIn.enabled} disabled={readOnly} onChange={(enabled) => setStore({ dineIn: { ...s.dineIn, enabled } })} label={s.dineIn.enabled ? "Ativado" : "Desativado"} />}
       >
-        {s.dineIn.enabled ? (
+        {!s.dineIn.enabled && (
+          <div className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl bg-soon-soft px-4 py-3 text-sm text-soon">
+            <span className="flex-1">O pedido na mesa está desligado: hoje esses QR Codes abrem o cardápio normal, com entrega e retirada.</span>
+            {!readOnly && (
+              <Button size="sm" onClick={() => setStore({ dineIn: { ...s.dineIn, enabled: true } })}>
+                Ativar pedido na mesa
+              </Button>
+            )}
+          </div>
+        )}
+        {(
           <div className="grid gap-6 sm:grid-cols-[220px_1fr]">
             <div className="mx-auto w-full max-w-[220px]">
               <div className="rounded-3xl border border-dashed border-sky-300 bg-white p-4 text-center">
@@ -197,10 +179,36 @@ export function QrPage() {
               </ul>
             </div>
           </div>
-        ) : (
-          <p className="text-sm text-muted">Desativado: os QR Codes de mesa abrem o cardápio normal, com entrega e retirada. Ative se a loja tem mesas ou balcão para consumo no local.</p>
         )}
       </Panel>
+      <Panel title="QR Code do balcão e da divulgação" description="Leva para o cardápio completo, com entrega e retirada. Use em cartazes, panfletos, sacolas e no balcão.">
+        <div className="grid items-center gap-6 sm:grid-cols-[220px_1fr]">
+          <div className="mx-auto w-full max-w-[220px] rounded-3xl border border-line bg-white p-3">
+            {qr ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qr} alt={`QR Code do cardápio da ${s.name}`} className="aspect-square w-full" />
+            ) : (
+              <div className="aspect-square w-full animate-pulse rounded-2xl bg-sky-100" />
+            )}
+          </div>
+          <div className="min-w-0 space-y-4">
+            <p className="break-all rounded-xl bg-paper px-3 py-2 font-mono text-xs text-muted">{url}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button icon={<LuPrinter className="size-4" />} onClick={printPoster} disabled={!qr}>
+                Imprimir cartaz
+              </Button>
+              <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={() => qr && download(`qrcode-${fileBase}.png`, qr)} disabled={!qr}>
+                Baixar PNG
+              </Button>
+              <Button variant="secondary" icon={<LuDownload className="size-4" />} onClick={() => downloadSvg(url, `qrcode-${fileBase}.svg`)}>
+                Baixar SVG (gráfica)
+              </Button>
+            </div>
+            <p className="text-xs text-muted">PNG para redes sociais e WhatsApp; SVG para a gráfica, que imprime em qualquer tamanho sem perder qualidade.</p>
+          </div>
+        </div>
+      </Panel>
+
     </div>
   );
 }

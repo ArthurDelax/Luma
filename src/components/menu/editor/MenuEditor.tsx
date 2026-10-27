@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { LuArrowLeft, LuHouse, LuLayers, LuLayoutDashboard, LuLogOut, LuMenu, LuQrCode, LuStore, LuTruck, LuUtensils, LuX } from "react-icons/lu";
-import { emptyMenu, slugify } from "@/lib/menu/logic";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { LuArrowLeft, LuBadgePercent, LuHouse, LuImage, LuLayers, LuLayoutDashboard, LuLogOut, LuMenu, LuQrCode, LuStar, LuStore, LuTruck, LuUtensils, LuX } from "react-icons/lu";
+import { emptyMenu, publishChecklist, slugify } from "@/lib/menu/logic";
 import type { MenuRepository } from "@/lib/menu/repo";
 import type { MenuData, MenuRecord } from "@/lib/menu/types";
 import { href } from "@/lib/paths";
@@ -12,20 +12,26 @@ import { Button, ConfirmProvider, cx, IconButton, Logo, LogoMark, ToastProvider,
 import { CatalogPage } from "./CatalogPage";
 import { EditorContext, type EditorContextValue } from "./context";
 import { GroupsPage } from "./GroupsPage";
+import { HeroPage } from "./HeroPage";
+import { HighlightsPage } from "./HighlightsPage";
+import { PromosPage } from "./PromosPage";
 import { OrdersPage } from "./OrdersPage";
 import { OverviewPage } from "./OverviewPage";
 import { QrPage } from "./QrPage";
 import { StorePage } from "./StorePage";
 
-export type Tab = "inicio" | "cardapio" | "adicionais" | "loja" | "pedidos" | "qrcode";
+export type Tab = "inicio" | "cardapio" | "destaques" | "capa" | "promocoes" | "adicionais" | "pedidos" | "qrcode" | "loja";
 
 const NAV: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: "inicio", label: "Início", icon: <LuLayoutDashboard /> },
   { id: "cardapio", label: "Cardápio", icon: <LuUtensils /> },
+  { id: "destaques", label: "Destaques", icon: <LuStar /> },
+  { id: "capa", label: "Capa e vídeos", icon: <LuImage /> },
+  { id: "promocoes", label: "Promoções", icon: <LuBadgePercent /> },
   { id: "adicionais", label: "Adicionais", icon: <LuLayers /> },
-  { id: "loja", label: "Loja", icon: <LuStore /> },
   { id: "pedidos", label: "Pedidos e entrega", icon: <LuTruck /> },
-  { id: "qrcode", label: "QR Code", icon: <LuQrCode /> },
+  { id: "qrcode", label: "QR Code das mesas", icon: <LuQrCode /> },
+  { id: "loja", label: "Loja e horário", icon: <LuStore /> },
 ];
 
 export interface EditorSession {
@@ -126,6 +132,25 @@ function EditorScreen({ repo, orgName, readOnly = false, session, publicUrl, ini
   useEffect(() => {
     document.title = `${NAV.find((n) => n.id === tab)?.label ?? "Painel"} · ${orgName} · Luma`;
   }, [tab, orgName]);
+
+  const togglePublish = () => {
+    if (!record || readOnly) return;
+    if (!record.published) {
+      const missing = publishChecklist(record.data).filter((c) => ["whatsapp", "items", "modes"].includes(c.id) && !c.done);
+      if (missing.length) {
+        toast("error", `Antes de publicar: ${missing.map((m) => m.label.toLowerCase()).join("; ")}.`);
+        go("inicio");
+        return;
+      }
+    }
+    void save({ ...record, published: !record.published });
+  };
+
+  // no celular, a aba escolhida fica visível na barra de abas
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    tabsRef.current?.querySelector<HTMLElement>("[aria-selected=\"true\"]")?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [tab]);
 
   const go = (t: Tab) => {
     setTab(t);
@@ -289,13 +314,29 @@ function EditorScreen({ repo, orgName, readOnly = false, session, publicUrl, ini
             {session.kind === "demo" && <span className="hidden rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline">Demonstração: as alterações ficam só neste navegador</span>}
             {readOnly && <span className="hidden rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline">Somente consulta</span>}
             <div className="ml-auto flex items-center gap-2">
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={togglePublish}
+                  disabled={saving}
+                  title={record.published ? "Tirar o cardápio do ar" : "Publicar o cardápio"}
+                  className={cx(
+                    "inline-flex h-8 items-center gap-2 rounded-full border px-3 text-[13px] font-semibold transition-colors disabled:opacity-50",
+                    record.published ? "border-paid/30 bg-paid-soft text-paid hover:border-paid/60" : "border-line bg-white text-muted hover:border-ink/30 hover:text-ink",
+                  )}
+                >
+                  <span className={cx("size-2 rounded-full", record.published ? "bg-paid" : "bg-sky-300")} />
+                  {record.published ? "No ar" : "Fora do ar"}
+                  <span className="hidden font-normal opacity-70 sm:inline">· {record.published ? "tirar do ar" : "publicar"}</span>
+                </button>
+              )}
               <Button variant="secondary" size="sm" onClick={() => setPreview(true)}>
                 Prévia
               </Button>
               {session.kind === "client" && <HelpButton />}
             </div>
           </div>
-          <div className="flex gap-1 overflow-x-auto px-3 pb-2 lg:hidden" role="tablist" aria-label="Seções">
+          <div ref={tabsRef} className="flex gap-1 overflow-x-auto px-3 pb-2 lg:hidden" role="tablist" aria-label="Seções">
             {NAV.map((n) => (
               <button key={n.id} type="button" role="tab" aria-selected={tab === n.id} onClick={() => go(n.id)} className={cx("shrink-0 rounded-full px-3 py-1.5 text-[13px] font-semibold", tab === n.id ? "bg-ink text-paper" : "text-muted")}>
                 {n.label}
@@ -314,6 +355,9 @@ function EditorScreen({ repo, orgName, readOnly = false, session, publicUrl, ini
             {tab === "loja" && <StorePage />}
             {tab === "pedidos" && <OrdersPage />}
             {tab === "qrcode" && <QrPage />}
+            {tab === "destaques" && <HighlightsPage onGoCatalog={() => go("cardapio")} />}
+            {tab === "capa" && <HeroPage />}
+            {tab === "promocoes" && <PromosPage />}
           </div>
         </main>
 

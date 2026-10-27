@@ -72,14 +72,22 @@ export default function TermosPage() {
           </Section>
 
           <Section n={7} title="Seus dados">
-            <p>O cardápio e as imagens que você cadastra são seus. Como tratamos os dados está na Política de privacidade.</p>
+            <p>O cardápio e as imagens que você cadastra são seus. Você pode baixar uma cópia do cardápio a qualquer momento na tela Início do painel. Como tratamos os dados está na Política de privacidade.</p>
           </Section>
 
-          <Section n={8} title="Mudanças nestes termos">
+          <Section n={8} title="Encerramento do serviço pela Luma">
+            <p>
+              Se a Luma decidir encerrar o serviço, avisará os clientes com pelo menos 30 dias de antecedência pelos canais de contato da conta. Nesse
+              período o cardápio continua funcionando, a cobrança das mensalidades seguintes é cancelada e o cliente pode baixar a cópia do cardápio e
+              das imagens. Valores pagos antecipadamente por um período que não será prestado são devolvidos de forma proporcional.
+            </p>
+          </Section>
+
+          <Section n={9} title="Mudanças nestes termos">
             <p>Podemos atualizar estes termos. Mudanças importantes serão avisadas com antecedência pelos canais de contato da sua conta.</p>
           </Section>
 
-          <Section n={9} title="Lei e foro">
+          <Section n={10} title="Lei e foro">
             <p>Estes termos seguem as leis brasileiras. Fica eleito o foro do domicílio do contratante consumidor, quando aplicável.</p>
           </Section>
         </LegalPage>

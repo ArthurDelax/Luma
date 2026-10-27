@@ -198,7 +198,7 @@ export function InviteAccept() {
             <LuMailCheck className="mx-auto size-10" />
             <h1 className="mt-3 font-display text-xl font-semibold">Confirme seu e-mail</h1>
             <p className="mt-2 text-sm text-muted">
-              Enviamos um link de confirmação para <strong className="text-ink">{info?.email}</strong>. Abra-o <strong className="text-ink">neste mesmo navegador</strong> para concluir a ativação.
+              Enviamos um link de confirmação para <strong className="text-ink">{info?.email}</strong>. Abra-o <strong className="text-ink">neste mesmo navegador</strong> para concluir a ativação. Se não chegar em alguns minutos, fale com a Luma pelo WhatsApp que liberamos o seu acesso.
             </p>
           </div>
         )}

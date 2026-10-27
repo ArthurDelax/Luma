@@ -12,6 +12,7 @@ import {
   LuLockOpen,
   LuLogOut,
   LuMail,
+  LuMailCheck,
   LuPencil,
   LuPlus,
   LuRefreshCw,
@@ -1024,6 +1025,7 @@ function EditOrgModal({ org, call, onClose, onSaved, onResponsibleChanged }: { o
             </>
           )}
         </div>
+        <AccessHelp org={org} />
         {error && (
           <p role="alert" className="rounded-xl bg-overdue-soft px-3 py-2 text-sm font-medium text-overdue sm:col-span-2">
             {error}
@@ -1031,6 +1033,77 @@ function EditOrgModal({ org, call, onClose, onSaved, onResponsibleChanged }: { o
         )}
       </form>
     </Modal>
+  );
+}
+
+/**
+ * Cliente esqueceu a senha ou o e-mail de confirmação não chegou: gera o link de nova
+ * senha (para mandar pelo WhatsApp) ou libera o e-mail sem confirmação.
+ * Usa a Edge Function admin-acesso (supabase/functions), que confere 2 etapas no servidor.
+ */
+function AccessHelp({ org }: { org: Org }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState<"" | "link" | "confirm">("");
+  const [link, setLink] = useState("");
+  const [error, setError] = useState("");
+  const run = async (action: "recovery_link" | "confirm_email") => {
+    setBusy(action === "recovery_link" ? "link" : "confirm");
+    setError("");
+    try {
+      const r = await authed<{ link?: string; ok?: boolean; already?: boolean; error?: string }>("/functions/v1/admin-acesso", {
+        method: "POST",
+        body: JSON.stringify({ action, org_id: org.id, redirect_to: `${window.location.origin}${href("/empresa/")}` }),
+      });
+      if (action === "recovery_link" && r.link) setLink(r.link);
+      if (action === "confirm_email") toast("success", r.already ? "O e-mail já estava liberado." : "E-mail liberado: o cliente já pode entrar.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(/404|not found|requested function/i.test(msg) ? "A função de acesso ainda não foi publicada no Supabase." : msg || "Não foi possível concluir.");
+    } finally {
+      setBusy("");
+    }
+  };
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      toast("success", "Link copiado.");
+    } catch {
+      toast("error", "Selecione o link e copie manualmente.");
+    }
+  };
+  const wa = `https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para criar uma nova senha no painel do cardápio (${org.name}). Ele vale por pouco tempo e só pode ser usado uma vez:\n${link}`)}`;
+  return (
+    <div className="rounded-2xl border border-line p-4 sm:col-span-2">
+      <p className="text-[13px] font-semibold">Ajuda com o acesso do cliente</p>
+      <p className="mt-1 text-xs text-muted">Para quando o cliente esqueceu a senha ou o e-mail de confirmação não chegou. Vale para a conta de {org.responsible_email}.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="secondary" icon={<LuKeyRound className="size-4" />} onClick={() => run("recovery_link")} disabled={!!busy}>
+          {busy === "link" ? "Gerando…" : "Gerar link de nova senha"}
+        </Button>
+        <Button size="sm" variant="secondary" icon={<LuMailCheck className="size-4" />} onClick={() => run("confirm_email")} disabled={!!busy}>
+          {busy === "confirm" ? "Liberando…" : "Liberar e-mail sem confirmação"}
+        </Button>
+      </div>
+      {link && (
+        <div className="mt-3 space-y-2">
+          <p className="break-all rounded-xl border border-line bg-paper p-2.5 font-mono text-[11px]">{link}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" icon={<LuCopy className="size-4" />} onClick={copy}>
+              Copiar link
+            </Button>
+            <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold hover:border-ink/30">
+              Enviar pelo WhatsApp
+            </a>
+          </div>
+          <p className="text-xs text-muted">O cliente abre o link, cria a senha nova e já entra no painel. Uso único.</p>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-xs font-medium text-overdue">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

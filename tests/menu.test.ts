@@ -147,5 +147,5 @@ test("pedido feito na mesa pelo QR Code", () => {
   assert.doesNotMatch(msg, /Telefone|Endereço|Entrega:|Retirada em|Previsão/);
   assert.match(msg, /\*Total: R\$ 37,80\*/);
   assert.equal(deliveryFee(store, "table", undefined, 10), 0);
-  assert.equal(normalizeMenu({ store: { name: "X" } }).store.dineIn.enabled, false);
+  assert.equal(normalizeMenu({ store: { name: "X" } }).store.dineIn.enabled, true);
 });
