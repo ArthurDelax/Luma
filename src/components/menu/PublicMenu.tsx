@@ -1,6 +1,6 @@
 "use client";
 
-import { Bricolage_Grotesque } from "next/font/google";
+import { Cormorant, Montserrat } from "next/font/google";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { formatBRL } from "@/lib/format";
 import {
@@ -30,7 +30,9 @@ import type { MenuData, MenuItem, OptionGroup } from "@/lib/menu/types";
 import { href } from "@/lib/paths";
 import "./public-menu.css";
 
-const display = Bricolage_Grotesque({ subsets: ["latin", "latin-ext"], weight: ["500", "700", "800"], variable: "--font-bricolage", display: "swap" });
+// padrão luxo: Cormorant nos nomes e títulos, Montserrat no texto
+const serif = Cormorant({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
+const sans = Montserrat({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-montserrat", display: "swap" });
 
 const brl = (v: number) => formatBRL(v);
 
@@ -185,6 +187,13 @@ function Img({ src, alt, name, className }: { src?: string; alt: string; name: s
       alt={alt}
       loading="lazy"
       className={`lz ${ok ? "ok" : ""} ${className ?? ""}`}
+      // foto que já estava no cache termina de carregar antes do onLoad existir: confere ao montar
+      ref={(el) => {
+        if (el?.complete && el.naturalWidth > 0 && !ok) {
+          setOk(true);
+          el.parentElement?.classList.add("loaded");
+        }
+      }}
       onLoad={(e) => {
         setOk(true);
         e.currentTarget.parentElement?.classList.add("loaded");
@@ -288,6 +297,27 @@ export function PublicMenu({ menu, slug, notice, table }: { menu: MenuData; slug
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
+  }, []);
+
+  // capa de cinema: conforme o cliente desce, o vídeo aproxima e escurece e o título sobe
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const p = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight)));
+      hero.style.setProperty("--hp", p.toFixed(4));
+    };
+    const on = () => {
+      if (!raf) raf = requestAnimationFrame(paint);
+    };
+    paint();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", on);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   const [q, setQ] = useState("");
@@ -666,7 +696,7 @@ export function PublicMenu({ menu, slug, notice, table }: { menu: MenuData; slug
 
   /* ---------- render ---------- */
   return (
-    <div ref={rootRef} className={`cm ${display.variable}`} style={accentStyle}>
+    <div ref={rootRef} className={`cm ${serif.variable} ${sans.variable}`} style={accentStyle}>
       <header className={`topbar ${solid ? "solid" : ""}`}>
         <div className="wrap">
           <a className="brand" href="#top">
@@ -730,6 +760,10 @@ export function PublicMenu({ menu, slug, notice, table }: { menu: MenuData; slug
               {s.description}
             </p>
           )}
+        </div>
+        <div className="scroll-cue" aria-hidden="true">
+          Role para ver o cardápio
+          <i />
         </div>
       </section>
 

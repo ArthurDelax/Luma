@@ -2,30 +2,33 @@
    A cor principal vem da loja (--accent, definida no elemento raiz). */
 
 .cm {
-  --bg: #f6f1e8;
-  --surface: #fffdf9;
-  --surface-2: #f1eadf;
-  --ink: #1c1712;
-  --ink-2: #4a4038;
-  --muted: #857a6d;
-  --line: #e8dfd1;
+  /* padrão luxo: noite profunda, marfim e champanhe; a cor da loja fica nos botões */
+  --bg: #0b0a08;
+  --surface: #15130f;
+  --surface-2: #1d1a16;
+  --ink: #f4efe6;
+  --ink-2: #d6cec1;
+  --muted: #a39b8e;
+  --line: rgba(244, 239, 230, 0.1);
+  --champagne: #cfb27a;
   --accent: #de3f1c;
   --accent-ink: #fff;
-  --accent-soft: color-mix(in srgb, var(--accent) 13%, #fff);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, #15130f);
   --accent-dark: color-mix(in srgb, var(--accent) 82%, #000);
-  --gold: #f2b134;
-  --green: #2a9a59;
-  --dark: #16120e;
+  --gold: #cfb27a;
+  --green: #6fcf97;
+  --dark: #0b0a08;
   --radius: 18px;
-  --shadow: 0 1px 2px rgba(28, 23, 18, 0.05), 0 8px 24px -12px rgba(28, 23, 18, 0.18);
-  --shadow-lg: 0 30px 80px -20px rgba(22, 18, 14, 0.45);
+  --shadow: 0 1px 0 rgba(244, 239, 230, 0.04) inset, 0 12px 30px -16px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.4, 0.5, 1);
-  --cm-display: var(--font-bricolage), "Bricolage Grotesque", var(--font-poppins), system-ui, sans-serif;
+  --cm-display: var(--font-cormorant), "Cormorant", Georgia, serif;
+  --cm-sans: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  font-family: var(--cm-sans);
+  font-size: 14.5px;
   line-height: 1.5;
   min-height: 100dvh;
   overflow-x: hidden;
@@ -44,7 +47,7 @@
 /* ---------- top bar ---------- */
 .cm .topbar { position: fixed; inset: 0 0 auto 0; z-index: 40; padding-top: env(safe-area-inset-top, 0px); transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease), color 0.35s; }
 .cm .topbar .wrap { display: flex; align-items: center; gap: 12px; height: 64px; }
-.cm .topbar.solid { background: rgba(246, 241, 232, 0.88); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); box-shadow: 0 1px 0 var(--line); }
+.cm .topbar.solid { background: rgba(11, 10, 8, 0.82); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); box-shadow: 0 1px 0 var(--line); }
 .cm .topbar:not(.solid) { color: #fff; }
 .cm .brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-family: var(--cm-display); font-weight: 800; font-size: 18px; letter-spacing: -0.02em; text-decoration: none; }
 .cm .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; color: #fff; flex: none; overflow: hidden; box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent); font-size: 14px; }
@@ -140,7 +143,7 @@
 @keyframes cm-marq { to { transform: translateX(-50%); } }
 
 /* ---------- nav ---------- */
-.cm .catnav { position: sticky; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 30; background: rgba(246, 241, 232, 0.92); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); margin-top: 22px; border-bottom: 1px solid transparent; transition: border-color 0.3s; }
+.cm .catnav { position: sticky; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 30; background: rgba(11, 10, 8, 0.86); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); margin-top: 22px; border-bottom: 1px solid transparent; transition: border-color 0.3s; }
 .cm .catnav.stuck { border-color: var(--line); }
 .cm .catnav .wrap { display: flex; align-items: center; gap: 10px; height: 62px; }
 .cm .search { position: relative; flex: none; display: flex; align-items: center; height: 42px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); width: 42px; transition: width 0.45s var(--ease); overflow: hidden; }
@@ -174,7 +177,7 @@
 .cm .fcard p { font-size: 13px; opacity: 0.78; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cm .fcard .row { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
 .cm .fcard .price { font-weight: 700; font-size: 17px; }
-.cm .plus { width: 40px; height: 40px; border-radius: 12px; background: #fff; color: var(--ink); display: grid; place-items: center; transition: transform 0.3s var(--spring), background 0.2s; }
+.cm .plus { width: 40px; height: 40px; border-radius: 12px; background: var(--ink); color: var(--bg); display: grid; place-items: center; transition: transform 0.3s var(--spring), background 0.2s; }
 .cm .fcard:hover .plus { transform: rotate(90deg); background: var(--gold); }
 
 .cm .grid { display: grid; gap: 12px; }
@@ -248,7 +251,7 @@
 }
 .cm .grab { width: 40px; height: 5px; border-radius: 9px; background: rgba(255, 255, 255, 0.75); position: absolute; top: 9px; left: 50%; transform: translateX(-50%); z-index: 3; }
 @media (min-width: 900px) { .cm .grab { display: none; } }
-.cm .close { position: absolute; top: 14px; right: 14px; z-index: 4; width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.92); color: var(--ink); display: grid; place-items: center; box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.3); transition: transform 0.25s var(--spring); }
+.cm .close { position: absolute; top: 14px; right: 14px; z-index: 4; width: 40px; height: 40px; border-radius: 12px; background: rgba(11, 10, 8, 0.7); backdrop-filter: blur(10px); color: var(--ink); display: grid; place-items: center; box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.3); transition: transform 0.25s var(--spring); }
 .cm .close:hover { transform: rotate(90deg); }
 .cm .pm-body { overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 @media (min-width: 900px) { .cm .pm-inner { display: grid; grid-template-columns: 1fr 1fr; min-height: 100%; } .cm .pm-media { position: sticky; top: 0; height: 88vh; max-height: 100%; } }
@@ -373,7 +376,7 @@
 .cm .row2 > *, .cm .row3 > * { min-width: 0; }
 .cm .fld { display: block; margin-bottom: 10px; position: relative; }
 .cm .fld span { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
-.cm .fld.err input, .cm .fld.err select { border-color: var(--accent); background: #fff6f3; }
+.cm .fld.err input, .cm .fld.err select { border-color: var(--accent); background: var(--accent-soft); }
 .cm .fld .msg { display: none; font-size: 12px; color: var(--accent-dark); margin-top: 4px; font-style: normal; }
 .cm .fld.err .msg { display: block; }
 .cm .fld .spin { position: absolute; right: 12px; bottom: 14px; width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; animation: cm-spin 0.7s linear infinite; }
@@ -404,8 +407,8 @@
 .cm .toast svg { color: #7ee2a5; }
 .cm-flyer { position: fixed; z-index: 95; border-radius: 50%; object-fit: cover; pointer-events: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
 
-.cm-state { min-height: 100dvh; display: grid; place-items: center; padding: 24px; text-align: center; background: #f6f1e8; color: #1c1712; }
-.cm-state h1 { font-family: var(--font-bricolage), var(--font-poppins), system-ui, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.cm-state { min-height: 100dvh; display: grid; place-items: center; padding: 24px; text-align: center; background: #0b0a08; color: #f4efe6; }
+.cm-state h1 { font-family: var(--font-cormorant), "Cormorant", Georgia, serif; font-size: 30px; font-weight: 500; }
 .cm-state p { margin-top: 8px; color: #857a6d; max-width: 36ch; }
 
 .cm :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -415,3 +418,93 @@
   .cm .marquee-track { animation-duration: 80s; }
   .cm .rv { opacity: 1; transform: none; }
 }
+
+/* ================================================================== */
+/* Padrão luxo: capa de cinema que reage à rolagem, títulos em Cormorant */
+/* e acabamento fino (linhas, champanhe). Vem por último para valer.    */
+/* ================================================================== */
+
+/* capa em tela cheia, de borda a borda */
+.cm .hero { --hp: 0; height: 92svh; min-height: 520px; max-height: none; }
+@media (min-width: 900px) { .cm .hero { height: 100svh; } }
+/* conforme rola: o vídeo aproxima e o véu escurece; o texto sobe e some */
+.cm .hero > img, .cm .hero video { scale: calc(1 + var(--hp) * 0.22); translate: 0 calc(var(--hp) * 18%); }
+.cm .hero::after { background: linear-gradient(180deg, rgba(11, 10, 8, 0.6) 0%, rgba(11, 10, 8, 0.1) 30%, rgba(11, 10, 8, 0.45) 62%, #0b0a08 100%); }
+.cm .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: #0b0a08; opacity: calc(var(--hp) * 0.75); pointer-events: none; }
+.cm .hero-copy { bottom: 120px; translate: 0 calc(var(--hp) * -120px); opacity: calc(1 - var(--hp) * 1.6); }
+.cm .hero-copy .eyebrow { font-size: 10.5px; font-weight: 500; letter-spacing: 0.32em; color: var(--champagne); opacity: 1; }
+.cm .hero-copy .eyebrow::before { background: var(--champagne); width: 34px; }
+.cm .hero-copy h1 { font-weight: 400; font-size: clamp(46px, 9vw, 112px); line-height: 0.92; letter-spacing: -0.01em; max-width: 12ch; }
+.cm .hero-copy p { font-size: 14.5px; font-weight: 300; line-height: 1.8; opacity: 0.8; }
+.cm .scroll-cue { position: absolute; z-index: 2; left: 50%; bottom: 28px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 10px; color: rgba(244, 239, 230, 0.6); font-size: 9.5px; letter-spacing: 0.32em; text-transform: uppercase; opacity: calc(1 - var(--hp) * 6); pointer-events: none; }
+.cm .scroll-cue i { width: 1px; height: 34px; background: linear-gradient(var(--champagne), transparent); animation: cm-cue 2.2s var(--ease) infinite; transform-origin: top; }
+@keyframes cm-cue { 0% { transform: scaleY(0); opacity: 1; } 70% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+@media (max-width: 899px) { .cm .scroll-cue { display: none; } }
+
+/* barra do topo */
+.cm .brand { font-weight: 500; font-size: 21px; letter-spacing: 0.01em; }
+.cm .topbar.solid { box-shadow: 0 1px 0 var(--line); }
+.cm .topbar.solid .icon-btn { background: var(--surface-2); box-shadow: none; }
+.cm .cart-top { border-radius: 99px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding: 0 18px; }
+
+/* cartão da loja: vidro escuro com linha fina */
+.cm .store { margin-top: -96px; }
+.cm .store-card { background: rgba(21, 19, 15, 0.82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--line); border-radius: 26px; }
+.cm .store-head h2 { font-size: 28px; font-weight: 500; letter-spacing: 0; }
+.cm .logo { font-weight: 500; border: 1px solid rgba(207, 178, 122, 0.35); }
+.cm .seg { border: 1px solid var(--line); }
+.cm .seg .pill { background: var(--ink); box-shadow: none; }
+.cm .seg button.on { color: var(--bg); }
+.cm .fact small { text-transform: uppercase; letter-spacing: 0.16em; font-size: 9.5px; }
+.cm .marquee { background: transparent; border: 1px solid rgba(207, 178, 122, 0.3); color: var(--champagne); }
+.cm .marquee-track { font-weight: 400; font-style: italic; font-size: 19px; }
+
+/* categorias */
+.cm .chip { font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.cm .chip:hover { background: transparent; color: var(--ink); }
+.cm .chip.on { color: var(--bg); background: var(--champagne); }
+.cm .search { box-shadow: none; border: 1px solid var(--line); }
+
+/* seções e produtos */
+.cm .sec { padding-top: 56px; }
+.cm .sec-head { padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.cm .sec-head h3 { font-weight: 400; font-size: clamp(34px, 5vw, 52px); letter-spacing: -0.005em; }
+.cm .sec-head p { font-weight: 300; }
+.cm .sec-head .count { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--champagne); }
+.cm .fcard { border-radius: 24px; aspect-ratio: 3 / 4; }
+.cm .fcard h4 { font-weight: 500; font-size: 30px; letter-spacing: 0; }
+.cm .fcard .tag { background: transparent; border: 1px solid var(--champagne); color: var(--champagne); backdrop-filter: blur(6px); }
+.cm .fcard .price, .cm .pcard .price { font-family: var(--cm-display); font-weight: 600; font-size: 21px; color: var(--champagne); font-variant-numeric: lining-nums; }
+.cm .pcard { background: transparent; box-shadow: none; border: 1px solid var(--line); border-radius: 22px; transition: transform 0.4s var(--ease), border-color 0.4s, background 0.4s; }
+.cm .pcard:hover { transform: none; box-shadow: none; border-color: rgba(207, 178, 122, 0.4); background: var(--surface); }
+.cm .pcard h4 { font-family: var(--cm-display); font-size: 23px; font-weight: 500; letter-spacing: 0; line-height: 1.1; }
+.cm .pcard .desc { font-weight: 300; line-height: 1.65; }
+.cm .thumb { border-radius: 16px; }
+.cm .pill-tag { font-family: var(--cm-sans); font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em; }
+.cm .pill-tag.g { background: rgba(111, 207, 151, 0.12); }
+.cm .ph { background: linear-gradient(100deg, var(--surface-2) 30%, #2a261f 50%, var(--surface-2) 70%); background-size: 300% 100%; }
+
+/* informações e rodapé */
+.cm .ibox { background: transparent; box-shadow: none; border: 1px solid var(--line); }
+.cm .ibox h5 { font-size: 10px; font-weight: 500; letter-spacing: 0.28em; color: var(--champagne); }
+.cm .ibox.dark { background: var(--surface); }
+.cm .ibox.dark h5 { color: var(--champagne); }
+.cm .ibox.dark .big { font-weight: 500; font-size: 32px; letter-spacing: 0; }
+
+/* sacola e janelas */
+.cm .sheet { border: 1px solid var(--line); }
+.cm .scrim { background: rgba(0, 0, 0, 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cm .hero > img, .cm .hero video { scale: none; translate: none; }
+  .cm .hero-copy { translate: none; opacity: 1; }
+}
+
+/* no tema escuro o "fundo escuro + texto branco" vira marfim com texto escuro */
+.cm .preview-bar { background: var(--surface-2); color: var(--ink); border: 1px solid rgba(207, 178, 122, 0.3); }
+.cm .req { color: var(--bg); }
+.cm .btn.dark { color: var(--bg); }
+.cm .coupon button { color: var(--bg); }
+.cm .toast { color: var(--bg); }
+.cm .hero-copy { opacity: calc(1 - var(--hp) * 2.4); }
+.cm .pill-tag { color: color-mix(in srgb, var(--accent) 55%, #fff); }
