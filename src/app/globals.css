@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* fontes do site: "inline" para a variável da fonte valer onde a página a carrega */
+@theme inline {
+  --font-lux-serif: var(--font-cormorant), "Cormorant", Georgia, serif;
+  --font-lux-sans: var(--font-montserrat), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+
 @theme {
   --font-sans: var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: var(--font-poppins), "Poppins", var(--font-instrument), "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
@@ -40,6 +46,15 @@
   --color-contract-soft: #ece9f8;
   --color-doc: #12808a;
   --color-doc-soft: #e0f0f1;
+
+  /* Site (padrão luxo): noite, marfim e champanhe. Usado só nas páginas públicas do site. */
+  --color-noir: #0b0a08;
+  --color-noir-2: #13110e;
+  --color-noir-3: #1c1915;
+  --color-ivory: #f4efe6;
+  --color-champagne: #cfb27a;
+  --color-champagne-2: #e6d3a8;
+  --color-smoke: #a39b8e;
 
   --radius-card: 20px;
   --shadow-card: 0 1px 0 rgb(19 52 42 / 0.03), 0 10px 30px -18px rgb(19 52 42 / 0.2);
@@ -104,7 +119,7 @@
 }
 
 @utility tabular {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 @utility card {
