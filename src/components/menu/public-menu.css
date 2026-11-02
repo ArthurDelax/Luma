@@ -435,15 +435,15 @@
 .cm .hero-copy { bottom: 120px; translate: 0 calc(var(--hp) * -120px); opacity: calc(1 - var(--hp) * 1.6); }
 .cm .hero-copy .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.32em; color: var(--champagne); opacity: 1; }
 .cm .hero-copy .eyebrow::before { background: var(--champagne); width: 34px; }
-.cm .hero-copy h1 { font-weight: 600; font-size: clamp(46px, 9vw, 112px); line-height: 0.92; letter-spacing: -0.01em; max-width: 12ch; }
-.cm .hero-copy p { font-size: 14.5px; font-weight: 500; line-height: 1.8; opacity: 0.8; }
+.cm .hero-copy h1 { font-weight: 700; font-size: clamp(46px, 9vw, 112px); line-height: 0.92; letter-spacing: -0.01em; max-width: 12ch; }
+.cm .hero-copy p { font-size: 14.5px; font-weight: 600; line-height: 1.8; opacity: 0.8; }
 .cm .scroll-cue { position: absolute; z-index: 2; left: 50%; bottom: 28px; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 10px; color: rgba(244, 239, 230, 0.6); font-size: 9.5px; letter-spacing: 0.32em; text-transform: uppercase; opacity: calc(1 - var(--hp) * 6); pointer-events: none; }
 .cm .scroll-cue i { width: 1px; height: 34px; background: linear-gradient(var(--champagne), transparent); animation: cm-cue 2.2s var(--ease) infinite; transform-origin: top; }
 @keyframes cm-cue { 0% { transform: scaleY(0); opacity: 1; } 70% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
 @media (max-width: 899px) { .cm .scroll-cue { display: none; } }
 
 /* barra do topo */
-.cm .brand { font-weight: 600; font-size: 21px; letter-spacing: 0.01em; }
+.cm .brand { font-weight: 700; font-size: 21px; letter-spacing: 0.01em; }
 .cm .topbar.solid { box-shadow: 0 1px 0 var(--line); }
 .cm .topbar.solid .icon-btn { background: var(--surface-2); box-shadow: none; }
 .cm .cart-top { border-radius: 99px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding: 0 18px; }
@@ -451,7 +451,7 @@
 /* cartão da loja: vidro escuro com linha fina */
 .cm .store { margin-top: -96px; }
 .cm .store-card { background: rgba(21, 19, 15, 0.82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--line); border-radius: 26px; }
-.cm .store-head h2 { font-size: 25px; font-weight: 600; letter-spacing: 0; }
+.cm .store-head h2 { font-size: 25px; font-weight: 700; letter-spacing: 0; }
 .cm .logo { font-weight: 500; border: 1px solid rgba(207, 178, 122, 0.35); }
 .cm .seg { border: 1px solid var(--line); }
 .cm .seg .pill { background: var(--ink); box-shadow: none; }
@@ -469,17 +469,17 @@
 /* seções e produtos */
 .cm .sec { padding-top: 56px; }
 .cm .sec-head { padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
-.cm .sec-head h3 { font-weight: 600; font-size: clamp(34px, 5vw, 52px); letter-spacing: -0.005em; }
-.cm .sec-head p { font-weight: 500; }
+.cm .sec-head h3 { font-weight: 700; font-size: clamp(34px, 5vw, 52px); letter-spacing: -0.005em; }
+.cm .sec-head p { font-weight: 600; }
 .cm .sec-head .count { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--champagne); }
 .cm .fcard { border-radius: 24px; aspect-ratio: 3 / 4; }
-.cm .fcard h4 { font-weight: 600; font-size: 26px; letter-spacing: 0; }
+.cm .fcard h4 { font-weight: 700; font-size: 26px; letter-spacing: 0; }
 .cm .fcard .tag { background: transparent; border: 1px solid var(--champagne); color: var(--champagne); backdrop-filter: blur(6px); }
-.cm .fcard .price, .cm .pcard .price { font-family: var(--cm-display); font-weight: 600; font-size: 21px; color: var(--champagne); font-variant-numeric: lining-nums; }
+.cm .fcard .price, .cm .pcard .price { font-family: var(--cm-display); font-weight: 700; font-size: 21px; color: var(--champagne); font-variant-numeric: lining-nums; }
 .cm .pcard { background: transparent; box-shadow: none; border: 1px solid var(--line); border-radius: 22px; transition: transform 0.4s var(--ease), border-color 0.4s, background 0.4s; }
 .cm .pcard:hover { transform: none; box-shadow: none; border-color: rgba(207, 178, 122, 0.4); background: var(--surface); }
-.cm .pcard h4 { font-family: var(--cm-display); font-size: 20px; font-weight: 600; letter-spacing: 0; line-height: 1.1; }
-.cm .pcard .desc { font-weight: 500; line-height: 1.65; }
+.cm .pcard h4 { font-family: var(--cm-display); font-size: 20px; font-weight: 700; letter-spacing: 0; line-height: 1.1; }
+.cm .pcard .desc { font-weight: 600; line-height: 1.65; }
 .cm .thumb { border-radius: 16px; }
 .cm .pill-tag { font-family: var(--cm-sans); font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em; }
 .cm .pill-tag.g { background: rgba(111, 207, 151, 0.12); }
@@ -490,7 +490,7 @@
 .cm .ibox h5 { font-size: 10px; font-weight: 500; letter-spacing: 0.28em; color: var(--champagne); }
 .cm .ibox.dark { background: var(--surface); }
 .cm .ibox.dark h5 { color: var(--champagne); }
-.cm .ibox.dark .big { font-weight: 600; font-size: 32px; letter-spacing: 0; }
+.cm .ibox.dark .big { font-weight: 700; font-size: 32px; letter-spacing: 0; }
 
 /* sacola e janelas */
 .cm .sheet { border: 1px solid var(--line); }

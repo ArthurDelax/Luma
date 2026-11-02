@@ -309,3 +309,11 @@ html {
   background-image: radial-gradient(rgb(245 243 236 / 0.08) 1px, transparent 1.2px);
   background-size: 18px 18px;
 }
+
+/* fundo do site: brilhos do logo espalhados, bem discretos, sumindo nas bordas */
+@utility lux-stars {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27280%27 height=%27280%27 fill=%27%23cfb27a%27%3E%3Cpath d=%27M38 45Q39.26 50.74 45 52Q39.26 53.26 38 59Q36.74 53.26 31 52Q36.74 50.74 38 45Z%27 fill-opacity=%270.22%27/%3E%3Cpath d=%27M176 24.5Q176.63 27.37 179.5 28Q176.63 28.63 176 31.5Q175.37 28.63 172.5 28Q175.37 27.37 176 24.5Z%27 fill-opacity=%270.3%27/%3E%3Cpath d=%27M222 147Q223.62 154.38 231 156Q223.62 157.62 222 165Q220.38 157.62 213 156Q220.38 154.38 222 147Z%27 fill-opacity=%270.16%27/%3E%3Cpath d=%27M92 192Q92.72 195.28 96 196Q92.72 196.72 92 200Q91.28 196.72 88 196Q91.28 195.28 92 192Z%27 fill-opacity=%270.26%27/%3E%3Cpath d=%27M138 105.5Q138.45 107.55 140.5 108Q138.45 108.45 138 110.5Q137.55 108.45 135.5 108Q137.55 107.55 138 105.5Z%27 fill-opacity=%270.35%27/%3E%3Cpath d=%27M20 237.5Q20.45 239.55 22.5 240Q20.45 240.45 20 242.5Q19.55 240.45 17.5 240Q19.55 239.55 20 237.5Z%27 fill-opacity=%270.3%27/%3E%3Cpath d=%27M250 247Q250.54 249.46 253 250Q250.54 250.54 250 253Q249.46 250.54 247 250Q249.46 249.46 250 247Z%27 fill-opacity=%270.25%27/%3E%3Cpath d=%27M196 224Q196.36 225.64 198 226Q196.36 226.36 196 228Q195.64 226.36 194 226Q195.64 225.64 196 224Z%27 fill-opacity=%270.4%27/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}

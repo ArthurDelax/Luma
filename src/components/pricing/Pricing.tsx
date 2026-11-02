@@ -57,12 +57,12 @@ export function PricingCalculator() {
             ))}
           </div>
 
-          <p className="mt-6 flex flex-wrap items-end gap-1 font-lux-serif font-semibold leading-none">
+          <p className="mt-6 flex flex-wrap items-end gap-1 font-lux-serif font-bold leading-none">
             <span className="text-[4.8rem] tabular sm:text-[6.2rem]">{reais}</span>
             <span className="mb-2 text-2xl tabular sm:mb-3 sm:text-3xl">,{cents}</span>
-            <span className="mb-2 ml-1 text-base font-medium tracking-normal text-ivory/55 sm:mb-3">{annual ? "por ano, à vista" : "/mês por loja"}</span>
+            <span className="mb-2 ml-1 text-base font-semibold tracking-normal text-ivory/55 sm:mb-3">{annual ? "por ano, à vista" : "/mês por loja"}</span>
           </p>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-ivory/70">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-ivory/90">
             {annual ? (
               <>
                 Equivale a {brl(ANNUAL_PRICE / 12)} por mês. <strong className="text-ivory">Implantação grátis</strong> (economia de {brl(SETUP_PRICE + PLAN_PRICE * 2)}).
@@ -122,8 +122,8 @@ export function PricingCalculator() {
       <div className="flex flex-col gap-5">
         <div className="rounded-[28px] border border-ivory/10 bg-noir-2 p-6 text-ivory sm:p-8">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="font-lux-serif text-2xl font-semibold">Implantação</h3>
-            <p className="font-lux-serif font-semibold text-lg tabular text-ivory/80">{annual ? <span className="text-champagne">Grátis no anual</span> : `${brl(SETUP_PRICE)} · uma vez`}</p>
+            <h3 className="font-lux-serif text-2xl font-bold">Implantação</h3>
+            <p className="font-lux-serif font-bold text-lg tabular text-ivory/90">{annual ? <span className="text-champagne">Grátis no anual</span> : `${brl(SETUP_PRICE)} · uma vez`}</p>
           </div>
           <ul className="mt-4 space-y-2 text-sm">
             {SETUP_INCLUDES.map((t) => (
@@ -135,19 +135,19 @@ export function PricingCalculator() {
           </ul>
         </div>
         <div className="rounded-[28px] border border-ivory/10 bg-noir-2 p-6 text-ivory sm:p-8">
-          <h3 className="font-lux-serif text-2xl font-semibold">Como funciona a contratação</h3>
+          <h3 className="font-lux-serif text-2xl font-bold">Como funciona a contratação</h3>
           <ol className="mt-5 space-y-5">
             {STEPS.map(([t, d], i) => (
               <li key={t} className="flex gap-4">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full border border-champagne/50 font-lux-serif font-semibold text-base italic text-champagne">{i + 1}</span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-full border border-champagne/50 font-lux-serif font-bold text-base italic text-champagne">{i + 1}</span>
                 <div>
                   <p className="font-semibold">{t}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-ivory/60">{d}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-ivory/90">{d}</p>
                 </div>
               </li>
             ))}
           </ol>
-          <div className="mt-6 rounded-2xl border border-champagne/25 bg-champagne/[0.07] p-4 text-sm font-medium leading-relaxed text-ivory/85">
+          <div className="mt-6 rounded-2xl border border-champagne/25 bg-champagne/[0.07] p-4 text-sm font-semibold leading-relaxed text-ivory/85">
             <strong>Conta de cabeça:</strong> um app de delivery cobra comissão em cada pedido. Na Luma você paga {brl(PLAN_PRICE)} por mês, venda 10 ou 1.000 pedidos.
           </div>
         </div>

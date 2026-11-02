@@ -42,15 +42,31 @@ function CTA({ children = "Ver cardápio de exemplo", to = DEMO, variant = "soli
 }
 
 function Kicker({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={cx("font-lux-sans text-[11px] font-medium uppercase tracking-[0.32em] text-champagne", className)}>{children}</p>;
+  return <p className={cx("font-lux-sans text-[11px] font-semibold uppercase tracking-[0.32em] text-champagne", className)}>{children}</p>;
 }
 
 function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2.5", className)}>
       <LogoMark tone="light" className="size-7" />
-      <span className="font-lux-serif text-[1.7rem] font-medium leading-none tracking-[0.02em] text-ivory">Luma</span>
+      <span className="font-lux-serif text-[1.7rem] font-bold leading-none tracking-[0.02em] text-ivory">Luma</span>
     </span>
+  );
+}
+
+/** Detalhes do logo no fundo preto: brilhos espalhados e o símbolo em traço fino dourado, grande, entrando pela borda. */
+function Ornament({ side = "right" }: { side?: "left" | "right" }) {
+  const right = side === "right";
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className={cx("absolute top-[-10%] h-[80%] w-[80%] bg-[radial-gradient(closest-side,rgb(207_178_122/0.10),transparent)]", right ? "right-[-25%]" : "left-[-25%]")} />
+      <div className="lux-stars absolute inset-0 opacity-80" />
+      <svg viewBox="8 8 336 356" fill="none" className={cx("absolute top-1/2 w-[520px] -translate-y-1/2 opacity-[0.09] sm:w-[780px]", right ? "right-[-200px] sm:right-[-220px]" : "left-[-200px] sm:left-[-220px] -scale-x-100")}>
+        <path d="M114.6 310.7L34 342L71.8 281.8A148.5 148.5 0 1 1 114.6 310.7Z" stroke="#cfb27a" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M159.2 105.8A77 77 0 1 0 246.2 192.8A62.5 62.5 0 0 1 159.2 105.8Z" stroke="#cfb27a" strokeWidth="1.2" />
+        <path d="M231 81.5Q238 113 269.5 120Q238 127 231 158.5Q224 127 192.5 120Q224 113 231 81.5Z" fill="#cfb27a" />
+      </svg>
+    </div>
   );
 }
 
@@ -144,12 +160,12 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
         </a>
         <nav aria-label="Seções" className="ml-8 hidden gap-7 lg:flex">
           {links.map(([h, l]) => (
-            <a key={h} href={h} className="text-[11px] font-medium uppercase tracking-[0.22em] text-ivory/70 transition-colors duration-300 hover:text-ivory">
+            <a key={h} href={h} className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ivory/90 transition-colors duration-300 hover:text-ivory">
               {l}
             </a>
           ))}
         </nav>
-        <a href={LOGIN} className="ml-auto hidden text-[11px] font-medium uppercase tracking-[0.22em] text-ivory/70 transition-colors hover:text-ivory sm:inline">
+        <a href={LOGIN} className="ml-auto hidden text-[11px] font-semibold uppercase tracking-[0.22em] text-ivory/90 transition-colors hover:text-ivory sm:inline">
           Entrar
         </a>
         <a href={PANEL} className="hidden h-10 items-center rounded-full border border-champagne/60 px-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-champagne transition-colors duration-300 hover:bg-champagne hover:text-noir sm:inline-flex">
@@ -163,11 +179,11 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
       {menu.render && (
         <nav data-state={menu.state} className="anim-drop border-t border-ivory/10 px-5 pb-6 pt-3 [transform-origin:top_center] lg:hidden">
           {links.map(([h, l]) => (
-            <a key={h} href={h} onClick={() => setOpen(false)} className="block border-b border-ivory/[0.07] py-4 font-lux-serif font-semibold text-2xl text-ivory">
+            <a key={h} href={h} onClick={() => setOpen(false)} className="block border-b border-ivory/[0.07] py-4 font-lux-serif font-bold text-2xl text-ivory">
               {l}
             </a>
           ))}
-          <a href={LOGIN} className="block py-4 font-lux-serif font-semibold text-2xl text-ivory/70">
+          <a href={LOGIN} className="block py-4 font-lux-serif font-bold text-2xl text-ivory/90">
             Entrar (lojas)
           </a>
           <CTA className="mt-3 w-full" to={PANEL}>
@@ -254,11 +270,11 @@ function Opening() {
               >
                 <Kicker>{l.kicker}</Kicker>
                 {i === 0 ? (
-                  <h1 className="mt-6 font-lux-serif text-[2.9rem] font-semibold leading-[1.02] tracking-[-0.01em] text-ivory sm:text-[5.6rem]">{l.title}</h1>
+                  <h1 className="mt-6 font-lux-serif text-[2.9rem] font-bold leading-[1.02] tracking-[-0.01em] text-ivory sm:text-[5.6rem]">{l.title}</h1>
                 ) : (
-                  <p className="mt-6 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[4.8rem]">{l.title}</p>
+                  <p className="mt-6 font-lux-serif text-[2.6rem] font-bold leading-[1.04] text-ivory sm:text-[4.8rem]">{l.title}</p>
                 )}
-                {l.text && <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75 sm:text-base">{l.text}</p>}
+                {l.text && <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90 sm:text-base">{l.text}</p>}
                 {(i === 0 || i === OPENING.length - 1) && (
                   <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                     <CTA />
@@ -274,7 +290,7 @@ function Opening() {
 
         {!still && (
           <>
-            <div ref={hint} className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 font-lux-sans text-[10px] uppercase tracking-[0.3em] text-ivory/60 sm:flex">
+            <div ref={hint} className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 font-lux-sans text-[10px] uppercase tracking-[0.3em] text-ivory/90 sm:flex">
               Role para descobrir
               <span className="h-10 w-px animate-pulse bg-ivory/50" />
             </div>
@@ -302,10 +318,11 @@ function Manifesto() {
   useScrollProgress(ref, (p) => box.current?.style.setProperty("--p", String(Math.min(1, p * 1.25))), 0.2);
   return (
     <section ref={ref} className="relative h-[180vh] bg-noir">
-      <div className="sticky top-0 flex h-[100svh] items-center">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
+        <Ornament side="right" />
+        <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
           <Kicker>Manifesto</Kicker>
-          <p ref={box} className="mt-8 font-lux-serif text-[2.1rem] font-semibold leading-[1.18] text-ivory sm:text-[3.3rem] sm:leading-[1.1]" style={{ "--p": 0 } as CSSProperties}>
+          <p ref={box} className="mt-8 font-lux-serif text-[2.1rem] font-bold leading-[1.18] text-ivory sm:text-[3.3rem] sm:leading-[1.1]" style={{ "--p": 0 } as CSSProperties}>
             {words.map((w, i) => (
               <span key={i} className="transition-opacity duration-200 motion-reduce:!opacity-100" style={{ opacity: `clamp(0.14, calc(var(--p) * ${words.length + 4} - ${i}), 1)` }}>
                 {w}{" "}
@@ -331,7 +348,7 @@ const CHAPTERS = [
 function OrderMessage() {
   return (
     <div className="w-full max-w-[340px] rounded-[22px] border border-ivory/10 bg-noir/70 p-3 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-      <p className="mb-2 text-center font-lux-sans text-[9.5px] font-medium uppercase tracking-[0.28em] text-ivory/45">Como chega no WhatsApp</p>
+      <p className="mb-2 text-center font-lux-sans text-[9.5px] font-semibold uppercase tracking-[0.28em] text-ivory/45">Como chega no WhatsApp</p>
       <div className="rounded-2xl rounded-tr-sm bg-[#005c4b] px-4 py-3 font-mono text-[11.5px] leading-relaxed text-[#e9edef]">
         <p><b>Novo pedido #4821</b> · Brasa Burger</p>
         <p className="mt-1.5"><b>ENTREGA</b> · Ana · Setor Oeste</p>
@@ -376,9 +393,9 @@ function Chapters() {
               <div className="relative mt-6 min-h-[250px] sm:min-h-[270px]">
                 {CHAPTERS.map((c, i) => (
                   <div key={c.n} className={cx("absolute inset-0 transition-all duration-700 ease-out", active === i ? "translate-y-0 opacity-100" : active > i ? "-translate-y-6 opacity-0" : "translate-y-6 opacity-0")} aria-hidden={active !== i}>
-                    <p className="font-lux-serif font-semibold text-2xl italic text-champagne">Capítulo {c.n}</p>
-                    <h2 className="mt-3 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">{c.title}</h2>
-                    <p className="mt-5 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75">{c.text}</p>
+                    <p className="font-lux-serif font-bold text-2xl italic text-champagne">Capítulo {c.n}</p>
+                    <h2 className="mt-3 font-lux-serif text-[2.3rem] font-bold leading-[1.06] text-ivory sm:text-[3.8rem]">{c.title}</h2>
+                    <p className="mt-5 max-w-md font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90">{c.text}</p>
                   </div>
                 ))}
               </div>
@@ -420,7 +437,7 @@ function PhoneDemo() {
         <div className="absolute left-1/2 top-[18px] z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-noir" />
         {load ? <iframe title="Cardápio de exemplo" src={DEMO} className="size-full rounded-[38px] bg-[#f6f1e8]" loading="lazy" /> : <div className="size-full rounded-[38px] bg-noir-2" />}
       </div>
-      <p className="relative mt-5 text-center font-lux-sans text-[10.5px] uppercase tracking-[0.24em] text-ivory/50">Toque e teste · o pedido abre no WhatsApp</p>
+      <p className="relative mt-5 text-center font-lux-sans text-[10.5px] uppercase tracking-[0.24em] text-ivory/70">Toque e teste · o pedido abre no WhatsApp</p>
     </div>
   );
 }
@@ -466,14 +483,15 @@ function Reveal({ children, className, delay = 0 }: { children: React.ReactNode;
 function Experience() {
   return (
     <section id="recursos" className="relative scroll-mt-20 bg-noir py-28 sm:py-40">
-      <div className="mx-auto grid max-w-7xl gap-20 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
+      <Ornament side="left" />
+      <div className="relative mx-auto grid max-w-7xl gap-20 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Reveal>
             <Kicker>Experimente</Kicker>
-            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">
+            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-bold leading-[1.06] text-ivory sm:text-[3.8rem]">
               Prove antes de <em className="text-champagne">servir.</em>
             </h2>
-            <p className="mt-6 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">Este é um cardápio de verdade, funcionando aqui dentro. Escolha um lanche, monte a sacola e veja como o pedido sai.</p>
+            <p className="mt-6 max-w-md font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90">Este é um cardápio de verdade, funcionando aqui dentro. Escolha um lanche, monte a sacola e veja como o pedido sai.</p>
           </Reveal>
           <div className="mt-14">
             <PhoneDemo />
@@ -482,17 +500,17 @@ function Experience() {
         <div>
           <Reveal>
             <Kicker>Recursos</Kicker>
-            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-semibold leading-[1.05] text-ivory sm:text-[3.4rem]">Tudo o que um cardápio precisa para vender mais.</h2>
-            <p className="mt-5 max-w-lg font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/65">Para hamburguerias, pizzarias, restaurantes, cafés, açaí, marmitas e doceiras que vendem pelo WhatsApp.</p>
+            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-bold leading-[1.05] text-ivory sm:text-[3.4rem]">Tudo o que um cardápio precisa para vender mais.</h2>
+            <p className="mt-5 max-w-lg font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/65">Para hamburguerias, pizzarias, restaurantes, cafés, açaí, marmitas e doceiras que vendem pelo WhatsApp.</p>
           </Reveal>
           <ol className="mt-14 border-t border-ivory/10">
             {FEATURES.map(([t, d], i) => (
               <li key={t}>
                 <Reveal className="group grid grid-cols-[3.2rem_1fr] gap-x-4 border-b border-ivory/10 py-7 sm:grid-cols-[4.5rem_1fr]" delay={(i % 3) * 60}>
-                  <span className="font-lux-serif font-semibold text-xl italic text-champagne/80">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="font-lux-serif font-bold text-xl italic text-champagne/80">{String(i + 1).padStart(2, "0")}</span>
                   <div>
-                    <h3 className="font-lux-serif text-[1.65rem] font-semibold leading-tight text-ivory transition-colors duration-300 group-hover:text-champagne-2">{t}</h3>
-                    <p className="mt-2 max-w-lg font-lux-sans text-[14px] font-medium leading-[1.75] text-ivory/60">{d}</p>
+                    <h3 className="font-lux-serif text-[1.65rem] font-bold leading-tight text-ivory transition-colors duration-300 group-hover:text-champagne-2">{t}</h3>
+                    <p className="mt-2 max-w-lg font-lux-sans text-[14px] font-semibold leading-[1.75] text-ivory/90">{d}</p>
                   </div>
                 </Reveal>
               </li>
@@ -511,14 +529,15 @@ function Experience() {
 function PanelSection() {
   return (
     <section className="relative overflow-hidden border-t border-ivory/10 bg-noir-2 py-28 sm:py-40">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-5 sm:px-8 lg:grid-cols-2">
+      <Ornament side="right" />
+      <div className="relative mx-auto grid max-w-7xl items-center gap-16 px-5 sm:px-8 lg:grid-cols-2">
         <Reveal>
           <Kicker>O painel</Kicker>
-          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.7rem]">
+          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-bold leading-[1.06] text-ivory sm:text-[3.7rem]">
             Você muda o cardápio <em className="text-champagne">em segundos.</em>
           </h2>
-          <p className="mt-6 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">Preço, foto, produto novo, bairro, horário. Salvou, está no ar. Pelo celular, sem pedir para ninguém e sem esperar.</p>
-          <ul className="mt-10 space-y-4 font-lux-sans text-[14px] font-medium text-ivory/80">
+          <p className="mt-6 max-w-md font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90">Preço, foto, produto novo, bairro, horário. Salvou, está no ar. Pelo celular, sem pedir para ninguém e sem esperar.</p>
+          <ul className="mt-10 space-y-4 font-lux-sans text-[14px] font-semibold text-ivory/90">
             {["Painel em português, simples para quem atende no balcão", "Prévia do cardápio antes de publicar", "Modelo pronto para começar rápido", "Equipe com acesso: administrador, editor e consulta"].map((t) => (
               <li key={t} className="flex items-center gap-4">
                 <span className="h-px w-6 shrink-0 bg-champagne" />
@@ -532,10 +551,10 @@ function PanelSection() {
         </Reveal>
         <Reveal delay={150}>
           <div className="relative overflow-hidden rounded-[28px] border border-ivory/10 bg-noir/80 p-6 shadow-[0_60px_120px_-40px_rgba(0,0,0,0.9)] sm:p-9">
-            <div className="flex items-center gap-2.5 font-lux-sans text-[11px] uppercase tracking-[0.24em] text-ivory/60">
+            <div className="flex items-center gap-2.5 font-lux-sans text-[11px] uppercase tracking-[0.24em] text-ivory/90">
               <span className="size-2 rounded-full bg-[#7fd1a4] shadow-[0_0_12px_#7fd1a4]" /> Cardápio no ar
             </div>
-            <p className="mt-4 font-lux-serif font-semibold text-2xl text-ivory sm:text-3xl">gestãoluma.com.br/c/?l=sua-loja</p>
+            <p className="mt-4 font-lux-serif font-bold text-2xl text-ivory sm:text-3xl">gestãoluma.com.br/c/?l=sua-loja</p>
             <div className="mt-8 divide-y divide-ivory/[0.08] border-y border-ivory/[0.08]">
               {[
                 ["Smash Bacon Duplo", "R$ 34,90", true],
@@ -544,12 +563,12 @@ function PanelSection() {
               ].map(([n, p, on]) => (
                 <div key={String(n)} className="flex items-center gap-4 py-4 font-lux-sans">
                   <span className="flex-1 text-[14px] text-ivory">{n}</span>
-                  <span className="text-[13px] tabular text-ivory/60">{p}</span>
+                  <span className="text-[13px] tabular text-ivory/90">{p}</span>
                   <span className={cx("w-20 text-right text-[10px] font-semibold uppercase tracking-[0.18em]", on ? "text-champagne" : "text-ivory/35")}>{on ? "Vendendo" : "Esgotado"}</span>
                 </div>
               ))}
             </div>
-            <p className="mt-6 font-lux-sans text-[13px] font-medium text-ivory/55">Funciona no celular e no computador, sem instalar nada.</p>
+            <p className="mt-6 font-lux-sans text-[13px] font-semibold text-ivory/55">Funciona no celular e no computador, sem instalar nada.</p>
           </div>
         </Reveal>
       </div>
@@ -576,20 +595,20 @@ const FAQ = [
 export function PlansSection({ standalone = false }: { standalone?: boolean }) {
   return (
     <section id="planos" className={cx("relative scroll-mt-20 overflow-hidden bg-noir", standalone ? "pb-28 pt-40 sm:pb-40 sm:pt-48" : "border-t border-ivory/10 py-28 sm:py-40")}>
-      {standalone && <div aria-hidden className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(60%_80%_at_50%_0%,rgb(207_178_122/0.12),transparent)]" />}
+      <Ornament side="left" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal className="mb-16 max-w-3xl">
           <Kicker>Planos</Kicker>
           {standalone ? (
-            <h1 className="mt-6 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[4.6rem]">
+            <h1 className="mt-6 font-lux-serif text-[2.6rem] font-bold leading-[1.04] text-ivory sm:text-[4.6rem]">
               Um plano, um preço, <em className="text-champagne">sem comissão.</em>
             </h1>
           ) : (
-            <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">
+            <h2 className="mt-6 font-lux-serif text-[2.3rem] font-bold leading-[1.06] text-ivory sm:text-[3.8rem]">
               Um plano, um preço, <em className="text-champagne">sem comissão.</em>
             </h2>
           )}
-          <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">R$ 119,90 por mês por loja, com tudo incluído, ou o anual com 2 meses grátis. A gente monta o seu cardápio e os pedidos são todos seus.</p>
+          <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90">R$ 119,90 por mês por loja, com tudo incluído, ou o anual com 2 meses grátis. A gente monta o seu cardápio e os pedidos são todos seus.</p>
         </Reveal>
         <PricingCalculator />
       </div>
@@ -600,14 +619,15 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
 function Faq() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section id="perguntas" className="scroll-mt-20 border-t border-ivory/10 bg-noir py-28 sm:py-40">
-      <div className="mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="perguntas" className="relative scroll-mt-20 overflow-hidden border-t border-ivory/10 bg-noir py-28 sm:py-40">
+      <Ornament side="right" />
+      <div className="relative mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal>
           <Kicker>Perguntas</Kicker>
-          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.7rem]">
+          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-bold leading-[1.06] text-ivory sm:text-[3.7rem]">
             O que todo mundo <em className="text-champagne">pergunta.</em>
           </h2>
-          <p className="mt-6 font-lux-sans text-[15px] font-medium text-ivory/60">Preço, pedidos, pagamento e como começar.</p>
+          <p className="mt-6 font-lux-sans text-[15px] font-semibold text-ivory/90">Preço, pedidos, pagamento e como começar.</p>
         </Reveal>
         <div className="border-t border-ivory/10">
           {FAQ.map(([q, a], i) => {
@@ -615,11 +635,11 @@ function Faq() {
             return (
               <div key={q} className="border-b border-ivory/10">
                 <button className="flex w-full items-center justify-between gap-6 py-6 text-left" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
-                  <span className={cx("font-lux-serif font-semibold text-[1.45rem] leading-snug transition-colors duration-300 sm:text-[1.7rem]", isOpen ? "text-champagne-2" : "text-ivory")}>{q}</span>
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-ivory/20 text-ivory/70">{isOpen ? <LuMinus className="size-4" /> : <LuPlus className="size-4" />}</span>
+                  <span className={cx("font-lux-serif font-bold text-[1.45rem] leading-snug transition-colors duration-300 sm:text-[1.7rem]", isOpen ? "text-champagne-2" : "text-ivory")}>{q}</span>
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-ivory/20 text-ivory/90">{isOpen ? <LuMinus className="size-4" /> : <LuPlus className="size-4" />}</span>
                 </button>
                 <div className={cx("grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-                  <p className="overflow-hidden pr-12 font-lux-sans text-[14.5px] font-medium leading-[1.85] text-ivory/65">
+                  <p className="overflow-hidden pr-12 font-lux-sans text-[14.5px] font-semibold leading-[1.85] text-ivory/65">
                     <span className="block pb-7">{a}</span>
                   </p>
                 </div>
@@ -642,10 +662,10 @@ function FinalCta() {
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-noir via-transparent to-noir" />
       <Reveal className="relative mx-auto max-w-5xl px-5 text-center sm:px-8">
         <Kicker>A mesa está posta</Kicker>
-        <h2 className="mt-8 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[5rem]">
+        <h2 className="mt-8 font-lux-serif text-[2.6rem] font-bold leading-[1.04] text-ivory sm:text-[5rem]">
           Seu cardápio no ar <em className="text-champagne">ainda esta semana.</em>
         </h2>
-        <p className="mx-auto mt-8 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75">Veja o exemplo funcionando, teste o painel e fale com a gente para montar o cardápio da sua loja.</p>
+        <p className="mx-auto mt-8 max-w-xl font-lux-sans text-[15px] font-semibold leading-[1.8] text-ivory/90">Veja o exemplo funcionando, teste o painel e fale com a gente para montar o cardápio da sua loja.</p>
         <div className="mt-12 flex flex-col justify-center gap-3 sm:flex-row">
           <CTA />
           <CTA to={PLANS} variant="line">
@@ -660,16 +680,17 @@ function FinalCta() {
 export function Footer() {
   const wa = whatsappLink();
   return (
-    <footer className={cx("border-t border-ivory/10 bg-noir py-16 font-lux-sans text-ivory/60")}>
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr]">
+    <footer className={cx("relative overflow-hidden border-t border-ivory/10 bg-noir py-16 font-lux-sans text-ivory/90")}>
+      <Ornament side="left" />
+      <div className="relative mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr]">
         <div>
           <Wordmark />
-          <p className="mt-5 max-w-xs font-lux-serif font-semibold text-xl italic text-ivory/80">Cardápio digital com pedido no WhatsApp.</p>
-          <p className="mt-5 max-w-sm text-[12px] font-medium leading-relaxed text-ivory/40">O cardápio de exemplo usa uma loja fictícia; o pedido de teste abre o WhatsApp de um número fictício.</p>
+          <p className="mt-5 max-w-xs font-lux-serif font-bold text-xl italic text-ivory/90">Cardápio digital com pedido no WhatsApp.</p>
+          <p className="mt-5 max-w-sm text-[12px] font-semibold leading-relaxed text-ivory/60">O cardápio de exemplo usa uma loja fictícia; o pedido de teste abre o WhatsApp de um número fictício.</p>
         </div>
         <div>
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-champagne">Produto</p>
-          <ul className="mt-5 space-y-3 text-[13.5px] font-medium">
+          <ul className="mt-5 space-y-3 text-[13.5px] font-semibold">
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#recursos`}>Recursos</a></li>
             <li><a className="transition-colors hover:text-ivory" href={DEMO}>Cardápio de exemplo</a></li>
             <li><a className="transition-colors hover:text-ivory" href={PANEL}>Painel de demonstração</a></li>
@@ -678,7 +699,7 @@ export function Footer() {
         </div>
         <div>
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-champagne">Ajuda</p>
-          <ul className="mt-5 space-y-3 text-[13.5px] font-medium">
+          <ul className="mt-5 space-y-3 text-[13.5px] font-semibold">
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#como-funciona`}>Como funciona</a></li>
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#perguntas`}>Perguntas frequentes</a></li>
             <li><a className="transition-colors hover:text-ivory" href={LOGIN}>Entrar (lojas)</a></li>
@@ -694,13 +715,13 @@ export function Footer() {
       </div>
       <div className="mx-auto mt-14 flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 border-t border-ivory/10 px-5 pb-16 pt-7 text-[11px] uppercase tracking-[0.18em] text-ivory/35 sm:px-8">
         <span>© {new Date().getFullYear()} Luma</span>
-        <a href={href("/termos/")} className="transition-colors hover:text-ivory/80">
+        <a href={href("/termos/")} className="transition-colors hover:text-ivory/90">
           Termos de uso
         </a>
-        <a href={href("/privacidade/")} className="transition-colors hover:text-ivory/80">
+        <a href={href("/privacidade/")} className="transition-colors hover:text-ivory/90">
           Privacidade
         </a>
-        <a href={href("/admin/")} className="text-ivory/20 transition-colors hover:text-ivory/60" rel="nofollow">
+        <a href={href("/admin/")} className="text-ivory/20 transition-colors hover:text-ivory/90" rel="nofollow">
           Acesso restrito
         </a>
       </div>
@@ -713,7 +734,7 @@ export function Footer() {
 
 export function LandingPage() {
   return (
-    <div className="bg-noir font-lux-sans text-ivory">
+    <div className="bg-noir font-lux-sans font-medium text-ivory">
       <Header overlay />
       <main>
         <Opening />
