@@ -23,8 +23,8 @@
   --shadow-lg: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.4, 0.5, 1);
-  --cm-display: var(--font-cormorant), "Cormorant", Georgia, serif;
-  --cm-sans: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+  --cm-display: "Cormorant Variable", "Cormorant", Georgia, serif;
+  --cm-sans: "Montserrat Variable", "Montserrat", system-ui, sans-serif;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--cm-sans);
@@ -408,7 +408,7 @@
 .cm-flyer { position: fixed; z-index: 95; border-radius: 50%; object-fit: cover; pointer-events: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
 
 .cm-state { min-height: 100dvh; display: grid; place-items: center; padding: 24px; text-align: center; background: #0b0a08; color: #f4efe6; }
-.cm-state h1 { font-family: var(--font-cormorant), "Cormorant", Georgia, serif; font-size: 30px; font-weight: 500; }
+.cm-state h1 { font-family: "Cormorant Variable", "Cormorant", Georgia, serif; font-size: 30px; font-weight: 500; }
 .cm-state p { margin-top: 8px; color: #857a6d; max-width: 36ch; }
 
 .cm :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* fontes do site: "inline" para a variável da fonte valer onde a página a carrega */
+/* fontes do site (pacotes Fontsource, servidas pelo próprio site) */
 @theme inline {
-  --font-lux-serif: var(--font-cormorant), "Cormorant", Georgia, serif;
-  --font-lux-sans: var(--font-montserrat), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-lux-serif: "Cormorant Variable", "Cormorant", Georgia, serif;
+  --font-lux-sans: "Montserrat Variable", "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme {

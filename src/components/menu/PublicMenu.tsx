@@ -1,6 +1,8 @@
 "use client";
 
-import { Cormorant, Montserrat } from "next/font/google";
+import "@fontsource-variable/cormorant/wght.css";
+import "@fontsource-variable/cormorant/wght-italic.css";
+import "@fontsource-variable/montserrat/wght.css";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { formatBRL } from "@/lib/format";
 import {
@@ -30,9 +32,6 @@ import type { MenuData, MenuItem, OptionGroup } from "@/lib/menu/types";
 import { href } from "@/lib/paths";
 import "./public-menu.css";
 
-// padrão luxo: Cormorant nos nomes e títulos, Montserrat no texto
-const serif = Cormorant({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
-const sans = Montserrat({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-montserrat", display: "swap" });
 
 const brl = (v: number) => formatBRL(v);
 
@@ -696,7 +695,7 @@ export function PublicMenu({ menu, slug, notice, table }: { menu: MenuData; slug
 
   /* ---------- render ---------- */
   return (
-    <div ref={rootRef} className={`cm ${serif.variable} ${sans.variable}`} style={accentStyle}>
+    <div ref={rootRef} className="cm" style={accentStyle}>
       <header className={`topbar ${solid ? "solid" : ""}`}>
         <div className="wrap">
           <a className="brand" href="#top">

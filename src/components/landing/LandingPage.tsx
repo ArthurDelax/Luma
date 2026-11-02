@@ -1,6 +1,5 @@
 "use client";
 
-import { Cormorant, Montserrat } from "next/font/google";
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { LuArrowRight, LuArrowUpRight, LuMenu, LuMinus, LuPlus, LuX } from "react-icons/lu";
 import { whatsappLink } from "@/lib/contact";
@@ -9,10 +8,10 @@ import { PricingCalculator } from "../pricing/Pricing";
 import { HelpButton } from "../support/HelpCenter";
 import { cx, LogoMark, usePresence } from "../ui";
 
-// Fontes do site (padrão luxo): Cormorant nos títulos, Montserrat no texto.
-const serif = Cormorant({ subsets: ["latin", "latin-ext"], weight: ["300", "400", "500", "600"], style: ["normal", "italic"], variable: "--font-cormorant", display: "swap" });
-const sans = Montserrat({ subsets: ["latin", "latin-ext"], weight: ["300", "400", "500", "600"], variable: "--font-montserrat", display: "swap" });
-const FONTS = `${serif.variable} ${sans.variable}`;
+// Fontes do site (padrão luxo), servidas pelo próprio site: Cormorant nos títulos, Montserrat no texto.
+import "@fontsource-variable/cormorant/wght.css";
+import "@fontsource-variable/cormorant/wght-italic.css";
+import "@fontsource-variable/montserrat/wght.css";
 
 const DEMO = href("/demo/");
 const PANEL = href("/app/");
@@ -138,7 +137,7 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
   ];
   const solid = !overlay || scrolled || open;
   return (
-    <header className={cx(FONTS, "fixed inset-x-0 top-0 z-40 font-lux-sans transition-[background-color,border-color] duration-500", solid ? "border-b border-ivory/10 bg-noir/85 backdrop-blur-xl" : "border-b border-transparent")}>
+    <header className={cx("fixed inset-x-0 top-0 z-40 font-lux-sans transition-[background-color,border-color] duration-500", solid ? "border-b border-ivory/10 bg-noir/85 backdrop-blur-xl" : "border-b border-transparent")}>
       <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-6 px-5 sm:px-8">
         <a href={HOME} aria-label="Luma — início">
           <Wordmark />
@@ -576,7 +575,7 @@ const FAQ = [
 
 export function PlansSection({ standalone = false }: { standalone?: boolean }) {
   return (
-    <section id="planos" className={cx(FONTS, "relative scroll-mt-20 overflow-hidden bg-noir", standalone ? "pb-28 pt-40 sm:pb-40 sm:pt-48" : "border-t border-ivory/10 py-28 sm:py-40")}>
+    <section id="planos" className={cx("relative scroll-mt-20 overflow-hidden bg-noir", standalone ? "pb-28 pt-40 sm:pb-40 sm:pt-48" : "border-t border-ivory/10 py-28 sm:py-40")}>
       {standalone && <div aria-hidden className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(60%_80%_at_50%_0%,rgb(207_178_122/0.12),transparent)]" />}
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal className="mb-16 max-w-3xl">
@@ -661,7 +660,7 @@ function FinalCta() {
 export function Footer() {
   const wa = whatsappLink();
   return (
-    <footer className={cx(FONTS, "border-t border-ivory/10 bg-noir py-16 font-lux-sans text-ivory/60")}>
+    <footer className={cx("border-t border-ivory/10 bg-noir py-16 font-lux-sans text-ivory/60")}>
       <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr]">
         <div>
           <Wordmark />
@@ -714,7 +713,7 @@ export function Footer() {
 
 export function LandingPage() {
   return (
-    <div className={cx(FONTS, "bg-noir font-lux-sans text-ivory")}>
+    <div className="bg-noir font-lux-sans text-ivory">
       <Header overlay />
       <main>
         <Opening />
