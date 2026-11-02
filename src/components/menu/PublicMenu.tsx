@@ -1,7 +1,7 @@
 "use client";
 
-import "@fontsource-variable/cormorant/wght.css";
-import "@fontsource-variable/cormorant/wght-italic.css";
+import "@fontsource-variable/playfair-display/wght.css";
+import "@fontsource-variable/playfair-display/wght-italic.css";
 import "@fontsource-variable/montserrat/wght.css";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { formatBRL } from "@/lib/format";

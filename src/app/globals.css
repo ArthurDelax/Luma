@@ -2,7 +2,7 @@
 
 /* fontes do site (pacotes Fontsource, servidas pelo próprio site) */
 @theme inline {
-  --font-lux-serif: "Cormorant Variable", "Cormorant", Georgia, serif;
+  --font-lux-serif: "Playfair Display Variable", "Playfair Display", Georgia, serif;
   --font-lux-sans: "Montserrat Variable", "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 

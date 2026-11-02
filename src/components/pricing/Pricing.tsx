@@ -57,7 +57,7 @@ export function PricingCalculator() {
             ))}
           </div>
 
-          <p className="mt-6 flex flex-wrap items-end gap-1 font-lux-serif font-light leading-none">
+          <p className="mt-6 flex flex-wrap items-end gap-1 font-lux-serif font-normal leading-none">
             <span className="text-[4.8rem] tabular sm:text-[6.2rem]">{reais}</span>
             <span className="mb-2 text-2xl tabular sm:mb-3 sm:text-3xl">,{cents}</span>
             <span className="mb-2 ml-1 text-base font-medium tracking-normal text-ivory/55 sm:mb-3">{annual ? "por ano, à vista" : "/mês por loja"}</span>
@@ -147,7 +147,7 @@ export function PricingCalculator() {
               </li>
             ))}
           </ol>
-          <div className="mt-6 rounded-2xl border border-champagne/25 bg-champagne/[0.07] p-4 text-sm font-light leading-relaxed text-ivory/85">
+          <div className="mt-6 rounded-2xl border border-champagne/25 bg-champagne/[0.07] p-4 text-sm font-normal leading-relaxed text-ivory/85">
             <strong>Conta de cabeça:</strong> um app de delivery cobra comissão em cada pedido. Na Luma você paga {brl(PLAN_PRICE)} por mês, venda 10 ou 1.000 pedidos.
           </div>
         </div>
