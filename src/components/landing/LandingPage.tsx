@@ -163,11 +163,11 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
       {menu.render && (
         <nav data-state={menu.state} className="anim-drop border-t border-ivory/10 px-5 pb-6 pt-3 [transform-origin:top_center] lg:hidden">
           {links.map(([h, l]) => (
-            <a key={h} href={h} onClick={() => setOpen(false)} className="block border-b border-ivory/[0.07] py-4 font-lux-serif text-2xl text-ivory">
+            <a key={h} href={h} onClick={() => setOpen(false)} className="block border-b border-ivory/[0.07] py-4 font-lux-serif font-semibold text-2xl text-ivory">
               {l}
             </a>
           ))}
-          <a href={LOGIN} className="block py-4 font-lux-serif text-2xl text-ivory/70">
+          <a href={LOGIN} className="block py-4 font-lux-serif font-semibold text-2xl text-ivory/70">
             Entrar (lojas)
           </a>
           <CTA className="mt-3 w-full" to={PANEL}>
@@ -254,11 +254,11 @@ function Opening() {
               >
                 <Kicker>{l.kicker}</Kicker>
                 {i === 0 ? (
-                  <h1 className="mt-6 font-lux-serif text-[2.9rem] font-normal leading-[1.02] tracking-[-0.01em] text-ivory sm:text-[5.6rem]">{l.title}</h1>
+                  <h1 className="mt-6 font-lux-serif text-[2.9rem] font-semibold leading-[1.02] tracking-[-0.01em] text-ivory sm:text-[5.6rem]">{l.title}</h1>
                 ) : (
-                  <p className="mt-6 font-lux-serif text-[2.6rem] font-normal leading-[1.04] text-ivory sm:text-[4.8rem]">{l.title}</p>
+                  <p className="mt-6 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[4.8rem]">{l.title}</p>
                 )}
-                {l.text && <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/75 sm:text-base">{l.text}</p>}
+                {l.text && <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75 sm:text-base">{l.text}</p>}
                 {(i === 0 || i === OPENING.length - 1) && (
                   <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                     <CTA />
@@ -305,7 +305,7 @@ function Manifesto() {
       <div className="sticky top-0 flex h-[100svh] items-center">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <Kicker>Manifesto</Kicker>
-          <p ref={box} className="mt-8 font-lux-serif text-[2.1rem] font-normal leading-[1.18] text-ivory sm:text-[3.3rem] sm:leading-[1.1]" style={{ "--p": 0 } as CSSProperties}>
+          <p ref={box} className="mt-8 font-lux-serif text-[2.1rem] font-semibold leading-[1.18] text-ivory sm:text-[3.3rem] sm:leading-[1.1]" style={{ "--p": 0 } as CSSProperties}>
             {words.map((w, i) => (
               <span key={i} className="transition-opacity duration-200 motion-reduce:!opacity-100" style={{ opacity: `clamp(0.14, calc(var(--p) * ${words.length + 4} - ${i}), 1)` }}>
                 {w}{" "}
@@ -376,9 +376,9 @@ function Chapters() {
               <div className="relative mt-6 min-h-[250px] sm:min-h-[270px]">
                 {CHAPTERS.map((c, i) => (
                   <div key={c.n} className={cx("absolute inset-0 transition-all duration-700 ease-out", active === i ? "translate-y-0 opacity-100" : active > i ? "-translate-y-6 opacity-0" : "translate-y-6 opacity-0")} aria-hidden={active !== i}>
-                    <p className="font-lux-serif text-2xl italic text-champagne">Capítulo {c.n}</p>
-                    <h2 className="mt-3 font-lux-serif text-[2.3rem] font-normal leading-[1.06] text-ivory sm:text-[3.8rem]">{c.title}</h2>
-                    <p className="mt-5 max-w-md font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/75">{c.text}</p>
+                    <p className="font-lux-serif font-semibold text-2xl italic text-champagne">Capítulo {c.n}</p>
+                    <h2 className="mt-3 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">{c.title}</h2>
+                    <p className="mt-5 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75">{c.text}</p>
                   </div>
                 ))}
               </div>
@@ -470,10 +470,10 @@ function Experience() {
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Reveal>
             <Kicker>Experimente</Kicker>
-            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-normal leading-[1.06] text-ivory sm:text-[3.8rem]">
+            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">
               Prove antes de <em className="text-champagne">servir.</em>
             </h2>
-            <p className="mt-6 max-w-md font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/70">Este é um cardápio de verdade, funcionando aqui dentro. Escolha um lanche, monte a sacola e veja como o pedido sai.</p>
+            <p className="mt-6 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">Este é um cardápio de verdade, funcionando aqui dentro. Escolha um lanche, monte a sacola e veja como o pedido sai.</p>
           </Reveal>
           <div className="mt-14">
             <PhoneDemo />
@@ -482,17 +482,17 @@ function Experience() {
         <div>
           <Reveal>
             <Kicker>Recursos</Kicker>
-            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-normal leading-[1.05] text-ivory sm:text-[3.4rem]">Tudo o que um cardápio precisa para vender mais.</h2>
-            <p className="mt-5 max-w-lg font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/65">Para hamburguerias, pizzarias, restaurantes, cafés, açaí, marmitas e doceiras que vendem pelo WhatsApp.</p>
+            <h2 className="mt-6 font-lux-serif text-[2.4rem] font-semibold leading-[1.05] text-ivory sm:text-[3.4rem]">Tudo o que um cardápio precisa para vender mais.</h2>
+            <p className="mt-5 max-w-lg font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/65">Para hamburguerias, pizzarias, restaurantes, cafés, açaí, marmitas e doceiras que vendem pelo WhatsApp.</p>
           </Reveal>
           <ol className="mt-14 border-t border-ivory/10">
             {FEATURES.map(([t, d], i) => (
               <li key={t}>
                 <Reveal className="group grid grid-cols-[3.2rem_1fr] gap-x-4 border-b border-ivory/10 py-7 sm:grid-cols-[4.5rem_1fr]" delay={(i % 3) * 60}>
-                  <span className="font-lux-serif text-xl italic text-champagne/80">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="font-lux-serif font-semibold text-xl italic text-champagne/80">{String(i + 1).padStart(2, "0")}</span>
                   <div>
-                    <h3 className="font-lux-serif text-[1.65rem] font-normal leading-tight text-ivory transition-colors duration-300 group-hover:text-champagne-2">{t}</h3>
-                    <p className="mt-2 max-w-lg font-lux-sans text-[14px] font-normal leading-[1.75] text-ivory/60">{d}</p>
+                    <h3 className="font-lux-serif text-[1.65rem] font-semibold leading-tight text-ivory transition-colors duration-300 group-hover:text-champagne-2">{t}</h3>
+                    <p className="mt-2 max-w-lg font-lux-sans text-[14px] font-medium leading-[1.75] text-ivory/60">{d}</p>
                   </div>
                 </Reveal>
               </li>
@@ -514,11 +514,11 @@ function PanelSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-16 px-5 sm:px-8 lg:grid-cols-2">
         <Reveal>
           <Kicker>O painel</Kicker>
-          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-normal leading-[1.06] text-ivory sm:text-[3.7rem]">
+          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.7rem]">
             Você muda o cardápio <em className="text-champagne">em segundos.</em>
           </h2>
-          <p className="mt-6 max-w-md font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/70">Preço, foto, produto novo, bairro, horário. Salvou, está no ar. Pelo celular, sem pedir para ninguém e sem esperar.</p>
-          <ul className="mt-10 space-y-4 font-lux-sans text-[14px] font-normal text-ivory/80">
+          <p className="mt-6 max-w-md font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">Preço, foto, produto novo, bairro, horário. Salvou, está no ar. Pelo celular, sem pedir para ninguém e sem esperar.</p>
+          <ul className="mt-10 space-y-4 font-lux-sans text-[14px] font-medium text-ivory/80">
             {["Painel em português, simples para quem atende no balcão", "Prévia do cardápio antes de publicar", "Modelo pronto para começar rápido", "Equipe com acesso: administrador, editor e consulta"].map((t) => (
               <li key={t} className="flex items-center gap-4">
                 <span className="h-px w-6 shrink-0 bg-champagne" />
@@ -535,7 +535,7 @@ function PanelSection() {
             <div className="flex items-center gap-2.5 font-lux-sans text-[11px] uppercase tracking-[0.24em] text-ivory/60">
               <span className="size-2 rounded-full bg-[#7fd1a4] shadow-[0_0_12px_#7fd1a4]" /> Cardápio no ar
             </div>
-            <p className="mt-4 font-lux-serif text-2xl text-ivory sm:text-3xl">gestãoluma.com.br/c/?l=sua-loja</p>
+            <p className="mt-4 font-lux-serif font-semibold text-2xl text-ivory sm:text-3xl">gestãoluma.com.br/c/?l=sua-loja</p>
             <div className="mt-8 divide-y divide-ivory/[0.08] border-y border-ivory/[0.08]">
               {[
                 ["Smash Bacon Duplo", "R$ 34,90", true],
@@ -549,7 +549,7 @@ function PanelSection() {
                 </div>
               ))}
             </div>
-            <p className="mt-6 font-lux-sans text-[13px] font-normal text-ivory/55">Funciona no celular e no computador, sem instalar nada.</p>
+            <p className="mt-6 font-lux-sans text-[13px] font-medium text-ivory/55">Funciona no celular e no computador, sem instalar nada.</p>
           </div>
         </Reveal>
       </div>
@@ -581,15 +581,15 @@ export function PlansSection({ standalone = false }: { standalone?: boolean }) {
         <Reveal className="mb-16 max-w-3xl">
           <Kicker>Planos</Kicker>
           {standalone ? (
-            <h1 className="mt-6 font-lux-serif text-[2.6rem] font-normal leading-[1.04] text-ivory sm:text-[4.6rem]">
+            <h1 className="mt-6 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[4.6rem]">
               Um plano, um preço, <em className="text-champagne">sem comissão.</em>
             </h1>
           ) : (
-            <h2 className="mt-6 font-lux-serif text-[2.3rem] font-normal leading-[1.06] text-ivory sm:text-[3.8rem]">
+            <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.8rem]">
               Um plano, um preço, <em className="text-champagne">sem comissão.</em>
             </h2>
           )}
-          <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/70">R$ 119,90 por mês por loja, com tudo incluído, ou o anual com 2 meses grátis. A gente monta o seu cardápio e os pedidos são todos seus.</p>
+          <p className="mt-6 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/70">R$ 119,90 por mês por loja, com tudo incluído, ou o anual com 2 meses grátis. A gente monta o seu cardápio e os pedidos são todos seus.</p>
         </Reveal>
         <PricingCalculator />
       </div>
@@ -604,10 +604,10 @@ function Faq() {
       <div className="mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal>
           <Kicker>Perguntas</Kicker>
-          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-normal leading-[1.06] text-ivory sm:text-[3.7rem]">
+          <h2 className="mt-6 font-lux-serif text-[2.3rem] font-semibold leading-[1.06] text-ivory sm:text-[3.7rem]">
             O que todo mundo <em className="text-champagne">pergunta.</em>
           </h2>
-          <p className="mt-6 font-lux-sans text-[15px] font-normal text-ivory/60">Preço, pedidos, pagamento e como começar.</p>
+          <p className="mt-6 font-lux-sans text-[15px] font-medium text-ivory/60">Preço, pedidos, pagamento e como começar.</p>
         </Reveal>
         <div className="border-t border-ivory/10">
           {FAQ.map(([q, a], i) => {
@@ -615,11 +615,11 @@ function Faq() {
             return (
               <div key={q} className="border-b border-ivory/10">
                 <button className="flex w-full items-center justify-between gap-6 py-6 text-left" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
-                  <span className={cx("font-lux-serif text-[1.45rem] leading-snug transition-colors duration-300 sm:text-[1.7rem]", isOpen ? "text-champagne-2" : "text-ivory")}>{q}</span>
+                  <span className={cx("font-lux-serif font-semibold text-[1.45rem] leading-snug transition-colors duration-300 sm:text-[1.7rem]", isOpen ? "text-champagne-2" : "text-ivory")}>{q}</span>
                   <span className="grid size-9 shrink-0 place-items-center rounded-full border border-ivory/20 text-ivory/70">{isOpen ? <LuMinus className="size-4" /> : <LuPlus className="size-4" />}</span>
                 </button>
                 <div className={cx("grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-                  <p className="overflow-hidden pr-12 font-lux-sans text-[14.5px] font-normal leading-[1.85] text-ivory/65">
+                  <p className="overflow-hidden pr-12 font-lux-sans text-[14.5px] font-medium leading-[1.85] text-ivory/65">
                     <span className="block pb-7">{a}</span>
                   </p>
                 </div>
@@ -642,10 +642,10 @@ function FinalCta() {
       <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-noir via-transparent to-noir" />
       <Reveal className="relative mx-auto max-w-5xl px-5 text-center sm:px-8">
         <Kicker>A mesa está posta</Kicker>
-        <h2 className="mt-8 font-lux-serif text-[2.6rem] font-normal leading-[1.04] text-ivory sm:text-[5rem]">
+        <h2 className="mt-8 font-lux-serif text-[2.6rem] font-semibold leading-[1.04] text-ivory sm:text-[5rem]">
           Seu cardápio no ar <em className="text-champagne">ainda esta semana.</em>
         </h2>
-        <p className="mx-auto mt-8 max-w-xl font-lux-sans text-[15px] font-normal leading-[1.8] text-ivory/75">Veja o exemplo funcionando, teste o painel e fale com a gente para montar o cardápio da sua loja.</p>
+        <p className="mx-auto mt-8 max-w-xl font-lux-sans text-[15px] font-medium leading-[1.8] text-ivory/75">Veja o exemplo funcionando, teste o painel e fale com a gente para montar o cardápio da sua loja.</p>
         <div className="mt-12 flex flex-col justify-center gap-3 sm:flex-row">
           <CTA />
           <CTA to={PLANS} variant="line">
@@ -664,12 +664,12 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr]">
         <div>
           <Wordmark />
-          <p className="mt-5 max-w-xs font-lux-serif text-xl italic text-ivory/80">Cardápio digital com pedido no WhatsApp.</p>
-          <p className="mt-5 max-w-sm text-[12px] font-normal leading-relaxed text-ivory/40">O cardápio de exemplo usa uma loja fictícia; o pedido de teste abre o WhatsApp de um número fictício.</p>
+          <p className="mt-5 max-w-xs font-lux-serif font-semibold text-xl italic text-ivory/80">Cardápio digital com pedido no WhatsApp.</p>
+          <p className="mt-5 max-w-sm text-[12px] font-medium leading-relaxed text-ivory/40">O cardápio de exemplo usa uma loja fictícia; o pedido de teste abre o WhatsApp de um número fictício.</p>
         </div>
         <div>
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-champagne">Produto</p>
-          <ul className="mt-5 space-y-3 text-[13.5px] font-normal">
+          <ul className="mt-5 space-y-3 text-[13.5px] font-medium">
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#recursos`}>Recursos</a></li>
             <li><a className="transition-colors hover:text-ivory" href={DEMO}>Cardápio de exemplo</a></li>
             <li><a className="transition-colors hover:text-ivory" href={PANEL}>Painel de demonstração</a></li>
@@ -678,7 +678,7 @@ export function Footer() {
         </div>
         <div>
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-champagne">Ajuda</p>
-          <ul className="mt-5 space-y-3 text-[13.5px] font-normal">
+          <ul className="mt-5 space-y-3 text-[13.5px] font-medium">
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#como-funciona`}>Como funciona</a></li>
             <li><a className="transition-colors hover:text-ivory" href={`${HOME}#perguntas`}>Perguntas frequentes</a></li>
             <li><a className="transition-colors hover:text-ivory" href={LOGIN}>Entrar (lojas)</a></li>
