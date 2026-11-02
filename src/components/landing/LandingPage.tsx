@@ -30,13 +30,17 @@ function CTA({ children = "Ver cardápio de exemplo", to = DEMO, variant = "soli
     <a
       href={to}
       className={cx(
-        "group inline-flex h-[52px] items-center justify-center gap-3 whitespace-nowrap rounded-full px-7 font-lux-sans text-[11.5px] font-semibold uppercase tracking-[0.2em] transition-colors duration-300",
-        variant === "solid" ? "bg-champagne text-noir hover:bg-champagne-2" : "border border-ivory/30 text-ivory hover:border-ivory hover:bg-ivory/5",
+        "group inline-flex h-14 items-center justify-center gap-4 whitespace-nowrap rounded-full border-2 pl-7 pr-2 font-lux-sans text-[12px] font-bold uppercase tracking-[0.18em] transition-colors duration-300",
+        variant === "solid"
+          ? "border-champagne bg-[linear-gradient(180deg,#e6d3a8,#cfb27a)] text-noir shadow-[0_14px_34px_-14px_rgb(207_178_122/0.7)] hover:bg-none hover:bg-champagne-2"
+          : "border-champagne text-champagne hover:bg-champagne/10",
         className,
       )}
     >
       {children}
-      <LuArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+      <span className={cx("grid size-10 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-0.5", variant === "solid" ? "bg-noir text-champagne" : "bg-champagne text-noir")}>
+        <LuArrowRight className="size-[18px]" strokeWidth={2.75} />
+      </span>
     </a>
   );
 }
@@ -168,12 +172,12 @@ export function Header({ overlay = false }: { overlay?: boolean }) {
         <a href={LOGIN} className="ml-auto hidden text-[11px] font-semibold uppercase tracking-[0.22em] text-ivory/90 transition-colors hover:text-ivory sm:inline">
           Entrar
         </a>
-        <a href={PANEL} className="hidden h-10 items-center rounded-full border border-champagne/60 px-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-champagne transition-colors duration-300 hover:bg-champagne hover:text-noir sm:inline-flex">
+        <a href={PANEL} className="hidden h-11 items-center rounded-full border-2 border-champagne px-6 text-[11.5px] font-bold uppercase tracking-[0.2em] text-champagne transition-colors duration-300 hover:bg-champagne hover:text-noir sm:inline-flex">
           Testar o painel
         </a>
         <button className="relative ml-auto grid size-11 place-items-center rounded-full text-ivory sm:ml-0 lg:hidden" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          <LuMenu className={cx("absolute size-6 transition-all duration-300", open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100")} />
-          <LuX className={cx("absolute size-6 transition-all duration-300", open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0")} />
+          <LuMenu strokeWidth={2.5} className={cx("absolute size-6 transition-all duration-300", open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100")} />
+          <LuX strokeWidth={2.5} className={cx("absolute size-6 transition-all duration-300", open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0")} />
         </button>
       </div>
       {menu.render && (
@@ -636,7 +640,7 @@ function Faq() {
               <div key={q} className="border-b border-ivory/10">
                 <button className="flex w-full items-center justify-between gap-6 py-6 text-left" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
                   <span className={cx("font-lux-serif font-bold text-[1.45rem] leading-snug transition-colors duration-300 sm:text-[1.7rem]", isOpen ? "text-champagne-2" : "text-ivory")}>{q}</span>
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-ivory/20 text-ivory/90">{isOpen ? <LuMinus className="size-4" /> : <LuPlus className="size-4" />}</span>
+                  <span className={cx("grid size-11 shrink-0 place-items-center rounded-full border-2 border-champagne transition-colors duration-300", isOpen ? "bg-champagne text-noir" : "text-champagne")}>{isOpen ? <LuMinus className="size-5" strokeWidth={2.75} /> : <LuPlus className="size-5" strokeWidth={2.75} />}</span>
                 </button>
                 <div className={cx("grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
                   <p className="overflow-hidden pr-12 font-lux-sans text-[14.5px] font-semibold leading-[1.85] text-ivory/65">
@@ -726,7 +730,7 @@ export function Footer() {
         </a>
       </div>
       <div className="fixed bottom-5 right-5 z-40 print:hidden">
-        <HelpButton variant="pill" className="border border-champagne/40 bg-noir-3! font-lux-sans text-[11px]! uppercase tracking-[0.18em] text-champagne!" />
+        <HelpButton variant="pill" className="border-2 border-champagne [&_svg]:[stroke-width:2.5] bg-noir-3! font-lux-sans text-[11.5px]! font-bold! uppercase tracking-[0.18em] text-champagne!" />
       </div>
     </footer>
   );

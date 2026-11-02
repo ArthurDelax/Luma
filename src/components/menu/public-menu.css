@@ -509,3 +509,10 @@
 .cm .toast { color: var(--bg); }
 .cm .hero-copy { opacity: calc(1 - var(--hp) * 2.4); }
 .cm .pill-tag { color: color-mix(in srgb, var(--accent) 55%, #fff); }
+
+/* botões de toque encorpados: "+" em círculo dourado, contornos mais grossos e ícones com traço firme */
+.cm svg { stroke-width: 2.4; }
+.cm .plus { border-radius: 99px; background: var(--champagne); color: #0b0a08; box-shadow: 0 8px 20px -8px rgba(207, 178, 122, 0.6); }
+.cm .icon-btn, .cm .close { border-radius: 99px; border: 2px solid rgba(207, 178, 122, 0.6); }
+.cm .thumb .add { border-radius: 99px; background: var(--champagne); color: #0b0a08; box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.7); }
+.cm .box { border-color: rgba(207, 178, 122, 0.7); }
